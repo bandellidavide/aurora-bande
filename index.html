@@ -1,0 +1,2668 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora Bande</title>
+<link rel="icon" type="image/jpeg" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wgARCABAAEADASIAAhEBAxEB/8QAGwAAAgIDAQAAAAAAAAAAAAAABAUDBgACBwH/xAAYAQADAQEAAAAAAAAAAAAAAAABAgMABP/aAAwDAQACEAMQAAABT9S5v1XnmOgNRS5xZhd2ZxHH6s1HS6BfqdNVVs1hAme6hCpl8izY3Sn242rC1quZg4yoRMbWWEh9aaZZ0oEscp20I5AuXWKbMv8A/8QAJBAAAQMDAwUBAQAAAAAAAAAAAQACAwQRIRASIwUiMTJBMzT/2gAIAQEAAQUCjF5KNloJMGrl3FxVOe56+UzbzwjbFWS5kKcojYl2PlA29R4jn9nopq3IOx0xvM71m8uR0ug7HTRaZ3pMnKyKKuqH+h/5zIqyKKKozaZ7uOYYRR0IVO7ka7cJx2FFE6Ff/8QAHREAAgEFAQEAAAAAAAAAAAAAAAECAxARITIgMf/aAAgBAwEBPwGruWBRJLVpduzME+vFT6Idv//EAB0RAAIBBAMAAAAAAAAAAAAAAAABEAIRICExMkL/2gAIAQIBAT8Be6yw1qF3Y4sesKuRT//EABsQAQACAgMAAAAAAAAAAAAAAAEAIBARMECB/9oACAEBAAY/AiE3YhNFjDwN2/kev//EAB4QAAICAwADAQAAAAAAAAAAAAABESEQMWFBcYFR/9oACAEBAAE/IYV0+dIK6KZaWKIPMDYjvT4kbeJRsbIhODPBweXdGxeGa4Eqs2+sitipjx0ANdwTYlDCYUKoHj1CUxaGVEEJF8JI/pdGqFwaxMUyBLBQei4kWT//2gAMAwEAAgADAAAAEGCWCloa86VG7FEoCf/EABwRAAMAAQUAAAAAAAAAAAAAAAABESEQMUFRkf/aAAgBAwEBPxB4dEUd1D+CGjYMYOy4Gciyh6hCZP/EABsRAAICAwEAAAAAAAAAAAAAAAABECERMWGh/9oACAECAQE/EHo4XcBDeAlj1HTscIrkNlQnZ//EAB0QAAMBAQEBAQEBAAAAAAAAAAABESExQWEQUbH/2gAIAQEAAT8QZ/bQQrAjlFKG1NGWffxNy+HkM+8i0pIpwQk9HM6zQ1ead8bFnOMakni/4NdP0WtG02fouVEvooi4xsPENv8ArEtKR+ZifRuKJRnVSX0DQ7i7bGoXRMrQqU/gohqFWIJ4P3C/g9MQ0fhCoHqIiw5PpBMWtl3CL4LCvpE2kWflsIaIbREf/9k=">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+<script>
+// Se cdnjs viene bloccato (rete aziendale, antivirus, DNS, offline) si riprova subito con jsDelivr.
+// document.write qui e' sincrono: le librerie restano disponibili prima dello script principale.
+if(!window.Chart) document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"><\/scr'+'ipt>');
+if(!window.SunCalc) document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"><\/scr'+'ipt>');
+</script>
+<style>
+  :root{
+    --bg:#05070d;
+    --panel:#0d1220;
+    --panel-2:#111830;
+    --border:#232c47;
+    --text:#e8ecf7;
+    --muted:#8b93ad;
+    --green:#3ddc97;
+    --green-glow:rgba(61,220,151,.35);
+    --pink:#ef7ad0;
+    --purple:#9d7bff;
+    --amber:#ffc85e;
+    --red:#ff6b6b;
+    --blue:#5ec8ff;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+    position:relative;
+    overflow-x:hidden;
+  }
+  /* aurora glow background */
+  .aurora-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  }
+  .aurora-bg span{
+    position:absolute; border-radius:50%; filter:blur(80px); opacity:.28;
+    animation: drift 22s ease-in-out infinite alternate;
+  }
+  .aurora-bg span:nth-child(1){ width:520px;height:520px; background:var(--green); top:-180px; left:-100px; animation-delay:0s;}
+  .aurora-bg span:nth-child(2){ width:480px;height:480px; background:var(--purple); top:-120px; right:-140px; animation-delay:4s;}
+  .aurora-bg span:nth-child(3){ width:420px;height:420px; background:var(--pink); bottom:-200px; left:20%; animation-delay:8s;}
+  @keyframes drift{
+    0%{ transform:translate(0,0) scale(1);}
+    100%{ transform:translate(40px,60px) scale(1.15);}
+  }
+  .wrap{ position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 18px; }
+
+  .hero{
+    position:relative;
+    min-height:180px;
+    background-image:linear-gradient(to bottom, rgba(5,7,13,.15) 0%, rgba(5,7,13,.55) 55%, rgba(5,7,13,.96) 100%), url("data:image/jpeg;base64,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");
+    background-size:cover;
+    background-position:center 45%;
+    display:flex; align-items:flex-end;
+  }
+  .hero-inner{
+    max-width:1180px; margin:0 auto; width:100%;
+    padding:0 18px 16px;
+    display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .hero-title{ font-size:2rem; font-weight:700; letter-spacing:.4px; line-height:1.1; }
+  .hero-sub{ font-size:.8rem; color:#b9c2d6; margin-top:4px; }
+  .hero-ig{
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:.78rem; text-decoration:none; color:#e8ecf7;
+    background:rgba(13,18,32,.72); border:1px solid var(--border);
+    padding:7px 13px; border-radius:999px; white-space:nowrap;
+  }
+  .hero-ig:hover{ border-color:var(--green); color:var(--green); }
+  .hero-credit{ position:absolute; top:8px; right:14px; font-size:.62rem; color:rgba(232,236,247,.55); }
+  @media(max-width:560px){
+    .hero{ min-height:140px; }
+    .hero-title{ font-size:1.45rem; }
+  }
+  header{
+    position:sticky; top:0; z-index:5;
+    backdrop-filter:blur(14px);
+    background:rgba(5,7,13,.75);
+    border-bottom:1px solid var(--border);
+    padding:14px 18px;
+  }
+  .header-inner{ max-width:1180px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:12px; justify-content:space-between; }
+  .title{ display:flex; align-items:center; gap:10px; }
+  .title h1{ font-size:1.25rem; margin:0; font-weight:700; letter-spacing:.2px; }
+  .title small{ display:block; color:var(--muted); font-size:.75rem; font-weight:400; }
+  .controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .btn{
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:8px 14px; border-radius:10px; cursor:pointer; font-size:.85rem;
+    display:flex; align-items:center; gap:6px; transition:.15s;
+  }
+  .btn:hover{ border-color:var(--green); box-shadow:0 0 12px var(--green-glow); }
+  .btn.active{ border-color:var(--green); color:var(--green); }
+  select, input[type=number], input[type=text]{
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:7px 10px; border-radius:10px; font-size:.85rem;
+  }
+  #lastUpdate{ font-size:.72rem; color:var(--muted); }
+
+  section{ margin-top:26px; }
+  h2{ font-size:1.02rem; margin:0 0 12px; display:flex; align-items:center; gap:8px; color:var(--text); }
+  h2 .tag{ font-size:.68rem; color:var(--muted); font-weight:400; }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+  .card{
+    background:linear-gradient(160deg,var(--panel),var(--panel-2));
+    border:1px solid var(--border); border-radius:16px; padding:16px;
+    position:relative; overflow:hidden;
+  }
+  .card .label{ font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;}
+  .card .value{ font-size:1.7rem; font-weight:700; line-height:1.1; }
+  .card .unit{ font-size:.85rem; color:var(--muted); font-weight:400; margin-left:4px;}
+  .card .sub{ font-size:.72rem; color:var(--muted); margin-top:6px; }
+  .pill{
+    display:inline-block; margin-top:8px; padding:3px 10px; border-radius:999px;
+    font-size:.68rem; font-weight:600; letter-spacing:.3px;
+  }
+  .pill.good{ background:rgba(61,220,151,.15); color:var(--green); border:1px solid rgba(61,220,151,.4);}
+  .pill.bad{ background:rgba(255,107,107,.12); color:var(--red); border:1px solid rgba(255,107,107,.35);}
+  .pill.neutral{ background:rgba(139,147,173,.12); color:var(--muted); border:1px solid var(--border);}
+  .pill.warn{ background:rgba(255,200,94,.14); color:var(--amber); border:1px solid rgba(255,200,94,.4);}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px;
+  }
+  .imgpanel img{ width:100%; border-radius:12px; display:block; background:#000; }
+  .imgpanel .cap{ font-size:.72rem; color:var(--muted); margin-top:8px; }
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:760px){ .two-col{ grid-template-columns:1fr; } }
+
+  .loc-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+  .suggest-item{ padding:10px 12px; cursor:pointer; font-size:.85rem; border-bottom:1px solid var(--border); }
+  .suggest-item:last-child{ border-bottom:none; }
+  .suggest-item:hover{ background:rgba(157,123,255,.15); }
+  .suggest-item small{ display:block; color:var(--muted); font-size:.7rem; margin-top:2px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:.82rem; }
+  th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); }
+  th{ color:var(--muted); font-weight:600; font-size:.72rem; text-transform:uppercase; }
+
+  details{ background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px 16px; }
+  summary{ cursor:pointer; font-weight:600; font-size:.9rem; }
+  pre{ white-space:pre-wrap; font-size:.78rem; color:var(--muted); line-height:1.5; margin-top:10px; max-height:420px; overflow:auto;}
+
+  .linkgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
+  .linkcard{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px 16px;
+    text-decoration:none; color:var(--text); display:block; transition:.15s;
+  }
+  .linkcard:hover{ border-color:var(--purple); box-shadow:0 0 14px rgba(157,123,255,.25); }
+  .linkcard .lc-title{ font-weight:600; font-size:.9rem; margin-bottom:3px; }
+  .linkcard .lc-desc{ font-size:.75rem; color:var(--muted); }
+  .group-label{ font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:var(--purple); margin:18px 0 8px; }
+
+  .alertitem{ padding:10px 0; border-bottom:1px solid var(--border); font-size:.8rem; }
+  .alertitem:last-child{ border-bottom:none; }
+  .alertitem .a-id{ color:var(--amber); font-weight:600; margin-right:8px; }
+  .alertitem .a-time{ color:var(--muted); font-size:.7rem; }
+
+  footer{ text-align:center; color:var(--muted); font-size:.72rem; margin-top:50px; padding:0 18px; }
+  .spinner{ display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+  .err{ color:var(--muted); font-size:.72rem; }
+  a{ color:var(--blue); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-credit">foto © Davide Bandelli</div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-title">Aurora Bande</div>
+      <div class="hero-sub">Caccia all’aurora boreale — tutti i dati che servono, in tempo reale</div>
+    </div>
+    <a class="hero-ig" href="https://www.instagram.com/davidebandelli/" target="_blank" rel="noopener">📷 @davidebandelli — seguimi</a>
+  </div>
+</div>
+
+
+<div class="aurora-bg"><span></span><span></span><span></span></div>
+
+<header>
+  <div class="header-inner">
+    <div class="title">
+      <div>
+        <h1 style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <img src="data:image/jpeg;base64,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" alt="" width="40" height="40" style="border-radius:9px; flex:0 0 auto; box-shadow:0 0 0 1px #1d2740;">
+          <span>Aurora Bande</span>
+          <span style="font-size:.5em; color:var(--green); border:1px solid var(--green); border-radius:6px; padding:2px 7px; white-space:nowrap;">v10</span>
+        </h1>
+        <small>Monitoraggio in tempo reale &middot; dati NOAA SWPC</small>
+      </div>
+    </div>
+    <div class="controls">
+      <a href="https://www.instagram.com/davidebandelli/" target="_blank" rel="noopener"
+         style="display:inline-flex; align-items:center; gap:6px; font-size:.75rem; text-decoration:none; color:#e8ecf7; border:1px solid var(--border); border-radius:999px; padding:5px 12px; white-space:nowrap;"
+         onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.color='#e8ecf7'">📷 @davidebandelli</a>
+      <span id="lastUpdate">Caricamento...</span>
+      <span id="countdown" class="sub" style="color:var(--muted); font-size:.72rem;"></span>
+      <button class="btn" id="refreshBtn">↻ Aggiorna</button>
+      <button class="btn active" id="autoBtn">⏱ Auto: ON</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section id="locationSection">
+    <div class="panel">
+      <div class="loc-row">
+        <div style="position:relative; flex:1 1 260px; min-width:220px;">
+          <input type="text" id="placeSearch" placeholder="🔍 Scrivi il nome di un posto e premi Invio (es. Kiruna, Senja, Lofoten)" style="width:100%;" autocomplete="off">
+          <div id="placeSuggestions" style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--panel-2); border:1px solid var(--border); border-radius:10px; z-index:60; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.55);"></div>
+        </div>
+        <button class="btn" id="placeSearchBtn">🔍 Cerca</button>
+        <select id="locPreset">
+          <option value="custom">Preferiti...</option>
+          <option value="45.46,9.19,Milano,Italia">Milano, Italia</option>
+          <option value="69.65,18.96,Tromsø,Norvegia" selected>Tromsø, Norvegia</option>
+          <option value="64.13,-21.90,Reykjavík,Islanda">Reykjavík, Islanda</option>
+          <option value="66.50,25.73,Rovaniemi,Finlandia">Rovaniemi, Finlandia</option>
+          <option value="68.35,18.79,Abisko,Svezia">Abisko, Svezia</option>
+          <option value="64.84,-147.72,Fairbanks,Alaska">Fairbanks, Alaska</option>
+          <option value="62.00,-6.79,Isole Fær Øer,Danimarca">Isole Fær Øer</option>
+        </select>
+        <button class="btn" id="geoBtn">📡 Usa la mia posizione</button>
+        <button class="btn" id="advToggle">⚙️ coordinate manuali</button>
+      </div>
+      <div class="loc-row" id="advRow" style="display:none;">
+        <input type="number" id="latInput" step="0.01" placeholder="Latitudine" style="width:130px;">
+        <input type="number" id="lonInput" step="0.01" placeholder="Longitudine" style="width:130px;">
+        <button class="btn" id="applyManualBtn">Applica</button>
+      </div>
+      <div id="placeLabel" style="font-size:.85rem; color:var(--text); margin-top:4px;">📍 caricamento posizione...</div>
+    </div>
+  </section>
+  <section>
+    <div class="panel" style="text-align:center; padding:28px 20px;">
+      <div style="font-size:2.4rem; line-height:1;" id="overviewEmoji">🔮</div>
+      <div style="font-size:1.3rem; font-weight:700; margin-top:8px;" id="overviewVerdict">Caricamento vista d'insieme...</div>
+      <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;" id="overviewChips"></div>
+      <div class="cap" style="margin-top:14px;">Sintesi di cielo, buio, Bz/Bt, velocità vento solare, Kp, OVATION e luna per la posizione scelta sopra — i dettagli sono nelle sezioni sotto</div>
+    </div>
+  </section>
+  <section>
+    <h2>📍 Probabilità aurora nella posizione scelta <span class="tag">modello OVATION, aggiornato ogni ~30 min</span></h2>
+    <div class="panel">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+        <div class="card">
+          <div class="label">Probabilità stimata</div>
+          <div class="value" id="ovationVal">–<span class="unit">/ 7</span></div>
+          <div class="sub" id="ovationLabel">in attesa dei dati...</div>
+        </div>
+        <div class="card">
+          <div class="label">Osservazione modello</div>
+          <div class="value" style="font-size:1.05rem;" id="ovationTime">–</div>
+          <div class="sub">orario UTC dell'ultima elaborazione OVATION</div>
+        </div>
+        <div class="card">
+          <div class="label">Zona geomagnetica (stima)</div>
+          <div class="value" id="zoneVal" style="font-size:1.05rem;">–</div>
+          <div class="sub">in base alla latitudine geografica</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2>🧲 Campo magnetico interplanetario (IMF) <span class="tag">Bt / Bz / Bx / By in tempo reale</span></h2>
+    <div class="panel">
+      <div class="loc-row" style="justify-content:space-between;">
+        <div>
+          <span style="font-size:.9rem;">Bt attuale: <strong id="imfCurrentBt">–</strong> nT &nbsp;&middot;&nbsp; Bz attuale: <strong id="imfCurrentBz">–</strong></span>
+          <div class="cap" id="imfStatus">caricamento...</div>
+        </div>
+        <div class="loc-row" style="gap:8px;">
+          <select id="satSource">
+            <option value="ALL" selected>Tutti i satelliti</option>
+          </select>
+          <select id="imfInterval">
+            <option value="2" selected>2 ore</option>
+            <option value="4">4 ore</option>
+            <option value="6">6 ore</option>
+            <option value="12">12 ore</option>
+            <option value="24">24 ore</option>
+          </select>
+        </div>
+      </div>
+      <canvas id="imfChart" height="220"></canvas>
+      <div class="loc-row" style="margin-top:12px; margin-bottom:0;">
+        <button class="btn active imf-toggle" data-key="bt" style="border-color:#ffffff;">● Bt</button>
+        <button class="btn active imf-toggle" data-key="bz_gsm" style="border-color:#ff6b6b;">● Bz</button>
+        <button class="btn imf-toggle" data-key="bx_gsm" style="border-color:#5ec8ff;">● Bx</button>
+        <button class="btn imf-toggle" data-key="by_gsm" style="border-color:#ffd93d;">● By</button>
+      </div>
+      <div class="cap" id="imfSourceLegend" style="margin-top:8px;"></div>
+      <div class="cap" style="margin-top:2px;">
+        Il <strong>colore</strong> dice quale grandezza (Bt bianco, Bz rosso, Bx azzurro, By giallo); il <strong>tratto</strong> dice quale satellite.
+        La linea <strong>piena e spessa</strong> è il satellite che NOAA usa come riferimento ufficiale: è quella su cui decidere.
+        Le linee sottili e sbiadite sono gli altri satelliti a L1, utili solo come controprova: se dicono tutti la stessa cosa il dato è solido, se divergono vai cauto.
+        Bx/By spenti di default per non affollare il grafico.
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2>⏱ Episodi di Bz sud <span class="tag">quando arriva sulla Terra quello che vedi adesso a L1</span></h2>
+    <div class="panel">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); margin-bottom:14px;">
+        <div class="card">
+          <div class="label">Bz adesso</div>
+          <div class="value" id="bzNowState" style="font-size:1.05rem;">–</div>
+          <div class="sub" id="bzNowSub">stato del campo magnetico al satellite di riferimento</div>
+        </div>
+        <div class="card">
+          <div class="label">Prossimo arrivo sulla Terra</div>
+          <div class="value" id="bzCountdown" style="font-size:1.3rem;">–</div>
+          <div class="sub" id="bzCountdownSub">stima basata sulla velocità del vento solare misurata</div>
+        </div>
+        <div class="card">
+          <div class="label">Carica accumulata</div>
+          <div class="value" id="bzCharge" style="font-size:1.1rem;">–</div>
+          <div class="sub">quanta energia ha già trasferito questo episodio — conta più del picco istantaneo</div>
+        </div>
+      </div>
+
+      <div id="bzEpisodeList"></div>
+
+      <div class="cap" style="margin-top:12px;">
+        <strong>Come funziona.</strong> Ogni volta che il Bz scende sotto zero al punto L1 parte un «episodio». Quel pezzo di vento solare
+        impiega circa 1,5 milioni di km diviso la sua velocità per arrivare qui: da ~30 minuti se corre a 700 km/s a ~80 minuti se è lento.
+        L’orario indicato è quando quel materiale <em>colpisce</em> la magnetosfera. Precisione realistica: <strong>±10-15 minuti</strong>,
+        perché il vento rallenta attraversando l’onda d’urto e i satelliti non stanno esattamente sulla linea Sole-Terra.
+        <br><br>
+        <strong>Poi però serve pazienza.</strong> All’arrivo l’aurora si accende piano — un arco fermo sull’orizzonte. Perché scatti la
+        <em>substorm</em> (raggi verticali, movimento, bordi viola) la coda della magnetosfera deve caricarsi per altri
+        <strong>30-60 minuti di Bz costantemente negativo</strong>. Per questo <strong>la durata conta più del picco</strong>:
+        mezz’ora a −8 nT vale molto più di due minuti a −20 nT. Le fasce rosse sul grafico qui sopra sono proprio questi episodi.
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2>Colpo d'occhio <span class="tag">condizioni attuali del vento solare e dell'attività geomagnetica</span></h2>
+    <p style="font-size:.72rem; color:var(--muted); margin:-6px 0 12px;">
+      Nota onesta: i satelliti (ACE/DSCOVR) e la NOAA pubblicano questi valori con cadenza reale di circa <strong>1 minuto</strong> — non esiste un flusso pubblico "al secondo" per vento solare/Kp, quindi questa pagina interroga la fonte ogni 60 secondi, il massimo che ha davvero senso.
+    </p>
+    <div class="grid" id="statGrid">
+      <!-- cards injected by JS -->
+    </div>
+  </section>
+  <section>
+    <h2>💨 Vento solare — velocità e densità</h2>
+    <div class="panel">
+      <div class="loc-row" style="justify-content:space-between;">
+        <div>
+          <span style="font-size:.9rem;">Velocità: <strong id="plasmaSpeed">–</strong> km/s &nbsp;&middot;&nbsp; Densità: <strong id="plasmaDensity">–</strong> p/cm³</span>
+          <div class="cap" id="plasmaStatus">caricamento...</div>
+        </div>
+      </div>
+      <div id="propagationBanner" class="pill good" style="display:none; margin-bottom:12px; font-size:.78rem; padding:8px 14px;"></div>
+      <canvas id="plasmaChart" height="200"></canvas>
+      <div class="loc-row" style="margin-top:12px; margin-bottom:0;">
+        <button class="btn active plasma-toggle" data-key="speed" style="border-color:#5ec8ff;">● Velocità</button>
+        <button class="btn active plasma-toggle" data-key="density" style="border-color:#ffd93d;">● Densità</button>
+      </div>
+      <div class="cap" id="plasmaSourceLegend" style="margin-top:8px;"></div>
+      <div class="cap" style="margin-top:2px;">Stessi satelliti e stessa fascia oraria/selezione scelti sopra nel grafico del campo magnetico.</div>
+    </div>
+  </section>
+  <section>
+    <h2>⚡ Potenza dell’ovale aurorale <span class="tag">quanta energia sta entrando nell’atmosfera adesso</span></h2>
+    <div class="panel">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin-bottom:14px;">
+        <div class="card">
+          <div class="label">Potenza emisfero nord</div>
+          <div class="value" id="hpNorth">–<span class="unit">GW</span></div>
+          <div class="sub" id="hpNorthLabel">in attesa del dato</div>
+        </div>
+        <div class="card">
+          <div class="label">Tendenza ultime 3 ore</div>
+          <div class="value" id="hpTrend" style="font-size:1.1rem;">–</div>
+          <div class="sub">se sale, l’aurora si sta rinforzando proprio ora</div>
+        </div>
+        <div class="card">
+          <div class="label">Validità del dato</div>
+          <div class="value" id="hpTime" style="font-size:1.05rem;">–</div>
+          <div class="sub">previsione a ~30 minuti del modello OVATION</div>
+        </div>
+      </div>
+      <canvas id="hpChart" height="110"></canvas>
+      <div class="cap" style="margin-top:10px;">
+        <strong>Cosa significa.</strong> È la potenza totale, in gigawatt, che le particelle solari stanno depositando nell’ovale aurorale dell’emisfero nord.
+        A differenza del Kp (media globale su 3 ore) questo valore si aggiorna ogni 5 minuti, quindi dice davvero <em>cosa sta succedendo adesso</em>.
+        Riferimenti pratici: <strong>sotto 20 GW</strong> aurora debole, spesso solo in fotografia · <strong>20–50 GW</strong> aurora visibile a occhio nudo alle alte latitudini ·
+        <strong>50–100 GW</strong> aurora forte e dinamica · <strong>oltre 100 GW</strong> evento eccezionale, visibile molto più a sud.
+        Fonte: modello OVATION di NOAA SWPC.
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2>📡 Magnetometro locale in tempo reale <span class="tag">il dato che anticipa la substorm di qualche minuto</span></h2>
+    <div class="panel">
+      <div class="loc-row" style="margin-bottom:10px; flex-wrap:wrap;">
+        <label style="font-size:.8rem;">Stazione
+          <select id="magStation">
+            <option value="KEV">Kevo (69,8°N) — Lapponia finlandese nord</option>
+            <option value="MAS">Masi (69,5°N) — Finnmark, Norvegia</option>
+            <option value="KIL" selected>Kilpisjärvi (69,1°N) — vicino al confine norvegese</option>
+            <option value="IVA">Ivalo (68,6°N)</option>
+            <option value="MUO">Muonio (68,0°N)</option>
+            <option value="SOD">Sodankylä (67,4°N)</option>
+            <option value="PEL">Pello (66,9°N)</option>
+            <option value="RAN">Ranua (65,9°N)</option>
+            <option value="OUJ">Oulujärvi (64,5°N)</option>
+            <option value="HAN">Hankasalmi (62,3°N)</option>
+            <option value="NUR">Nurmijärvi (60,5°N) — Finlandia sud</option>
+          </select>
+        </label>
+        <label style="font-size:.8rem;">Intervallo
+          <select id="magHours">
+            <option value="01">ultima ora</option>
+            <option value="02" selected>ultime 2 ore</option>
+            <option value="06">ultime 6 ore</option>
+            <option value="24">ultime 24 ore</option>
+          </select>
+        </label>
+        <a class="btn" id="magOpenBtn" href="https://space.fmi.fi/image/www/?page=real_time" target="_blank">↗ apri a schermo intero</a>
+      </div>
+      <div style="background:#fff; border-radius:8px; overflow:hidden;">
+        <iframe id="magFrame" title="Magnetogramma in tempo reale" style="width:100%; height:430px; border:0; display:block;" loading="lazy"></iframe>
+      </div>
+      <div class="cap" style="margin-top:10px;">
+        <strong>Come si legge.</strong> Guarda la curva <strong>X</strong> (componente nord-sud). Quando scende bruscamente di diverse centinaia di nT in pochi minuti,
+        è iniziata una <em>substorm</em>: l’aurora sta esplodendo in quel momento sopra quella zona. È l’unico dato di questa pagina che non è una previsione ma una conseguenza —
+        lo strumento sente la corrente elettrica dell’aurora mentre scorre sopra la sua testa, spesso <strong>qualche minuto prima</strong> che diventi evidente a occhio nudo.
+        Una curva piatta significa cielo magneticamente tranquillo, anche se Bz e Kp sembrano buoni.
+        <br><br>
+        Scegli la stazione più vicina a dove ti trovi. Dati: rete IMAGE dell’Istituto Meteorologico Finlandese (FMI) e Osservatorio Geofisico di Sodankylä.
+        Per Islanda e Isole Fær Øer questa rete non copre: usa i link in fondo alla pagina.
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="panel">
+      <canvas id="kpChart" height="140"></canvas>
+      <div class="cap" style="margin-top:8px; font-size:.72rem; color:var(--muted);">Indice Kp planetario stimato, ultime ore &middot; ricorda: il Kp è una media globale a 3h, poco adatto a prevedere l'aurora nel dettaglio (vedi guida in fondo)</div>
+    </div>
+  </section>
+  <section>
+    <h2>🌥️ Meteo & cielo <span class="tag">stessa posizione scelta sopra &middot; la nuvolosità è la prima causa di aurore mancate</span></h2>
+    <div class="panel">
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); margin-bottom:16px;">
+        <div class="card">
+          <div class="label">Copertura nuvolosa ora</div>
+          <div class="value" id="cloudVal">–<span class="unit">%</span></div>
+          <div class="sub" id="cloudVerdict"></div>
+        </div>
+        <div class="card">
+          <div class="label">Temperatura</div>
+          <div class="value" id="tempVal">–<span class="unit">°C</span></div>
+          <div class="sub" id="windVal">vento: –</div>
+        </div>
+        <div class="card">
+          <div class="label">Cielo stanotte</div>
+          <div class="value" id="nightVerdict" style="font-size:1.1rem;">–</div>
+          <div class="sub">media copertura nuvole 21:00–05:00 locali</div>
+        </div>
+        <div class="card">
+          <div class="label">Probabilità cielo sereno</div>
+          <div class="value" id="skyScoreVal">–<span class="unit">/ 10</span></div>
+          <div class="sub">10 = cielo completamente sereno stanotte, 0 = coperto</div>
+        </div>
+        <div class="card">
+          <div class="label">Fase lunare</div>
+          <div class="value" id="moonVal" style="font-size:1.4rem;">–</div>
+          <div class="sub" id="moonSub"></div>
+        </div>
+        <div class="card">
+          <div class="label">Buio astronomico</div>
+          <div class="value" id="darkVal" style="font-size:1.05rem;">–</div>
+          <div class="sub">finestra utile per vedere l'aurora, nella posizione scelta</div>
+        </div>
+        <div class="card">
+          <div class="label">Luna sorge / tramonta</div>
+          <div class="value" id="moonTimesVal" style="font-size:1.05rem;">–</div>
+          <div class="sub">orari locali della posizione scelta</div>
+        </div>
+      </div>
+      <canvas id="cloudChart" height="90"></canvas>
+      <div class="cap" style="margin-top:8px;">Previsione nuvolosità (%) prossime 48 ore &middot; fonte: Open-Meteo &middot; per il dettaglio orario completo vedi anche i link a Windy/alba-tramonto qui sotto</div>
+    </div>
+  </section>
+  <section>
+    <h2>📷 Webcam vicine a te <span class="tag">ordinate per distanza dalla posizione scelta sopra</span></h2>
+    <div class="panel">
+      <div class="loc-row" style="justify-content:space-between;">
+        <div id="webcamStatus" class="cap">Ricerca webcam nelle vicinanze...</div>
+        <button class="btn" id="webcamRefreshBtn">🔄 Cerca di nuovo</button>
+      </div>
+      <div class="linkgrid" id="webcamGrid"></div>
+    </div>
+  </section>
+  <section>
+    <h2>☀️ Attività solare <span class="tag">Sole e macchie solari, previsione ~2-5 giorni</span></h2>
+    <div class="grid">
+      <div class="card">
+        <div class="label">Classe brillamento attuale</div>
+        <div class="value" id="flareVal">–</div>
+        <div class="sub" id="flareSub">–</div>
+      </div>
+      <div class="card">
+        <div class="label">Flusso radio solare (10.7cm)</div>
+        <div class="value" id="fluxVal">–<span class="unit">sfu</span></div>
+        <div class="sub">indicatore generale di attività solare</div>
+      </div>
+      <div class="card" style="grid-column:span 2; min-width:280px;">
+        <div class="label">Scala NOAA (R / S / G) &mdash; prossimi giorni</div>
+        <table id="scalesTable"><thead><tr><th>Giorno</th><th>R (blackout radio)</th><th>S (tempesta radiazioni)</th><th>G (tempesta geomagnetica)</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div style="margin-top:14px; text-align:center;">
+      <a class="btn" style="display:inline-flex; text-decoration:none;" href="https://www.spaceweatherlive.com/en/solar-activity" target="_blank" rel="noopener">☀️ Vedi le ultime esplosioni solari (brillamenti e CME)</a>
+    </div>
+  </section>
+  <section>
+    <h2>🛰️ Bollettino ufficiale e allerte</h2>
+    <div class="two-col">
+      <details>
+        <summary>Previsione a 3 giorni (NOAA SWPC, testo integrale)</summary>
+        <pre id="forecastText">Caricamento...</pre>
+      </details>
+      <div class="panel">
+        <div class="label" style="font-size:.72rem; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Ultime allerte space weather</div>
+        <div id="alertsList"><span class="spinner"></span></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2>🛰️ Da dove arrivano questi dati <span class="tag">dove e quando vengono misurati</span></h2>
+    <div class="panel">
+      <!-- Schema in scala reale: il tragitto Sole-Terra e, sotto, lo zoom sull'ultimo 1% -->
+      <svg viewBox="0 0 720 300" style="width:100%; height:auto; max-height:330px; display:block;" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="arrowHead" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#5ec8ff"/>
+          </marker>
+          <linearGradient id="zoomFan" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#5ec8ff" stop-opacity=".18"/>
+            <stop offset="100%" stop-color="#5ec8ff" stop-opacity=".04"/>
+          </linearGradient>
+        </defs>
+
+        <!-- ===== riga 1: scala reale ===== -->
+        <text x="30" y="22" fill="#8b93ad" font-size="11">1 · In scala reale</text>
+
+        <circle cx="52" cy="56" r="13" fill="#ffc94d"/>
+        <text x="52" y="88" text-anchor="middle" fill="#e8ecf7" font-size="12">Sole</text>
+
+        <line x1="70" y1="56" x2="648" y2="56" stroke="#5ec8ff" stroke-width="2" stroke-dasharray="7,6" marker-end="url(#arrowHead)"/>
+        <text x="330" y="44" text-anchor="middle" fill="#8b93ad" font-size="12">150 milioni di km — il vento solare ci mette da 1 a 4 giorni</text>
+
+        <circle cx="668" cy="56" r="8" fill="#3d8bd6"/>
+        <text x="668" y="88" text-anchor="middle" fill="#e8ecf7" font-size="12">Terra</text>
+
+        <rect x="654" y="44" width="26" height="24" fill="none" stroke="#5ec8ff" stroke-width="1.2" stroke-dasharray="3,3"/>
+        <text x="716" y="16" text-anchor="end" fill="#8b93ad" font-size="10">i satelliti stanno tutti dentro questo riquadro:</text>
+        <text x="716" y="28" text-anchor="end" fill="#8b93ad" font-size="10">a questa scala non si distinguono dalla Terra</text>
+
+        <!-- ===== raccordo zoom ===== -->
+        <path d="M654,68 L60,140 L710,140 L680,68 Z" fill="url(#zoomFan)"/>
+        <line x1="654" y1="68" x2="60" y2="140" stroke="#5ec8ff" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+        <line x1="680" y1="68" x2="710" y2="140" stroke="#5ec8ff" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+
+        <!-- ===== riga 2: zoom sull'ultimo 1% ===== -->
+        <text x="30" y="150" fill="#8b93ad" font-size="11">2 · Zoom sull’ultimo 1% del tragitto</text>
+
+        <text x="30" y="200" fill="#8b93ad" font-size="10">dal Sole →</text>
+        <line x1="86" y1="196" x2="576" y2="196" stroke="#5ec8ff" stroke-width="2" stroke-dasharray="7,6"/>
+        <line x1="596" y1="196" x2="666" y2="196" stroke="#5ec8ff" stroke-width="2.5" marker-end="url(#arrowHead)"/>
+
+        <g fill="#e8ecf7">
+          <rect x="558" y="180" width="13" height="7" rx="1.5" fill="#cfd6e6"/>
+          <rect x="578" y="168" width="13" height="7" rx="1.5" fill="#cfd6e6"/>
+          <rect x="568" y="200" width="13" height="7" rx="1.5" fill="#cfd6e6"/>
+        </g>
+        <line x1="576" y1="166" x2="576" y2="150" stroke="#3a4560" stroke-width="1"/>
+        <text x="576" y="144" text-anchor="middle" fill="#e8ecf7" font-size="12">Punto L1 — ACE, SOLAR1, IMAP (e DSCOVR)</text>
+
+        <circle cx="686" cy="196" r="11" fill="#3d8bd6"/>
+        <text x="686" y="176" text-anchor="middle" fill="#e8ecf7" font-size="12">Terra</text>
+
+        <line x1="576" y1="208" x2="576" y2="214" stroke="#3a4560" stroke-width="1"/>
+        <line x1="674" y1="208" x2="674" y2="214" stroke="#3a4560" stroke-width="1"/>
+        <line x1="576" y1="214" x2="674" y2="214" stroke="#3a4560" stroke-width="1"/>
+        <text x="625" y="228" text-anchor="middle" fill="#8b93ad" font-size="10">1,5 milioni di km</text>
+        <text x="625" y="240" text-anchor="middle" fill="var(--green)" font-size="10.5" id="svgPropTime">tempo di viaggio: –</text>
+
+        <rect x="30" y="252" width="470" height="40" rx="6" fill="#0f1524" stroke="#1d2740"/>
+        <text x="42" y="268" fill="#e8ecf7" font-size="11">Al punto L1 viene misurato TUTTO quello che vedi in questa pagina:</text>
+        <text x="42" y="282" fill="#8b93ad" font-size="10.5">Bt, Bz, Bx, By, velocità e densità — stesso satellite, stesso istante, ogni minuto.</text>
+
+        <text x="700" y="278" text-anchor="end" fill="#556" font-size="9.5">riga 1: in scala reale</text>
+        <text x="700" y="290" text-anchor="end" fill="#556" font-size="9.5">riga 2: zoom della parte finale</text>
+      </svg>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin-top:6px;">
+        <div class="card">
+          <div class="label">Satelliti che riportano ora</div>
+          <div class="value" id="activeSatCount" style="font-size:1.1rem;">–</div>
+          <div class="sub" id="activeSatList">in genere ACE, DSCOVR, SOLAR1 (SWFO-L1) e IMAP, tutti insieme — li vedi tutti nei grafici qui sotto</div>
+        </div>
+        <div class="card">
+          <div class="label">Satellite primario ora (campo magnetico)</div>
+          <div class="value" id="activeSatMag" style="font-size:1.1rem;">–</div>
+          <div class="sub">quello che NOAA sceglie come riferimento ufficiale in questo momento</div>
+        </div>
+        <div class="card">
+          <div class="label">Satellite primario ora (vento solare)</div>
+          <div class="value" id="activeSatWind" style="font-size:1.1rem;">–</div>
+          <div class="sub">stessa logica, satellite dedicato alla misura di velocità/densità</div>
+        </div>
+        <div class="card">
+          <div class="label">Accordo tra i satelliti</div>
+          <div class="value" id="satAgreeVal" style="font-size:1.1rem;">–</div>
+          <div class="sub" id="satAgreeSub">se i satelliti dicono cose diverse, il dato è meno affidabile</div>
+        </div>
+        <div class="card">
+          <div class="label">Tempo di viaggio dal punto L1</div>
+          <div class="value" id="propTimeVal" style="font-size:1.1rem;">–</div>
+          <div class="sub">quanto impiega il vento solare misurato ora ad arrivare sulla Terra</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <details>
+      <summary>📐 Come vengono misurati Bt e Bz (e perché non sono due misure diverse)</summary>
+      <div class="panel" style="margin-top:10px;">
+        <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center;">
+          <svg viewBox="0 0 260 200" style="width:230px; max-width:100%; height:auto; flex:0 0 auto;">
+            <defs>
+              <marker id="vecHead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8ecf7"/></marker>
+              <marker id="vecHeadRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ff6b6b"/></marker>
+            </defs>
+            <line x1="30" y1="100" x2="240" y2="100" stroke="#2a3350" stroke-width="1"/>
+            <line x1="60" y1="20" x2="60" y2="185" stroke="#2a3350" stroke-width="1"/>
+            <text x="246" y="96" text-anchor="end" fill="#556" font-size="9">piano dell’eclittica</text>
+            <text x="64" y="28" fill="#556" font-size="9">nord</text>
+            <text x="64" y="182" fill="#556" font-size="9">sud</text>
+
+            <line x1="60" y1="100" x2="190" y2="165" stroke="#e8ecf7" stroke-width="2.5" marker-end="url(#vecHead)"/>
+            <text x="150" y="110" fill="#e8ecf7" font-size="13">Bt</text>
+            <text x="150" y="124" fill="#8b93ad" font-size="9.5">lunghezza della freccia</text>
+
+            <line x1="60" y1="100" x2="60" y2="165" stroke="#ff6b6b" stroke-width="2.5" marker-end="url(#vecHeadRed)"/>
+            <text x="22" y="136" fill="#ff6b6b" font-size="13">Bz</text>
+            <text x="4" y="150" fill="#8b93ad" font-size="9">quanto punta</text>
+            <text x="4" y="161" fill="#8b93ad" font-size="9">verso sud</text>
+
+            <line x1="60" y1="165" x2="190" y2="165" stroke="#3a4560" stroke-width="1" stroke-dasharray="3,3"/>
+          </svg>
+          <div style="flex:1 1 260px; min-width:240px; font-size:.82rem; line-height:1.55;">
+            <p style="margin:0 0 10px;"><strong>Sono la stessa misura.</strong> Il magnetometro a bordo del satellite, a L1, legge il campo magnetico come una <em>freccia</em> nello spazio, una volta al minuto. Da quella singola freccia si ricavano tutti i numeri che vedi:</p>
+            <ul style="margin:0 0 10px 18px; padding:0;">
+              <li><strong>Bt</strong> = quanto è lunga la freccia, cioè quanta energia c’è nel campo magnetico. Non ha segno: è sempre positivo.</li>
+              <li><strong>Bz</strong> = quanto quella freccia punta verso il basso (sud) o verso l’alto (nord). È una <em>componente</em> di Bt, non una misura separata.</li>
+              <li><strong>Bx e By</strong> = le altre due componenti, poco rilevanti per l’aurora.</li>
+            </ul>
+            <p style="margin:0 0 10px;">Per questo Bz non può mai essere più grande di Bt in valore assoluto: è un pezzo di Bt.</p>
+            <p style="margin:0; color:var(--muted);">Nessuno dei due viene misurato vicino alla Terra: vengono <strong>entrambi</strong> dal punto L1, nello stesso istante, dallo stesso strumento. Quello che leggi adesso colpirà la Terra tra circa <strong id="explainPropTime">–</strong>.</p>
+          </div>
+        </div>
+        <div class="cap" style="margin-top:14px; border-top:1px solid #1a2138; padding-top:10px;">
+          <strong>Perché conta la combinazione:</strong> Bt alto con Bz positivo (nord) non produce quasi nulla — c’è energia ma la porta è chiusa.
+          Bz negativo con Bt basso apre la porta ma passa poca energia. Serve <strong>Bt alto <em>e</em> Bz ben negativo</strong>, e serve che duri: mezz’ora di Bz a −10 nT vale più di un picco di due minuti a −20.
+        </div>
+      </div>
+    </details>
+  </section>
+  <section>
+    <h2>🔗 Altre risorse utili</h2>
+
+    <div class="group-label">Webcam &amp; conferme sul campo</div>
+    <div class="linkgrid">
+      <a class="linkcard" href="https://www.aurorawebcams.com/" target="_blank"><div class="lc-title">Aurora Webcams</div><div class="lc-desc">Rete di webcam live dedicate all'aurora</div></a>
+      <a class="linkcard" href="https://www.aurorawebcams.com/charts" target="_blank"><div class="lc-title">Aurora Webcams — Charts</div><div class="lc-desc">Grafici aggregati della stessa rete</div></a>
+      <a class="linkcard" href="https://virmalised.ee/aurora-live-cameras/" target="_blank"><div class="lc-title">Virmalised.ee</div><div class="lc-desc">Webcam Nord Europa / area baltica</div></a>
+      <a class="linkcard" href="https://aurorasaurus.org/" target="_blank"><div class="lc-title">Aurorasaurus</div><div class="lc-desc">Segnalazioni geolocalizzate in tempo reale (citizen science)</div></a>
+    </div>
+
+    <div class="group-label">Magnetometri &amp; indici geomagnetici</div>
+    <div class="linkgrid">
+      <a class="linkcard" href="http://flux.phys.uit.no/Last24/" target="_blank"><div class="lc-title">Tromsø Magnetometer (UiT)</div><div class="lc-desc">Magnetogramma in tempo reale, Scandinavia</div></a>
+      <a class="linkcard" href="https://supermag.jhuapl.edu/" target="_blank"><div class="lc-title">SuperMAG</div><div class="lc-desc">Rete globale di magnetometri, mappe e indice SME</div></a>
+      <a class="linkcard" href="https://wdc.kugi.kyoto-u.ac.jp/aeasy/today/today.html" target="_blank"><div class="lc-title">Kyoto WDC — Indice AE</div><div class="lc-desc">Più tempestivo e locale del Kp</div></a>
+      <a class="linkcard" href="https://kp.gfz-potsdam.de/en/data" target="_blank"><div class="lc-title">GFZ Potsdam — Kp / Hpo</div><div class="lc-desc">Indice Kp ufficiale e nuovo indice Hp30/Hp60</div></a>
+      <a class="linkcard" href="https://aurorawatch.lancs.ac.uk/" target="_blank"><div class="lc-title">AuroraWatch UK</div><div class="lc-desc">Allerte basate su magnetometro, taratura UK</div></a>
+    </div>
+
+    <div class="group-label">Aggregatori &amp; previsioni</div>
+    <div class="linkgrid">
+      <a class="linkcard" href="https://www.spaceweatherlive.com/" target="_blank"><div class="lc-title">SpaceWeatherLive</div><div class="lc-desc">Dashboard completa: Kp, Bz, immagini solari, allerte</div></a>
+      <a class="linkcard" href="https://www.swpc.noaa.gov/" target="_blank"><div class="lc-title">NOAA SWPC</div><div class="lc-desc">La fonte ufficiale usata da questa pagina</div></a>
+      <a class="linkcard" href="https://norlys.live/" target="_blank"><div class="lc-title">Norlys.live</div><div class="lc-desc">Molto orientato Norvegia</div></a>
+      <a class="linkcard" href="https://www.gi.alaska.edu/monitors/aurora-forecast" target="_blank"><div class="lc-title">Geophysical Institute (Alaska)</div><div class="lc-desc">Modello di previsione locale, buon riferimento</div></a>
+      <a class="linkcard" href="https://helioforecast.space/dashboard" target="_blank"><div class="lc-title">Austrian Space Weather Office</div><div class="lc-desc">Dashboard con parametri combinati</div></a>
+      <a class="linkcard" href="https://www.youtube.com/channel/UCkXjdDQ-db0xz8f4PKgKsag" target="_blank"><div class="lc-title">Tamitha Skov (YouTube)</div><div class="lc-desc">Previsioni settimanali di meteorologia spaziale</div></a>
+    </div>
+
+    <div class="group-label">Condizioni locali (decisive quanto i dati spaziali)</div>
+    <div class="linkgrid">
+      <a class="linkcard" href="https://www.timeanddate.com/sun/" target="_blank"><div class="lc-title">TimeAndDate — Alba/Tramonto</div><div class="lc-desc">Orari crepuscolo astronomico per la tua località</div></a>
+      <a class="linkcard" href="https://www.timeanddate.com/moon/phases/" target="_blank"><div class="lc-title">TimeAndDate — Fasi lunari</div><div class="lc-desc">La luce della luna riduce la visibilità delle aurore deboli</div></a>
+      <a class="linkcard" href="https://www.windy.com/" target="_blank"><div class="lc-title">Windy</div><div class="lc-desc">Copertura nuvolosa — causa numero uno di aurore mancate</div></a>
+    </div>
+  </section>
+  <section>
+    <details>
+      <summary>📖 Come leggere questi valori (riassunto rapido)</summary>
+      <pre>Bz (campo magnetico, direzione nord/sud): negativo = favorevole. Più a lungo resta sotto ~-5/-10 nT, meglio è.
+Bt (forza campo magnetico): più alto = più energia potenziale nel vento solare. > 10 nT è un buon segnale.
+Velocità vento solare: > 400 km/s favorevole, > 500-600 km/s molto favorevole.
+Densità: > 10 particelle/cm3 favorevole (più "carburante" per l'aurora).
+Kp: utile come indicazione generale, ma è una media globale a 3h — non affidabile per la latitudine esatta né per il momento preciso. Preferisci l'indice AE o i magnetometri locali (es. Tromsø) per il tempo reale.
+Classe brillamento (X-ray): A/B quiete, C moderata, M forte, X estrema. I brillamenti da soli non generano aurora: contano CME e buchi coronali associati.
+OVATION: previsione a 30-80 minuti, utile ma impreciso su latitudine esatta — non affidarti solo a questo modello.
+Ricorda: cielo sereno e buio (poco inquinamento luminoso, lontano dalla luna piena) restano condizioni imprescindibili.</pre>
+    </details>
+  </section>
+  <section>
+    <details id="alertsDetails">
+      <summary>🔔 Allerte personalizzate <span style="font-weight:400; color:var(--muted); font-size:.78rem;">— un avviso quando le condizioni superano le soglie che scegli</span></summary>
+      <div style="margin-top:14px;">
+        <div class="loc-row" style="justify-content:space-between;">
+          <div class="cap" id="alertPermStatus">Notifiche del browser: non attivate</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" id="enableNotifBtn">🔔 Attiva notifiche</button>
+            <button class="btn active" id="soundToggleBtn">🔊 Suono: ON</button>
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin-top:12px;">
+          <div class="card">
+            <label style="display:flex; align-items:center; gap:6px; font-size:.78rem; cursor:pointer;"><input type="checkbox" id="alertBzEnabled" checked> Bz scende sotto</label>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <input type="number" id="alertBzThreshold" value="-5" step="0.5" style="width:80px;"><span class="unit">nT</span>
+            </div>
+            <div class="sub" style="margin-top:8px;">poi ripeti ogni <input type="number" id="alertBzStep" value="2" step="0.5" style="width:55px;"> nT in più</div>
+          </div>
+          <div class="card">
+            <label style="display:flex; align-items:center; gap:6px; font-size:.78rem; cursor:pointer;"><input type="checkbox" id="alertKpEnabled" checked> Kp sale sopra</label>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <input type="number" id="alertKpThreshold" value="5" step="0.5" style="width:80px;">
+            </div>
+            <div class="sub" style="margin-top:8px;">poi ripeti ogni <input type="number" id="alertKpStep" value="1" step="0.5" style="width:55px;"> in più</div>
+          </div>
+          <div class="card">
+            <label style="display:flex; align-items:center; gap:6px; font-size:.78rem; cursor:pointer;"><input type="checkbox" id="alertSpeedEnabled" checked> Velocità sale sopra</label>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <input type="number" id="alertSpeedThreshold" value="500" step="10" style="width:80px;"><span class="unit">km/s</span>
+            </div>
+            <div class="sub" style="margin-top:8px;">poi ripeti ogni <input type="number" id="alertSpeedStep" value="50" step="10" style="width:55px;"> km/s in più</div>
+          </div>
+          <div class="card">
+            <label style="display:flex; align-items:center; gap:6px; font-size:.78rem; cursor:pointer;"><input type="checkbox" id="alertOvationEnabled" checked> OVATION sale sopra</label>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <input type="number" id="alertOvationThreshold" value="4" step="1" style="width:80px;"><span class="unit">/7</span>
+            </div>
+            <div class="sub" style="margin-top:8px;">poi ripeti ogni <input type="number" id="alertOvationStep" value="1" step="1" style="width:55px;"> in più</div>
+          </div>
+          <div class="card">
+            <label style="display:flex; align-items:center; gap:6px; font-size:.78rem; cursor:pointer;"><input type="checkbox" id="alertSkyEnabled" checked> Cielo sereno sale sopra</label>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <input type="number" id="alertSkyThreshold" value="7" step="1" min="0" max="10" style="width:80px;"><span class="unit">/10</span>
+            </div>
+            <div class="sub" style="margin-top:8px;">poi ripeti ogni <input type="number" id="alertSkyStep" value="1" step="1" style="width:55px;"> in più</div>
+          </div>
+        </div>
+        <div class="cap" style="margin-top:12px;">Funzionano solo mentre questa pagina resta aperta nel browser (non è un servizio in background che ti sveglia). Ogni soglia avvisa quando viene superata, poi avvisa di nuovo ogni volta che il valore sale ancora di quanto indicato in "ripeti ogni" — così vieni avvisato anche se la situazione continua a migliorare. Si riarma da sola quando il valore torna sotto la soglia.</div>
+        <div id="alertLog" style="margin-top:10px;"></div>
+      </div>
+    </details>
+  </section>
+  <section>
+    <details id="diagBox">
+      <summary>🩺 Diagnostica — cosa sta funzionando e cosa no <span class="tag" id="diagSummary">in attesa...</span></summary>
+      <div id="diagList" style="margin-top:8px;"></div>
+      <button class="btn" id="diagCopy" style="margin-top:10px;">📋 Copia il report</button>
+      <span id="diagCopyMsg" style="font-size:.75rem; color:var(--green); margin-left:8px;"></span>
+      <div style="font-size:.72rem; color:var(--muted); margin-top:8px;">Se qualcosa non funziona: apri questo pannello, premi «Copia il report» e incollalo in chat. Contiene lo stato di ogni fonte dati e gli eventuali errori JavaScript.</div>
+    </details>
+  </section>
+
+</div>
+
+<footer>
+  Dati in tempo reale da NOAA / NWS Space Weather Prediction Center (servizio pubblico) e GFZ Potsdam.<br>
+  Pagina generata per uso personale — nessuna previsione di aurora è mai certa.<br>
+  Aurora Bande &middot; foto e progetto di Davide Bandelli &middot; <a href="https://www.instagram.com/davidebandelli/" target="_blank" rel="noopener" style="color:var(--green);">@davidebandelli su Instagram</a>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+// ==== DIAGNOSTICA =========================================================
+// Ogni fonte dati registra qui il proprio esito, così se qualcosa non funziona
+// si vede subito COSA e PERCHE' invece di avere una pagina muta.
+const DIAG = { items:{}, order:[], errors:[] };
+function apriDiagnostica(){
+  const box = $('diagBox');
+  if(!box) return;
+  box.open = true;
+  box.scrollIntoView({behavior:'smooth', block:'center'});
+}
+const LINK_DIAG = ' <a href="#" onclick="apriDiagnostica();return false;" style="color:var(--green)">apri la diagnostica →</a>';
+function diagEsc(t){ return String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function diagSet(name, status, detail){
+  if(!DIAG.items[name]) DIAG.order.push(name);
+  DIAG.items[name] = { status, detail: detail || '', t: new Date().toLocaleTimeString('it-IT') };
+  renderDiag();
+}
+function diagError(msg){
+  const m = String(msg).slice(0,300);
+  if(DIAG.errors.indexOf(m) === -1) DIAG.errors.push(m);
+  if(DIAG.errors.length > 20) DIAG.errors.shift();
+  renderDiag();
+}
+function renderDiag(){
+  const el = $('diagList'); if(!el) return;
+  let ok = 0, bad = 0;
+  const rows = DIAG.order.map(nm=>{
+    const it = DIAG.items[nm];
+    if(it.status === 'ok') ok++; else if(it.status === 'err') bad++;
+    const col = it.status === 'ok' ? 'var(--green)' : it.status === 'err' ? 'var(--red)' : 'var(--muted)';
+    const ico = it.status === 'ok' ? '✅' : it.status === 'err' ? '❌' : '⏳';
+    return '<div style="display:flex; gap:8px; align-items:baseline; padding:4px 0; border-bottom:1px solid #141a2c; font-size:.78rem;">'
+      + '<span>' + ico + '</span><span style="flex:1">' + diagEsc(nm) + '</span>'
+      + '<span style="color:' + col + '; text-align:right; max-width:55%;">' + diagEsc(it.detail || it.status) + '</span></div>';
+  }).join('');
+  const errs = DIAG.errors.length
+    ? '<div style="margin-top:10px; color:var(--red); font-size:.75rem;"><strong>Errori JavaScript:</strong><br>' + DIAG.errors.map(diagEsc).join('<br>') + '</div>'
+    : '';
+  el.innerHTML = rows + errs;
+  if($('diagSummary')) $('diagSummary').textContent = (bad || DIAG.errors.length)
+    ? ((bad + DIAG.errors.length) + ' problemi rilevati')
+    : (ok + '/' + DIAG.order.length + ' fonti ok');
+  const box = $('diagBox');
+  if(box && (bad || DIAG.errors.length) && !box.dataset.autoOpened){ box.open = true; box.dataset.autoOpened = '1'; }
+}
+function diagReport(){
+  const lines = ['=== Aurora Dashboard — report diagnostica ===',
+    'Data: ' + new Date().toString(),
+    'URL: ' + location.href,
+    'Browser: ' + navigator.userAgent,
+    'Chart.js: ' + (window.Chart ? ('v' + (window.Chart.version || '?')) : 'NON CARICATA'),
+    'SunCalc: ' + (window.SunCalc ? 'ok' : 'NON CARICATA'),
+    '--- fonti dati ---'];
+  DIAG.order.forEach(nm=>{
+    const it = DIAG.items[nm];
+    lines.push('[' + it.status.toUpperCase() + '] ' + nm + (it.detail ? ' — ' + it.detail : '') + '  (' + it.t + ')');
+  });
+  lines.push('--- errori javascript ---');
+  lines.push(DIAG.errors.length ? DIAG.errors.join('\n') : 'nessuno');
+  return lines.join('\n');
+}
+window.addEventListener('error', e=>{
+  diagError((e.message || 'errore') + (e.filename ? ' @ riga ' + e.lineno : ''));
+});
+window.addEventListener('unhandledrejection', e=>{
+  const r = e.reason;
+  diagError('promise non gestita: ' + (r && r.message ? r.message : r));
+});
+// ==========================================================================
+
+async function getJSON(url, label){
+  const name = label || url.replace(/^https?:\/\//,'').split('?')[0];
+  diagSet(name, 'wait', 'richiesta in corso...');
+  try{
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+    const data = await res.json();
+    diagSet(name, 'ok', Array.isArray(data) ? (data.length + ' righe') : 'ok');
+    return data;
+  }catch(e){
+    // TypeError "Failed to fetch" = rete bloccata o CORS; il resto e' un errore del server
+    const why = (e && e.name === 'TypeError')
+      ? 'rete bloccata o CORS (' + e.message + ')'
+      : (e && e.message ? e.message : String(e));
+    diagSet(name, 'err', why);
+    console.warn('[aurora] fetch fallito', url, e);
+    return null;
+  }
+}
+async function getTEXT(url, label){
+  const name = label || url.replace(/^https?:\/\//,'').split('?')[0];
+  diagSet(name, 'wait', 'richiesta in corso...');
+  try{
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+    const t = await res.text();
+    diagSet(name, 'ok', t.length + ' caratteri');
+    return t;
+  }catch(e){
+    const why = (e && e.name === 'TypeError') ? 'rete bloccata o CORS (' + e.message + ')' : (e && e.message ? e.message : String(e));
+    diagSet(name, 'err', why);
+    console.warn('[aurora] fetch fallito', url, e);
+    return null;
+  }
+}
+
+function fmtTime(d){
+  try{ return new Date(d).toLocaleString('it-IT', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}); }
+  catch(e){ return d || '–'; }
+}
+
+function pill(text, kind){ return `<span class="pill ${kind}">${text}</span>`; }
+
+function card(label, value, unit, sub, pillHtml){
+  return `<div class="card">
+    <div class="label">${label}</div>
+    <div class="value">${value}${unit ? `<span class="unit">${unit}</span>`:''}</div>
+    <div class="sub">${sub||''}</div>
+    ${pillHtml||''}
+  </div>`;
+}
+
+// ---- vista d'insieme: sintesi di tutti i segnali in un unico verdetto ----
+const OVERVIEW = {};
+
+// NOAA usa -9999 (e talvolta -99999) come valore sentinella per "dato mancante":
+// va trattato come null, altrimenti sfonda gli assi dei grafici e falsa i confronti.
+function num(v){
+  if(v === null || v === undefined) return null;
+  const x = typeof v === 'number' ? v : parseFloat(v);
+  if(!isFinite(x)) return null;
+  if(x <= -9990) return null;
+  return x;
+}
+
+function scoreToVerdict(score){
+  if(score >= 6) return {text:'Ottime condizioni stanotte', emoji:'🟢'};
+  if(score >= 3) return {text:'Buone condizioni stanotte', emoji:'🟢'};
+  if(score >= 0) return {text:'Condizioni nella media stanotte', emoji:'🟡'};
+  return {text:'Condizioni sfavorevoli stanotte', emoji:'🔴'};
+}
+
+function updateOverview(){
+  if(!$('overviewVerdict')) return;
+
+  // blocco assoluto: se non fa mai buio abbastanza, il resto non conta
+  if(OVERVIEW.hasDarkness === false){
+    $('overviewEmoji').textContent = '☀️';
+    $('overviewVerdict').textContent = 'Non diventa mai buio a sufficienza in questo periodo/posizione';
+    $('overviewChips').innerHTML = pill('nessuna finestra di buio astronomico', 'bad');
+    return;
+  }
+
+  const chips = [];
+  let score = 0, counted = 0;
+
+  if(OVERVIEW.nightCloud != null){
+    counted++;
+    if(OVERVIEW.nightCloud <= 30){ score += 2; chips.push({t:'cielo sereno stanotte', k:'good'}); }
+    else if(OVERVIEW.nightCloud <= 70){ chips.push({t:'cielo variabile stanotte', k:'warn'}); }
+    else { score -= 3; chips.push({t:'cielo molto coperto stanotte', k:'bad'}); }
+  }
+  if(OVERVIEW.hasDarkness === true){
+    counted++;
+    score += 1;
+    chips.push({t:'buio sufficiente disponibile', k:'good'});
+  }
+  if(OVERVIEW.bz != null){
+    counted++;
+    if(OVERVIEW.bz <= -5){ score += 2; chips.push({t:'Bz molto favorevole', k:'good'}); }
+    else if(OVERVIEW.bz < 0){ score += 1; chips.push({t:'Bz favorevole', k:'good'}); }
+    else { chips.push({t:'Bz sfavorevole (nord)', k:'warn'}); }
+  }
+  if(OVERVIEW.bt != null){
+    counted++;
+    if(OVERVIEW.bt >= 10){ score += 1; chips.push({t:'Bt alto', k:'good'}); }
+  }
+  if(OVERVIEW.speed != null){
+    counted++;
+    if(OVERVIEW.speed >= 500){ score += 2; chips.push({t:'vento solare veloce', k:'good'}); }
+    else if(OVERVIEW.speed >= 400){ score += 1; chips.push({t:'vento solare sostenuto', k:'warn'}); }
+  }
+  if(OVERVIEW.kp != null){
+    counted++;
+    if(OVERVIEW.kp >= 5){ score += 2; chips.push({t:'tempesta geomagnetica in corso', k:'good'}); }
+    else if(OVERVIEW.kp >= 4){ score += 1; }
+  }
+  if(OVERVIEW.ovation != null){
+    counted++;
+    if(OVERVIEW.ovation >= 5){ score += 2; chips.push({t:'OVATION alto nella tua zona', k:'good'}); }
+    else if(OVERVIEW.ovation >= 3){ score += 1; }
+  }
+  if(OVERVIEW.hemiPower != null){
+    counted++;
+    if(OVERVIEW.hemiPower >= 50){ score += 2; chips.push({t:'ovale aurorale molto energetico', k:'good'}); }
+    else if(OVERVIEW.hemiPower >= 20){ score += 1; chips.push({t:'ovale aurorale attivo', k:'good'}); }
+    else { chips.push({t:'ovale aurorale debole', k:'warn'}); }
+  }
+  if(OVERVIEW.moonIllum != null){
+    counted++;
+    if(OVERVIEW.moonIllum >= 80){ score -= 1; chips.push({t:'luna quasi piena', k:'warn'}); }
+  }
+
+  if(counted < 3){
+    $('overviewVerdict').textContent = 'In attesa dei dati...';
+    $('overviewChips').innerHTML = '';
+    return;
+  }
+
+  const v = scoreToVerdict(score);
+  $('overviewEmoji').textContent = v.emoji;
+  $('overviewVerdict').textContent = v.text;
+  $('overviewChips').innerHTML = chips.map(c=>pill(c.t, c.k)).join(' ');
+
+  checkAlerts();
+}
+
+// ---- allerte personalizzate: notifica alla soglia, poi di nuovo ogni "step" oltre la soglia ----
+const ALERT_DEFAULTS = {
+  bzEnabled:true, bzThreshold:-5, bzStep:2,
+  kpEnabled:true, kpThreshold:5, kpStep:1,
+  speedEnabled:true, speedThreshold:500, speedStep:50,
+  ovationEnabled:true, ovationThreshold:4, ovationStep:1,
+  skyEnabled:true, skyThreshold:7, skyStep:1,
+};
+let alertSettings = {...ALERT_DEFAULTS};
+// livello (numero di "step" oltre la soglia) già notificato per ciascuna regola; -1 = non armato/sotto soglia
+const alertState = { bz:-1, kp:-1, speed:-1, ovation:-1, sky:-1 };
+let notificationsEnabled = false;
+let soundEnabled = true;
+
+const ALERT_FIELDS = ['bzEnabled','bzThreshold','bzStep','kpEnabled','kpThreshold','kpStep','speedEnabled','speedThreshold','speedStep','ovationEnabled','ovationThreshold','ovationStep','skyEnabled','skyThreshold','skyStep'];
+
+function loadAlertSettings(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('aurora_alert_settings') || 'null');
+    if(saved) alertSettings = {...ALERT_DEFAULTS, ...saved};
+  }catch(e){}
+  ALERT_FIELDS.forEach(f=>{
+    const el = $('alert' + f.charAt(0).toUpperCase() + f.slice(1));
+    if(!el) return;
+    if(el.type === 'checkbox') el.checked = alertSettings[f];
+    else el.value = alertSettings[f];
+  });
+}
+
+function saveAlertSettingsFromUI(){
+  const s = {};
+  ALERT_FIELDS.forEach(f=>{
+    const el = $('alert' + f.charAt(0).toUpperCase() + f.slice(1));
+    if(!el) return;
+    s[f] = el.type === 'checkbox' ? el.checked : parseFloat(el.value);
+  });
+  alertSettings = s;
+  try{ localStorage.setItem('aurora_alert_settings', JSON.stringify(alertSettings)); }catch(e){}
+}
+
+ALERT_FIELDS.forEach(f=>{
+  const el = $('alert' + f.charAt(0).toUpperCase() + f.slice(1));
+  if(el) el.addEventListener('change', saveAlertSettingsFromUI);
+});
+
+$('enableNotifBtn').addEventListener('click', async ()=>{
+  if(!window.Notification){ alert('Le notifiche non sono supportate da questo browser.'); return; }
+  const perm = await Notification.requestPermission();
+  notificationsEnabled = (perm === 'granted');
+  $('alertPermStatus').textContent = notificationsEnabled ? 'Notifiche del browser: attive' : 'Notifiche del browser: permesso negato — userò comunque il suono';
+});
+
+$('soundToggleBtn').addEventListener('click', (e)=>{
+  soundEnabled = !soundEnabled;
+  e.target.textContent = '🔊 Suono: ' + (soundEnabled ? 'ON' : 'OFF');
+  e.target.classList.toggle('active', soundEnabled);
+});
+
+function playAlertBeep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880; g.gain.value = 0.18;
+    o.start();
+    setTimeout(()=>{ o.frequency.value = 660; }, 150);
+    setTimeout(()=>{ o.stop(); ctx.close(); }, 400);
+  }catch(e){}
+}
+
+function fireAlert(title, body){
+  if(notificationsEnabled && window.Notification && Notification.permission === 'granted'){
+    try{ new Notification(title, {body, tag:'aurora-alert-'+title}); }catch(e){}
+  }
+  if(soundEnabled) playAlertBeep();
+  const log = $('alertLog');
+  if(log){
+    const div = document.createElement('div');
+    div.className = 'alertitem';
+    div.innerHTML = `<span class="a-id">🔔 ${title}</span>${body}<div class="a-time">${new Date().toLocaleTimeString('it-IT')}</div>`;
+    log.prepend(div);
+    while(log.children.length > 8) log.removeChild(log.lastChild);
+  }
+}
+
+// Calcola quanti "step" oltre la soglia si trova il valore.
+// direction 'above'  -> allerta quando il valore SALE sopra la soglia (es. Kp, velocità, OVATION, cielo sereno)
+// direction 'below'  -> allerta quando il valore SCENDE sotto la soglia (es. Bz negativo/favorevole)
+// Ritorna -1 se non ha ancora superato la soglia, altrimenti 0,1,2... per ogni "step" superato in più.
+function stepLevel(value, threshold, step, direction){
+  const s = (step && step > 0) ? step : 1;
+  if(direction === 'above'){
+    if(value < threshold) return -1;
+    return Math.floor((value - threshold) / s);
+  } else {
+    if(value > threshold) return -1;
+    return Math.floor((threshold - value) / s);
+  }
+}
+
+function checkAlerts(){
+  if(alertSettings.bzEnabled && OVERVIEW.bz != null){
+    const level = stepLevel(OVERVIEW.bz, alertSettings.bzThreshold, alertSettings.bzStep, 'below');
+    if(level > alertState.bz) fireAlert('Bz favorevole', `Bz è a ${OVERVIEW.bz.toFixed(1)} nT (soglia ${alertSettings.bzThreshold} nT)`);
+    alertState.bz = level;
+  }
+  if(alertSettings.kpEnabled && OVERVIEW.kp != null){
+    const level = stepLevel(OVERVIEW.kp, alertSettings.kpThreshold, alertSettings.kpStep, 'above');
+    if(level > alertState.kp) fireAlert('Kp elevato', `Kp è a ${OVERVIEW.kp} (soglia ${alertSettings.kpThreshold})`);
+    alertState.kp = level;
+  }
+  if(alertSettings.speedEnabled && OVERVIEW.speed != null){
+    const level = stepLevel(OVERVIEW.speed, alertSettings.speedThreshold, alertSettings.speedStep, 'above');
+    if(level > alertState.speed) fireAlert('Vento solare veloce', `Velocità a ${Math.round(OVERVIEW.speed)} km/s (soglia ${alertSettings.speedThreshold} km/s)`);
+    alertState.speed = level;
+  }
+  if(alertSettings.ovationEnabled && OVERVIEW.ovation != null){
+    const level = stepLevel(OVERVIEW.ovation, alertSettings.ovationThreshold, alertSettings.ovationStep, 'above');
+    if(level > alertState.ovation) fireAlert('Probabilità aurora alta', `OVATION a ${OVERVIEW.ovation}/7 nella tua zona (soglia ${alertSettings.ovationThreshold})`);
+    alertState.ovation = level;
+  }
+  if(alertSettings.skyEnabled && OVERVIEW.skyScore != null){
+    const level = stepLevel(OVERVIEW.skyScore, alertSettings.skyThreshold, alertSettings.skyStep, 'above');
+    if(level > alertState.sky) fireAlert('Cielo sereno', `Probabilità cielo sereno a ${OVERVIEW.skyScore}/10 (soglia ${alertSettings.skyThreshold})`);
+    alertState.sky = level;
+  }
+}
+
+let kpChartInstance = null;
+
+// esegue un blocco isolandolo: se una sezione fallisce, le altre continuano comunque
+function step(name, fn){
+  try{ fn(); }
+  catch(e){
+    diagSet(name, 'err', 'errore nel disegno: ' + (e && e.message ? e.message : e));
+    console.error('[aurora] ' + name, e);
+  }
+}
+
+async function loadAll(){
+  $('lastUpdate').innerHTML = '<span class="spinner"></span> aggiornamento...';
+
+  const unwrap = (x) => Array.isArray(x) ? (x.length ? x[x.length-1] : null) : x;
+
+  // ogni getJSON cattura gia' i propri errori e restituisce null: Promise.all non puo' essere rigettata
+  const [magRaw, speedRaw, kpArr, flareRaw, fluxRaw, scales, ovation] = await Promise.all([
+    getJSON('https://services.swpc.noaa.gov/products/summary/solar-wind-mag-field.json', 'NOAA — campo magnetico (sintesi)'),
+    getJSON('https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json', 'NOAA — velocità vento solare (sintesi)'),
+    getJSON('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json', 'NOAA — indice Kp'),
+    getJSON('https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json', 'NOAA — brillamenti X-ray (GOES)'),
+    getJSON('https://services.swpc.noaa.gov/products/summary/10cm-flux.json', 'NOAA — flusso radio 10,7 cm'),
+    getJSON('https://services.swpc.noaa.gov/products/noaa-scales.json', 'NOAA — scale R/S/G'),
+    getJSON('https://services.swpc.noaa.gov/json/ovation_aurora_latest.json', 'NOAA — modello OVATION'),
+  ]);
+
+  const mag = unwrap(magRaw);
+  const speed = unwrap(speedRaw);
+  const flare = unwrap(flareRaw);
+  const flux = unwrap(fluxRaw);
+
+  window.__lastOvation = ovation;
+
+  // se la sintesi non risponde, si ripiega sui dati grezzi RTSW gia' scaricati per i grafici
+  const magFb = (mag && num(mag.bz_gsm) !== null) ? mag : latestValid(lastMagRaw, ['bt','bz_gsm']);
+  const speedFb = (speed && num(speed.proton_speed) !== null) ? speed : latestValid(lastWindRaw, ['proton_speed']);
+
+  OVERVIEW.bz = num(magFb && magFb.bz_gsm);
+  OVERVIEW.bt = num(magFb && magFb.bt);
+  OVERVIEW.speed = num(speedFb && speedFb.proton_speed);
+  OVERVIEW.kp = (kpArr && kpArr.length) ? num(kpArr[kpArr.length-1].estimated_kp ?? kpArr[kpArr.length-1].kp_index) : null;
+
+  // ---- stat cards ----
+  step('Riquadri riepilogo', ()=>{
+    let html = '';
+    if(magFb && OVERVIEW.bz != null && OVERVIEW.bt != null){
+      const bz = OVERVIEW.bz, bt = OVERVIEW.bt;
+      const bzKind = bz < 0 ? 'good' : 'bad';
+      const bzLabel = bz < -5 ? 'molto favorevole' : (bz < 0 ? 'favorevole' : 'sfavorevole');
+      html += card('Bz (IMF)', (bz>0?'+':'')+bz.toFixed(1), 'nT', 'aggiornato '+fmtTime(magFb.time_tag), pill(bzLabel,bzKind));
+      html += card('Bt (IMF totale)', bt.toFixed(1), 'nT', 'aggiornato '+fmtTime(magFb.time_tag), pill(bt>=10?'energia elevata':'energia contenuta', bt>=10?'good':'neutral'));
+    } else {
+      html += '<div class="card"><div class="label">Bz / Bt (IMF)</div><div class="err">dato non disponibile ora</div><div class="sub">' + LINK_DIAG + '</div></div>';
+    }
+
+    if(speedFb && OVERVIEW.speed != null){
+      const sp = OVERVIEW.speed;
+      const spKind = sp >= 500 ? 'good' : (sp >= 400 ? 'warn' : 'neutral');
+      html += card('Velocità vento solare', Math.round(sp), 'km/s', 'aggiornato '+fmtTime(speedFb.time_tag), pill(sp>=500?'molto favorevole':(sp>=400?'favorevole':'nella norma'), spKind));
+    } else {
+      html += '<div class="card"><div class="label">Velocità vento solare</div><div class="err">dato non disponibile ora</div></div>';
+    }
+
+    if(kpArr && kpArr.length && OVERVIEW.kp != null){
+      const last = kpArr[kpArr.length-1];
+      const kpv = OVERVIEW.kp;
+      const kpKind = kpv >= 5 ? 'warn' : 'neutral';
+      const kpDesc = kpv >= 7 ? 'tempesta forte' : kpv >= 5 ? 'tempesta geomagnetica' : kpv >= 4 ? 'attivo' : 'quieto';
+      html += card('Indice Kp (stimato)', kpv, '', 'aggiornato '+fmtTime(last.time_tag), pill(kpDesc, kpKind));
+    } else {
+      html += '<div class="card"><div class="label">Indice Kp</div><div class="err">dato non disponibile ora</div></div>';
+    }
+
+    if(flare){
+      html += card('Brillamento solare (X-ray)', flare.current_class || '–', '', 'classe massima oggi: '+(flare.max_class||'–'));
+    } else {
+      html += '<div class="card"><div class="label">Brillamento solare</div><div class="err">dato non disponibile ora</div></div>';
+    }
+
+    $('statGrid').innerHTML = html;
+  });
+
+  // ---- flux / flare ----
+  step('Flusso radio e brillamenti', ()=>{
+    if(flux && flux.flux != null) $('fluxVal').innerHTML = flux.flux + '<span class="unit">sfu</span>';
+    if(flare){
+      $('flareVal').textContent = flare.current_class || '–';
+      $('flareSub').textContent = 'ultimo picco: ' + (flare.max_class || '–') + ' alle ' + fmtTime(flare.max_time);
+    }
+  });
+
+  // ---- NOAA scales table ----
+  step('Tabella scale R/S/G', ()=>{
+    const tb = document.querySelector('#scalesTable tbody');
+    if(!tb) return;
+    if(!scales){ tb.innerHTML = '<tr><td colspan="4">dati non disponibili</td></tr>'; return; }
+    const dayLabel = {'0':'Oggi','1':'+1 giorno','2':'+2 giorni','3':'+3 giorni'};
+    let rows = '';
+    ['0','1','2','3'].forEach(k=>{
+      const d = scales[k];
+      if(!d) return;
+      rows += '<tr><td>' + dayLabel[k] + '</td><td>' + scaleCell(d.R, 'R') + '</td><td>' + scaleCell(d.S, 'S') + '</td><td>' + scaleCell(d.G, 'G') + '</td></tr>';
+    });
+    tb.innerHTML = rows || '<tr><td colspan="4">dati non disponibili</td></tr>';
+  });
+
+  $('lastUpdate').textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleTimeString('it-IT');
+
+  // ---- kp mini chart ----
+  step('Grafico Kp', ()=>{
+    if(!(kpArr && kpArr.length)) return;
+    if(!window.Chart) return;
+    const recent = kpArr.slice(-60);
+    const labels = recent.map(r => toLocalTime(r.time_tag).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
+    const values = recent.map(r => num(r.estimated_kp ?? r.kp_index));
+    const ctx = document.getElementById('kpChart').getContext('2d');
+    if(kpChartInstance) kpChartInstance.destroy();
+    kpChartInstance = new Chart(ctx, {
+      type:'line',
+      data:{ labels, datasets:[{ label:'Kp stimato', data: values, borderColor:'#3ddc97', backgroundColor:'rgba(61,220,151,.15)', fill:true, tension:.3, pointRadius:0, spanGaps:true }]},
+      options:{
+        responsive:true, animation:false,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ ticks:{ color:'#8b93ad', maxTicksLimit:6 }, grid:{ color:'#1a2138' } },
+          y:{ ticks:{ color:'#8b93ad' }, grid:{ color:'#1a2138' }, suggestedMin:0, suggestedMax:9 }
+        }
+      }
+    });
+  });
+
+  step('Card OVATION', ()=>{ updateOvationCard(); });
+}
+
+// una cella della tabella scale: NOAA dà Scale+Text per oggi, e probabilità per i giorni futuri
+function scaleCell(d, letter){
+  if(!d) return '–';
+  if(d.Scale != null && d.Scale !== '') return letter + d.Scale + (d.Text ? ' ' + d.Text : '');
+  const probs = [];
+  if(d.MinorProb != null && d.MinorProb !== '') probs.push('minore ' + d.MinorProb + '%');
+  if(d.MajorProb != null && d.MajorProb !== '') probs.push('forte ' + d.MajorProb + '%');
+  if(d.Prob != null && d.Prob !== '') probs.push(d.Prob + '%');
+  return probs.length ? probs.join(' · ') : '–';
+}
+
+function alertsData(){ return true; }
+
+async function loadAlerts(){
+  const alerts = await getJSON('https://services.swpc.noaa.gov/products/alerts.json', 'NOAA — allerte ufficiali');
+  if(!alerts){ $('alertsList').innerHTML = '<div class="err">dati non disponibili ora</div>'; return; }
+  const top = alerts.slice(0,5);
+  $('alertsList').innerHTML = top.map(a=>{
+    const firstLine = (a.message||'').split('\n').find(l=>l.trim() && !l.startsWith('Space Weather')) || (a.message||'').split('\n')[0] || '';
+    return `<div class="alertitem"><span class="a-id">${a.product_id||''}</span>${firstLine}<div class="a-time">${fmtTime(a.issue_datetime)}</div></div>`;
+  }).join('') || '<div class="err">nessuna allerta recente</div>';
+}
+
+async function loadForecastText(){
+  const txt = await getTEXT('https://services.swpc.noaa.gov/text/3-day-forecast.txt', 'NOAA — previsione 3 giorni');
+  $('forecastText').textContent = txt || 'dato non disponibile ora — apri swpc.noaa.gov/products/3-day-forecast';
+}
+
+// ---- interactive IMF & solar wind charts ----
+// NOAA ha dismesso i vecchi endpoint /products/solar-wind/{mag,plasma}-{intervallo}.json (davano 404).
+// Il feed attuale è /json/rtsw/rtsw_{mag,wind}_1m.json: un unico file con le ultime ~24h a 1 minuto,
+// con dati di più satelliti mescolati (source: "ACE" / "IMAP" / "SOLAR1") e un flag "active" che indica
+// quale sia il satellite primario in quel momento. Filtriamo su active=true per avere una serie pulita,
+// ordiniamo per tempo crescente (il feed arriva a tempo decrescente) e tagliamo alla finestra scelta.
+function toLocalTime(t){
+  if(!t) return new Date(NaN);
+  const iso = /Z$|[+-]\d\d:\d\d$/.test(t) ? t : t.replace(' ', 'T') + 'Z';
+  return new Date(iso);
+}
+
+// NOAA tiene più satelliti attivi in parallelo al punto L1 (in genere ACE, DSCOVR, SOLAR1/SWFO-L1, IMAP)
+// e li mescola tutti in un unico file, con un flag "active" che segnala quale sia il primario del momento.
+// Per il valore "attuale" (i numeri in cima) usiamo il satellite primario; per i grafici li mostriamo TUTTI
+// insieme (uno stile tratteggio diverso per satellite), così puoi confrontarli, come nel grafico di riferimento.
+const SOURCE_DASH = { ACE: [4,3], DSCOVR: [3,3], SOLAR1: [7,4], IMAP: [8,3,2,3] };
+const DASH_FALLBACKS = [[1,3],[5,2,1,2],[9,3],[2,2,6,2]];
+function dashForSource(src, idx){ return SOURCE_DASH[src] || DASH_FALLBACKS[idx % DASH_FALLBACKS.length]; }
+
+function latestActive(raw){
+  if(!raw || !Array.isArray(raw) || !raw.length) return null;
+  const active = raw.filter(r => r && r.active === true && r.time_tag);
+  const pool = active.length ? active : raw.filter(r => r && r.time_tag);
+  if(!pool.length) return null;
+  return pool.reduce((a,b)=> toLocalTime(a.time_tag) > toLocalTime(b.time_tag) ? a : b);
+}
+
+// L'ultima riga in ordine di tempo può contenere valori sentinella (-9999) o campi nulli:
+// in quel caso mostrare "–" sarebbe fuorviante. Qui si risale indietro fino all'ultima
+// riga che ha davvero i valori richiesti, restando sul satellite "active" se disponibile.
+function latestValid(raw, keys){
+  if(!raw || !Array.isArray(raw) || !raw.length) return null;
+  const ok = r => r && r.time_tag && keys.every(k => num(r[k]) !== null);
+  const byTimeDesc = (a,b) => toLocalTime(b.time_tag) - toLocalTime(a.time_tag);
+  const active = raw.filter(r => r && r.active === true && ok(r)).sort(byTimeDesc);
+  if(active.length) return active[0];
+  const any = raw.filter(ok).sort(byTimeDesc);
+  if(any.length) return any[0];
+  return latestActive(raw);
+}
+
+// popola il menu "satellite" con le sorgenti trovate nel feed (mantenendo la scelta già fatta dall'utente)
+// unisce (non sovrascrive) i satelliti visti: il feed campo magnetico e quello vento solare
+// possono avere set di satelliti leggermente diversi (es. un satellite manda solo uno dei due tipi di dato)
+function populateSourceSelect(raw){
+  const sel = $('satSource');
+  if(!sel || !raw || !Array.isArray(raw)) return;
+  const known = new Set((sel.dataset.sources || '').split(',').filter(Boolean));
+  let changed = false;
+  raw.forEach(r=>{
+    if(r && r.source && !known.has(r.source)){ known.add(r.source); changed = true; }
+  });
+  if(!changed) return;
+  const sources = Array.from(known).sort();
+  sel.dataset.sources = sources.join(',');
+  const current = sel.value;
+  sel.innerHTML = '<option value="ALL">Tutti i satelliti</option>' + sources.map(s=>`<option value="${s}">${s}</option>`).join('');
+  sel.value = sources.includes(current) ? current : 'ALL';
+}
+
+// quanti satelliti hanno riportato dati negli ultimi minuti (indipendentemente da quale sia il "primario")
+function updateSatOverview(){
+  if(!$('activeSatCount')) return;
+  const recentCutoff = Date.now() - 10*60*1000;
+  const sources = new Set();
+  [lastMagRaw, lastWindRaw].forEach(raw=>{
+    if(!raw || !Array.isArray(raw)) return;
+    raw.forEach(r=>{
+      if(r && r.source && r.time_tag && toLocalTime(r.time_tag).getTime() >= recentCutoff) sources.add(r.source);
+    });
+  });
+  if(!sources.size){ $('activeSatCount').textContent = '–'; return; }
+  const list = Array.from(sources).sort();
+  $('activeSatCount').textContent = list.length;
+  $('activeSatList').textContent = list.join(', ') + ' — tutti insieme nei grafici qui sotto';
+}
+
+function sourceLegendHTML(sources, activeSrc){
+  return sources.map((s,i)=>{
+    const isActive = (s === activeSrc);
+    const style = isActive
+      ? 'border-top:3px solid #e8ecf7;'
+      : 'border-top:2px dashed rgba(139,147,173,.6);';
+    const col = isActive ? '#e8ecf7' : '#8b93ad';
+    return '<span style="display:inline-flex; align-items:center; gap:5px; margin-right:14px; color:' + col + ';">'
+      + '<span style="width:18px; ' + style + ' display:inline-block;"></span>' + s
+      + (isActive ? ' <strong>· riferimento NOAA</strong>' : '') + '</span>';
+  }).join('');
+}
+
+// costruisce, per una o più metriche, un dataset per ciascuna coppia (metrica, satellite),
+// allineando tutti i satelliti su un asse tempo comune (i satelliti non riportano esattamente allo stesso secondo)
+// il satellite che NOAA marca come 'active': è quello su cui si decide
+function activeSourceOf(raw){
+  if(!raw || !Array.isArray(raw)) return null;
+  for(let i=0;i<raw.length;i++){ if(raw[i] && raw[i].active === true && raw[i].source) return raw[i].source; }
+  return null;
+}
+
+// trasforma un colore #rrggbb in rgba con l'alfa richiesta
+function fade(hex, alpha){
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if(!m) return hex;
+  return 'rgba(' + parseInt(m[1],16) + ',' + parseInt(m[2],16) + ',' + parseInt(m[3],16) + ',' + alpha + ')';
+}
+
+function buildMultiSourceDatasets(raw, hours, metrics){
+  const sourceSel = $('satSource') ? $('satSource').value : 'ALL';
+  if(!raw || !Array.isArray(raw) || !raw.length) return { labels:[], datasets:[], sources:[], lastBySource:{} };
+  const cutoff = hours ? Date.now() - hours*3600*1000 : -Infinity;
+  const bySource = {};
+  raw.forEach(r=>{
+    if(!r || !r.time_tag) return;
+    const t = toLocalTime(r.time_tag).getTime();
+    if(isNaN(t) || t < cutoff) return;
+    const src = r.source || '?';
+    if(sourceSel !== 'ALL' && src !== sourceSel) return;
+    if(!bySource[src]) bySource[src] = {};
+    bySource[src][t] = r;
+  });
+  const activeSrc = activeSourceOf(raw);
+  const sources = Object.keys(bySource).sort();
+  const allTimes = new Set();
+  sources.forEach(s => Object.keys(bySource[s]).forEach(t => allTimes.add(Number(t))));
+  const sortedTimes = Array.from(allTimes).sort((a,b)=>a-b);
+  const labels = sortedTimes.map(t => new Date(t).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
+
+  const datasets = [];
+  sources.forEach((src,i)=>{
+    metrics.forEach(m=>{
+      if(m.visible && !m.visible()) return;
+      const data = sortedTimes.map(t => { const row = bySource[src][t]; return row ? num(row[m.key]) : null; });
+      const isActive = (src === activeSrc);
+      datasets.push({
+        key: m.key + '|' + src,
+        label: m.label + ' - ' + src + (isActive ? ' (riferimento)' : ''),
+        data,
+        // il satellite di riferimento: linea piena e spessa. Gli altri: sottili, tratteggiati, sbiaditi.
+        borderColor: isActive ? m.color : fade(m.color, .30),
+        borderDash: isActive ? [] : dashForSource(src, i),
+        backgroundColor: 'transparent',
+        borderWidth: isActive ? 2.4 : 1,
+        order: isActive ? 0 : 1,
+        pointRadius: 0, tension: .2, spanGaps: true,
+        yAxisID: m.yAxisID,
+        hidden: !!m.hidden
+      });
+    });
+  });
+  return { labels, datasets, sources, activeSrc, times: sortedTimes };
+}
+
+// Linea orizzontale sullo zero: serve a leggere a colpo d'occhio se Bz sta sotto (sud, favorevole)
+// o sopra (nord, sfavorevole). Disegnata a mano, senza plugin esterni da caricare.
+const zeroLinePlugin = {
+  id:'zeroLine',
+  afterDatasetsDraw(chart){
+    const y = chart.scales.y;
+    if(!y) return;
+    const py = y.getPixelForValue(0);
+    if(!isFinite(py) || py < chart.chartArea.top || py > chart.chartArea.bottom) return;
+    const ctx = chart.ctx, {left, right} = chart.chartArea;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(left, py); ctx.lineTo(right, py);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(232,236,247,.5)';
+    ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(232,236,247,.55)';
+    ctx.font = '10px system-ui, sans-serif';
+    ctx.fillText('0 nT — sotto questa linea Bz punta a sud (favorevole)', left + 6, py - 5);
+    ctx.restore();
+  }
+};
+
+const imfVisible = { bt:true, bz_gsm:true, bx_gsm:false, by_gsm:false };
+const imfColors = { bt:'#e8ecf7', bz_gsm:'#ff6b6b', bx_gsm:'#5ec8ff', by_gsm:'#ffd93d' };
+const imfLabels = { bt:'Bt', bz_gsm:'Bz', bx_gsm:'Bx', by_gsm:'By' };
+let imfChartInstance = null;
+
+let lastMagRaw = null;
+
+async function loadIMFChart(preRaw){
+  $('imfStatus').textContent = 'aggiornamento...';
+  const raw = preRaw || await getJSON('https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json', 'NOAA — RTSW campo magnetico (grafico)');
+  lastMagRaw = raw;
+  populateSourceSelect(raw);
+  updateSatOverview();
+  const hours = parseFloat($('imfInterval').value);
+
+  refreshBzEpisodes();
+
+  const last = latestValid(raw, ['bt','bz_gsm']);
+  if(!last){
+    $('imfStatus').innerHTML = '<span class="err">dati non disponibili ora</span>' + LINK_DIAG;
+    $('imfCurrentBt').textContent = '–';
+    $('imfCurrentBz').textContent = '–';
+    return;
+  }
+
+  // PRIMA i valori numerici: devono comparire anche se la libreria dei grafici non e' disponibile
+  const bt = num(last.bt), bz = num(last.bz_gsm);
+  $('imfCurrentBt').textContent = bt != null ? bt.toFixed(2) : '–';
+  if(bz != null){
+    const dir = bz < 0 ? '<span style="color:var(--green)">Sud (favorevole)</span>' : '<span style="color:var(--red)">Nord</span>';
+    $('imfCurrentBz').innerHTML = bz.toFixed(2) + ' nT ' + dir;
+  } else {
+    $('imfCurrentBz').textContent = '–';
+  }
+  if($('activeSatMag')) $('activeSatMag').textContent = last.source || '–';
+  $('imfStatus').textContent = 'aggiornato alle ' + toLocalTime(last.time_tag).toLocaleTimeString('it-IT') + ' (satellite primario: ' + (last.source||'–') + ')';
+
+  // fallback per i riquadri in cima, se gli endpoint di sintesi non rispondono
+  if(OVERVIEW.bz == null && bz != null){ OVERVIEW.bz = bz; OVERVIEW.bt = bt; updateOverview(); }
+
+  if(!window.Chart){
+    $('imfStatus').innerHTML += ' <span class="err">— grafico non disegnabile: libreria Chart.js non caricata</span>';
+    return;
+  }
+
+  const metrics = ['bt','bz_gsm','bx_gsm','by_gsm'].map(key=>({
+    key, label: imfLabels[key], color: imfColors[key], visible: ()=>imfVisible[key]
+  }));
+  try{
+    const ds = buildMultiSourceDatasets(raw, hours, metrics);
+    const { labels, datasets, sources } = ds;
+    const ctx = document.getElementById('imfChart').getContext('2d');
+    if(imfChartInstance) imfChartInstance.destroy();
+    imfChartInstance = new Chart(ctx, {
+      type:'line',
+      plugins:[bzBandsPlugin, zeroLinePlugin],
+      data:{ labels, datasets },
+      options:{
+        responsive:true, animation:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ ticks:{ color:'#8b93ad', maxTicksLimit:8 }, grid:{ color:'#1a2138' } },
+          y:{ ticks:{ color:'#8b93ad' }, grid:{ color:'#1a2138' }, title:{ display:true, text:'nT', color:'#8b93ad' } }
+        }
+      }
+    });
+    if($('imfSourceLegend')) $('imfSourceLegend').innerHTML = sourceLegendHTML(sources, ds.activeSrc);
+    lastImfTimes = ds.times;
+    diagSet('Grafico campo magnetico', 'ok', datasets.length + ' serie, ' + labels.length + ' punti');
+    if(imfChartInstance && typeof imfChartInstance.update === 'function') imfChartInstance.update('none');
+  }catch(e){
+    diagSet('Grafico campo magnetico', 'err', e && e.message ? e.message : String(e));
+    $('imfStatus').innerHTML += ' <span class="err">— errore nel disegno del grafico</span>';
+    console.error('[aurora] grafico IMF', e);
+  }
+}
+
+document.querySelectorAll('.imf-toggle').forEach(btn=>{
+  const key = btn.dataset.key;
+  btn.classList.toggle('active', imfVisible[key]);
+  btn.style.opacity = imfVisible[key] ? '1' : '0.35';
+  btn.addEventListener('click', ()=>{
+    imfVisible[key] = !imfVisible[key];
+    btn.classList.toggle('active', imfVisible[key]);
+    btn.style.opacity = imfVisible[key] ? '1' : '0.35';
+    loadIMFChart(lastMagRaw); // riusa i dati già scaricati, non serve rifare la richiesta di rete
+  });
+});
+$('imfInterval').addEventListener('change', ()=>{ loadIMFChart(lastMagRaw); loadPlasmaChart(lastWindRaw); });
+$('satSource').addEventListener('change', ()=>{ loadIMFChart(lastMagRaw); loadPlasmaChart(lastWindRaw); });
+
+const plasmaVisible = { proton_speed:true, proton_density:true };
+const plasmaLabels = { proton_speed:'Velocità', proton_density:'Densità' };
+let plasmaChartInstance = null;
+let lastWindRaw = null;
+
+async function loadPlasmaChart(preRaw){
+  $('plasmaStatus').textContent = 'aggiornamento...';
+  const raw = preRaw || await getJSON('https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json', 'NOAA — RTSW vento solare (grafico)');
+  lastWindRaw = raw;
+  populateSourceSelect(raw);
+  updateSatOverview();
+  const hours = parseFloat($('imfInterval').value);
+
+  refreshBzEpisodes();
+
+  const last = latestValid(raw, ['proton_speed','proton_density']);
+  if(!last){
+    $('plasmaStatus').innerHTML = '<span class="err">dati non disponibili ora</span>' + LINK_DIAG;
+    $('plasmaSpeed').textContent = '–';
+    $('plasmaDensity').textContent = '–';
+    $('propagationBanner').style.display = 'none';
+    return;
+  }
+
+  // PRIMA i valori numerici
+  const sp = num(last.proton_speed), dens = num(last.proton_density);
+  $('plasmaSpeed').textContent = sp != null ? Math.round(sp) : '–';
+  $('plasmaDensity').textContent = dens != null ? dens.toFixed(1) : '–';
+  $('plasmaStatus').textContent = 'aggiornato alle ' + toLocalTime(last.time_tag).toLocaleTimeString('it-IT') + ' (satellite primario: ' + (last.source||'–') + ')';
+  if($('activeSatWind')) $('activeSatWind').textContent = last.source || '–';
+  if(OVERVIEW.speed == null && sp != null){ OVERVIEW.speed = sp; updateOverview(); }
+
+  if(sp != null && sp > 0){
+    const minutes = Math.round(1500000 / sp / 60);
+    $('propagationBanner').style.display = 'block';
+    $('propagationBanner').innerHTML = `Alla velocità attuale (satellite ${last.source||'–'}), il vento solare impiega circa <strong>${minutes} minuti</strong> per arrivare dal punto L1 alla Terra.`;
+    if($('propTimeVal')) $('propTimeVal').textContent = '~' + minutes + ' minuti';
+    if($('svgPropTime')) $('svgPropTime').textContent = 'tempo di viaggio: ~' + minutes + ' minuti';
+    if($('explainPropTime')) $('explainPropTime').textContent = minutes + ' minuti';
+  } else {
+    $('propagationBanner').style.display = 'none';
+    if($('propTimeVal')) $('propTimeVal').textContent = '–';
+  }
+
+  if(!window.Chart){
+    $('plasmaStatus').innerHTML += ' <span class="err">— grafico non disegnabile: libreria Chart.js non caricata</span>';
+    return;
+  }
+
+  const metrics = [
+    { key:'proton_speed', label: plasmaLabels.proton_speed, color:'#5ec8ff', visible: ()=>plasmaVisible.proton_speed, yAxisID:'y' },
+    { key:'proton_density', label: plasmaLabels.proton_density, color:'#ffd93d', visible: ()=>plasmaVisible.proton_density, yAxisID:'y1' },
+  ];
+  try{
+    const ds = buildMultiSourceDatasets(raw, hours, metrics);
+    const { labels, datasets, sources } = ds;
+    const ctx = document.getElementById('plasmaChart').getContext('2d');
+    if(plasmaChartInstance) plasmaChartInstance.destroy();
+    plasmaChartInstance = new Chart(ctx, {
+      type:'line',
+      data:{ labels, datasets },
+      options:{
+        responsive:true, animation:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ ticks:{ color:'#8b93ad', maxTicksLimit:8 }, grid:{ color:'#1a2138' } },
+          y:{ position:'left', ticks:{ color:'#5ec8ff' }, grid:{ color:'#1a2138' }, title:{ display:true, text:'km/s', color:'#5ec8ff' } },
+          y1:{ position:'right', ticks:{ color:'#ffd93d' }, grid:{ display:false }, title:{ display:true, text:'p/cm³', color:'#ffd93d' } }
+        }
+      }
+    });
+    if($('plasmaSourceLegend')) $('plasmaSourceLegend').innerHTML = sourceLegendHTML(sources, ds.activeSrc);
+    diagSet('Grafico vento solare', 'ok', datasets.length + ' serie, ' + labels.length + ' punti');
+  }catch(e){
+    diagSet('Grafico vento solare', 'err', e && e.message ? e.message : String(e));
+    $('plasmaStatus').innerHTML += ' <span class="err">— errore nel disegno del grafico</span>';
+    console.error('[aurora] grafico plasma', e);
+  }
+}
+
+document.querySelectorAll('.plasma-toggle').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const key = btn.dataset.key === 'speed' ? 'proton_speed' : 'proton_density';
+    plasmaVisible[key] = !plasmaVisible[key];
+    btn.classList.toggle('active', plasmaVisible[key]);
+    btn.style.opacity = plasmaVisible[key] ? '1' : '0.35';
+    loadPlasmaChart(lastWindRaw); // riusa i dati già scaricati
+  });
+});
+
+// ---- potenza emisferica dell'ovale aurorale (modello OVATION, GW) ----
+let hpChartInstance = null;
+
+function hpLabelFor(gw){
+  if(gw < 20) return {text:'aurora debole — spesso visibile solo in fotografia', kind:'neutral'};
+  if(gw < 50) return {text:'aurora visibile a occhio nudo alle alte latitudini', kind:'good'};
+  if(gw < 100) return {text:'aurora forte e dinamica', kind:'good'};
+  return {text:'evento eccezionale — visibile molto più a sud', kind:'good'};
+}
+
+async function loadHemiPower(){
+  const txt = await getTEXT('https://services.swpc.noaa.gov/text/aurora-nowcast-hemi-power.txt', 'NOAA — potenza emisferica (GW)');
+  if(!txt){ $('hpNorthLabel').innerHTML = '<span class="err">dato non disponibile ora</span>'; return; }
+
+  // formato: <istante osservazione>  <istante previsto>  <GW nord>  <GW sud>, righe di commento con #
+  const rows = [];
+  txt.split('\n').forEach(line=>{
+    const l = line.trim();
+    if(!l || l.startsWith('#')) return;
+    const parts = l.split(/\s+/);
+    if(parts.length < 4) return;
+    const north = num(parts[2]);
+    if(north === null) return;
+    rows.push({ obs: parts[0], fc: parts[1], north, south: num(parts[3]) });
+  });
+  if(!rows.length){ $('hpNorthLabel').innerHTML = '<span class="err">formato dati inatteso</span>'; return; }
+
+  const last = rows[rows.length-1];
+  $('hpNorth').innerHTML = Math.round(last.north) + '<span class="unit">GW</span>';
+  const lbl = hpLabelFor(last.north);
+  $('hpNorthLabel').innerHTML = pill(lbl.text, lbl.kind);
+  $('hpTime').textContent = (last.fc || '').replace('_', ' ') + ' UTC';
+  OVERVIEW.hemiPower = last.north;
+
+  // tendenza: confronto con ~3 ore fa (il file ha un campione ogni 5 minuti)
+  const back = rows[Math.max(0, rows.length - 37)];
+  const delta = last.north - back.north;
+  const freccia = delta > 3 ? '↑ in aumento' : delta < -3 ? '↓ in calo' : '→ stabile';
+  $('hpTrend').textContent = freccia + '  (' + (delta>0?'+':'') + Math.round(delta) + ' GW)';
+
+  updateOverview();
+
+  if(!window.Chart) return;
+  try{
+    const recent = rows.slice(-288);
+    const labels = recent.map(r => (r.fc || r.obs).split('_')[1] || '');
+    const ctx = document.getElementById('hpChart').getContext('2d');
+    if(hpChartInstance) hpChartInstance.destroy();
+    hpChartInstance = new Chart(ctx, {
+      type:'line',
+      data:{ labels, datasets:[{ label:'GW emisfero nord', data: recent.map(r=>r.north), borderColor:'#c084fc', backgroundColor:'rgba(192,132,252,.15)', fill:true, tension:.3, pointRadius:0, spanGaps:true }]},
+      options:{
+        responsive:true, animation:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ ticks:{ color:'#8b93ad', maxTicksLimit:8 }, grid:{ color:'#1a2138' } },
+          y:{ ticks:{ color:'#8b93ad' }, grid:{ color:'#1a2138' }, title:{ display:true, text:'GW', color:'#8b93ad' }, suggestedMin:0 }
+        }
+      }
+    });
+    diagSet('Grafico potenza emisferica', 'ok', recent.length + ' punti');
+  }catch(e){
+    diagSet('Grafico potenza emisferica', 'err', e && e.message ? e.message : String(e));
+  }
+}
+
+// ---- magnetometro locale (rete IMAGE / FMI) ----
+// I dati FMI non espongono header CORS, quindi non si possono leggere via fetch da file://:
+// si incorpora direttamente la pagina del magnetogramma, che si aggiorna da sola ogni minuto.
+function updateMagFrame(){
+  const st = $('magStation') ? $('magStation').value : 'KIL';
+  const hh = $('magHours') ? $('magHours').value : '02';
+  const url = 'https://space.fmi.fi/image/realtime/UT/' + st + '/XYZlast' + hh + '.html';
+  if($('magFrame')) $('magFrame').src = url;
+  if($('magOpenBtn')) $('magOpenBtn').href = url;
+  diagSet('Magnetometro locale (FMI IMAGE)', 'ok', st + ' · ' + parseInt(hh,10) + 'h (immagine incorporata)');
+}
+
+
+// ======================= EPISODI DI Bz SUD =================================
+// Quando il Bz scende sotto zero al punto L1 comincia un "episodio". Quel pezzo di
+// vento solare arriva sulla Terra dopo 1.500.000 km / velocità. Qui li individuiamo,
+// ne misuriamo durata ed energia, e calcoliamo quando colpiranno la magnetosfera.
+const BZ_CFG = {
+  threshold: -1,      // nT: sotto questo valore si considera "Bz sud" (il rumore attorno a 0 non conta)
+  gapTolMin: 4,       // minuti di risalita sopra soglia tollerati senza chiudere l'episodio
+  minDurMin: 4,       // episodi più brevi di così non sono rilevanti
+  windowHours: 12,    // finestra di ricerca
+  substormMin: 30     // minuti di Bz sud continuativo oltre i quali la substorm diventa probabile
+};
+const L1_KM = 1500000;
+
+let lastImfTimes = [];
+let bzEpisodes = [];
+let bzAlertedStart = null;
+
+function lagMinutes(v){ return (v && v > 0) ? (L1_KM / v / 60) : null; }
+
+// serie ordinata nel tempo di una singola grandezza per un singolo satellite
+function seriesFor(raw, src, key, cutoff){
+  const out = [];
+  if(!raw || !Array.isArray(raw)) return out;
+  raw.forEach(r=>{
+    if(!r || !r.time_tag) return;
+    if(src && r.source !== src) return;
+    const v = num(r[key]); if(v === null) return;
+    const t = toLocalTime(r.time_tag).getTime();
+    if(isNaN(t) || (cutoff && t < cutoff)) return;
+    out.push({t, v});
+  });
+  out.sort((a,b)=>a.t-b.t);
+  return out;
+}
+
+// campione più vicino nel tempo (ricerca binaria: le serie hanno migliaia di punti)
+function valueNear(series, t){
+  if(!series.length) return null;
+  if(t <= series[0].t) return series[0].v;
+  const last = series.length-1;
+  if(t >= series[last].t) return series[last].v;
+  let lo = 0, hi = last;
+  while(lo < hi-1){ const mid = (lo+hi) >> 1; if(series[mid].t <= t) lo = mid; else hi = mid; }
+  return (t - series[lo].t <= series[hi].t - t) ? series[lo].v : series[hi].v;
+}
+
+function fmtDur(min){
+  const m = Math.round(min);
+  if(m < 60) return m + ' min';
+  return Math.floor(m/60) + 'h ' + String(m%60).padStart(2,'0') + 'm';
+}
+function fmtClock(ms){
+  return new Date(ms).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+}
+
+function computeBzEpisodes(magRaw, windRaw){
+  bzEpisodes = [];
+  if(!magRaw || !Array.isArray(magRaw) || !magRaw.length) return;
+
+  // si usa il satellite di riferimento NOAA, oppure quello scelto a mano nel selettore
+  const sel = $('satSource') ? $('satSource').value : 'ALL';
+  const src = (sel && sel !== 'ALL') ? sel : activeSourceOf(magRaw);
+  if(!src) return;
+
+  const cutoff = Date.now() - BZ_CFG.windowHours*3600*1000;
+  const bz = seriesFor(magRaw, src, 'bz_gsm', cutoff);
+  if(!bz.length) return;
+  let sp = seriesFor(windRaw, src, 'proton_speed', cutoff);
+  if(!sp.length) sp = seriesFor(windRaw, null, 'proton_speed', cutoff); // ripiego: qualunque satellite
+
+  const raw = [];
+  let cur = null, lastIn = null;
+  bz.forEach(p=>{
+    if(p.v <= BZ_CFG.threshold){
+      if(!cur) cur = { start: p.t, samples: [] };
+      cur.samples.push(p);
+      lastIn = p.t;
+    } else if(cur && (p.t - lastIn) > BZ_CFG.gapTolMin*60000){
+      cur.end = lastIn; raw.push(cur); cur = null;
+    }
+  });
+  if(cur){ cur.end = lastIn; raw.push(cur); }
+
+  const now = Date.now();
+  raw.forEach(e=>{
+    const durMin = (e.end - e.start)/60000;
+    if(durMin < BZ_CFG.minDurMin) return;
+
+    let bzMin = 0, sum = 0, charge = 0;
+    for(let i=0;i<e.samples.length;i++){
+      const p = e.samples[i];
+      if(p.v < bzMin) bzMin = p.v;
+      sum += p.v;
+      if(i > 0){
+        const dtMin = Math.min((p.t - e.samples[i-1].t)/60000, 5); // un buco lungo non vale come carica
+        const v = valueNear(sp, p.t);
+        // campo elettrico dawn-dusk Ey = v * |Bz| (mV/m), integrato nel tempo
+        if(v) charge += dtMin * (v * Math.abs(Math.min(p.v,0)) * 1e-3);
+      }
+    }
+    const bzMean = sum / e.samples.length;
+
+    const vStart = valueNear(sp, e.start), vEnd = valueNear(sp, e.end);
+    const lagStart = lagMinutes(vStart), lagEnd = lagMinutes(vEnd);
+    const arrStart = lagStart != null ? e.start + lagStart*60000 : null;
+    const arrEnd   = lagEnd   != null ? e.end   + lagEnd*60000   : null;
+
+    // "in corso" se l'ultimo campione sotto soglia è recente
+    const ongoing = (now - e.end) < 8*60000;
+
+    let stato;
+    if(arrStart == null) stato = {txt:'velocità non disponibile', kind:'neutral'};
+    else if(now < arrStart) stato = {txt:'in viaggio — arriva alle ' + fmtClock(arrStart), kind:'good'};
+    else if(ongoing || (arrEnd != null && now <= arrEnd)) stato = {txt:'sta colpendo la Terra ora', kind:'good'};
+    else stato = {txt:'arrivato, esaurito alle ' + fmtClock(arrEnd), kind:'neutral'};
+
+    bzEpisodes.push({
+      start: e.start, end: e.end, durMin, bzMin, bzMean, charge,
+      vStart, arrStart, arrEnd, ongoing, stato,
+      substorm: durMin >= BZ_CFG.substormMin && bzMean <= -3
+    });
+  });
+
+  bzEpisodes.sort((a,b)=>a.start-b.start);
+}
+
+function ongoingEpisode(){
+  for(let i=bzEpisodes.length-1;i>=0;i--){ if(bzEpisodes[i].ongoing) return bzEpisodes[i]; }
+  return null;
+}
+// il primo episodio il cui arrivo è ancora nel futuro
+function nextArrival(){
+  const now = Date.now();
+  for(let i=0;i<bzEpisodes.length;i++){
+    if(bzEpisodes[i].arrStart != null && bzEpisodes[i].arrStart > now) return bzEpisodes[i];
+  }
+  return null;
+}
+
+function renderBzEpisodes(){
+  if(!$('bzEpisodeList')) return;
+  const ong = ongoingEpisode();
+
+  // --- stato attuale del Bz ---
+  if(ong){
+    $('bzNowState').innerHTML = 'sud da <strong>' + fmtDur(ong.durMin) + '</strong>';
+    $('bzNowSub').innerHTML = 'minimo ' + ong.bzMin.toFixed(1) + ' nT · media ' + ong.bzMean.toFixed(1) + ' nT'
+      + (ong.substorm ? ' — ' + pill('durata da substorm', 'good') : ' — serve che duri ' + BZ_CFG.substormMin + ' min per la substorm');
+    $('bzCharge').textContent = Math.round(ong.charge) + ' mV/m·min';
+  } else {
+    $('bzNowState').textContent = 'a nord (sfavorevole)';
+    $('bzNowSub').textContent = 'nessun episodio in corso: il campo non sta aprendo la porta';
+    const lastEp = bzEpisodes.length ? bzEpisodes[bzEpisodes.length-1] : null;
+    $('bzCharge').textContent = lastEp ? Math.round(lastEp.charge) + ' mV/m·min (ultimo episodio)' : '–';
+  }
+
+  // --- elenco episodi, dal più recente ---
+  const list = bzEpisodes.slice().reverse().slice(0, 8);
+  if(!list.length){
+    $('bzEpisodeList').innerHTML = '<div class="cap">Nessun episodio di Bz sud nelle ultime ' + BZ_CFG.windowHours + ' ore.</div>';
+  } else {
+    let rows = '';
+    list.forEach(e=>{
+      const arrivo = e.arrStart != null ? fmtClock(e.arrStart) : '–';
+      const bordo = e.ongoing ? 'border-left:3px solid var(--green);' : 'border-left:3px solid #1d2740;';
+      rows += '<tr style="' + bordo + '">'
+        + '<td>' + fmtClock(e.start) + (e.ongoing ? ' <span style="color:var(--green)">● in corso</span>' : ' → ' + fmtClock(e.end)) + '</td>'
+        + '<td>' + fmtDur(e.durMin) + (e.substorm ? ' ⚡' : '') + '</td>'
+        + '<td>' + e.bzMin.toFixed(1) + ' nT</td>'
+        + '<td>' + Math.round(e.charge) + '</td>'
+        + '<td><strong>' + arrivo + '</strong></td>'
+        + '<td>' + pill(e.stato.txt, e.stato.kind) + '</td>'
+        + '</tr>';
+    });
+    $('bzEpisodeList').innerHTML =
+      '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:.78rem; min-width:620px;">'
+      + '<thead><tr style="color:var(--muted); text-align:left;">'
+      + '<th style="padding:6px 8px;">Episodio (ora locale)</th><th style="padding:6px 8px;">Durata</th>'
+      + '<th style="padding:6px 8px;">Bz min</th><th style="padding:6px 8px;">Carica</th>'
+      + '<th style="padding:6px 8px;">Arrivo previsto</th><th style="padding:6px 8px;">Stato</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  tickBzCountdown();
+
+  // --- allerta: episodio abbastanza lungo da innescare una substorm ---
+  if(ong && ong.substorm && bzAlertedStart !== ong.start){
+    bzAlertedStart = ong.start;
+    const quando = ong.arrStart != null ? (' Arrivo sulla Terra dalle ' + fmtClock(ong.arrStart) + '.') : '';
+    fireAlert('Bz sud prolungato', 'Bz negativo da ' + fmtDur(ong.durMin) + ' (media ' + ong.bzMean.toFixed(1) + ' nT): substorm probabile.' + quando);
+  }
+}
+
+// aggiornato ogni secondo insieme al countdown del refresh
+function tickBzCountdown(){
+  if(!$('bzCountdown')) return;
+  const now = Date.now();
+  const next = nextArrival();
+  if(next){
+    const secs = Math.max(0, Math.round((next.arrStart - now)/1000));
+    const mm = Math.floor(secs/60), ss = secs % 60;
+    $('bzCountdown').innerHTML = fmtClock(next.arrStart) + ' <span class="unit">tra ' + mm + ':' + String(ss).padStart(2,'0') + '</span>';
+    $('bzCountdownSub').textContent = 'episodio delle ' + fmtClock(next.start) + ' · vento a ' + Math.round(next.vStart || 0) + ' km/s · ±10-15 min';
+    return;
+  }
+  const ong = ongoingEpisode();
+  if(ong && ong.arrStart != null && now >= ong.arrStart){
+    $('bzCountdown').innerHTML = '<span style="color:var(--green)">sta arrivando ora</span>';
+    $('bzCountdownSub').textContent = 'il fronte è partito alle ' + fmtClock(ong.start) + ' e sta già colpendo la magnetosfera';
+    return;
+  }
+  const last = bzEpisodes.length ? bzEpisodes[bzEpisodes.length-1] : null;
+  if(last && last.arrEnd != null){
+    $('bzCountdown').textContent = '–';
+    $('bzCountdownSub').textContent = 'ultimo fronte esaurito alle ' + fmtClock(last.arrEnd);
+  } else {
+    $('bzCountdown').textContent = '–';
+    $('bzCountdownSub').textContent = 'nessun episodio di Bz sud in arrivo';
+  }
+}
+
+// fasce rosse sul grafico IMF in corrispondenza degli episodi
+const bzBandsPlugin = {
+  id:'bzBands',
+  beforeDatasetsDraw(chart){
+    if(!lastImfTimes || lastImfTimes.length < 2 || !bzEpisodes.length) return;
+    const x = chart.scales.x; if(!x) return;
+    const {top, bottom} = chart.chartArea;
+    const t0 = lastImfTimes[0], t1 = lastImfTimes[lastImfTimes.length-1];
+    const idxOf = (t)=>{
+      let lo = 0, hi = lastImfTimes.length-1;
+      if(t <= t0) return 0;
+      if(t >= t1) return hi;
+      while(lo < hi-1){ const mid = (lo+hi) >> 1; if(lastImfTimes[mid] <= t) lo = mid; else hi = mid; }
+      return lo;
+    };
+    const ctx = chart.ctx;
+    ctx.save();
+    bzEpisodes.forEach(e=>{
+      if(e.end < t0 || e.start > t1) return;
+      const p0 = x.getPixelForValue(idxOf(Math.max(e.start, t0)));
+      const p1 = x.getPixelForValue(idxOf(Math.min(e.end, t1)));
+      if(!isFinite(p0) || !isFinite(p1)) return;
+      ctx.fillStyle = e.substorm ? 'rgba(255,107,107,.16)' : 'rgba(255,107,107,.08)';
+      ctx.fillRect(p0, top, Math.max(2, p1-p0), bottom-top);
+    });
+    ctx.restore();
+  }
+};
+
+// ricalcola episodi e ridisegna, senza rifare le richieste di rete
+function refreshBzEpisodes(){
+  try{
+    computeBzEpisodes(lastMagRaw, lastWindRaw);
+    renderBzEpisodes();
+    updateSatAgreement();
+    if(imfChartInstance && typeof imfChartInstance.update === 'function') imfChartInstance.update('none');
+    diagSet('Episodi di Bz sud', 'ok', bzEpisodes.length + ' episodi nelle ultime ' + BZ_CFG.windowHours + 'h');
+  }catch(e){
+    diagSet('Episodi di Bz sud', 'err', e && e.message ? e.message : String(e));
+    console.error('[aurora] episodi Bz', e);
+  }
+}
+
+// ---- quanto sono d'accordo i satelliti tra loro ----
+function updateSatAgreement(){
+  if(!$('satAgreeVal')) return;
+  const vals = (raw, keys)=>{
+    const per = {};
+    if(!raw || !Array.isArray(raw)) return per;
+    raw.forEach(r=>{
+      if(!r || !r.source || !r.time_tag) return;
+      if(!keys.every(k => num(r[k]) !== null)) return;
+      if(!per[r.source] || r.time_tag > per[r.source].time_tag) per[r.source] = r;
+    });
+    return per;
+  };
+  const magPer = vals(lastMagRaw, ['bz_gsm']);
+  const spdPer = vals(lastWindRaw, ['proton_speed']);
+  const bzs = Object.keys(magPer).map(k=>num(magPer[k].bz_gsm)).filter(v=>v!==null);
+  const sps = Object.keys(spdPer).map(k=>num(spdPer[k].proton_speed)).filter(v=>v!==null);
+  if(bzs.length < 2 && sps.length < 2){
+    $('satAgreeVal').textContent = '–';
+    $('satAgreeSub').textContent = 'serve più di un satellite per confrontare';
+    return;
+  }
+  const spread = a => a.length > 1 ? Math.max.apply(null,a) - Math.min.apply(null,a) : 0;
+  const dBz = spread(bzs), dSp = spread(sps);
+  let lvl = 0; // 0 ottimo, 1 discreto, 2 divergono
+  if(dBz > 5 || dSp > 60) lvl = 2;
+  else if(dBz > 2 || dSp > 30) lvl = 1;
+  const testo = ['ottimo accordo','accordo parziale','i satelliti divergono'][lvl];
+  const kind  = ['good','warn','bad'][lvl];
+  $('satAgreeVal').innerHTML = pill(testo, kind);
+  $('satAgreeSub').innerHTML = 'scarto tra satelliti: Bz ' + dBz.toFixed(1) + ' nT · velocità ' + Math.round(dSp) + ' km/s'
+    + (lvl === 2 ? ' — fidati solo del satellite di riferimento' : '');
+}
+
+// ---- OVATION nearest-point lookup ----
+function nearestOvation(lat, lon){
+  const data = window.__lastOvation;
+  if(!data || !data.coordinates) return null;
+  let lon360 = ((lon % 360) + 360) % 360;
+  let best = null, bestDist = Infinity;
+  const coords = data.coordinates;
+  for(let i=0;i<coords.length;i++){
+    const [clon, clat, val] = coords[i];
+    let dLon = Math.abs(clon - lon360);
+    if(dLon > 180) dLon = 360 - dLon;
+    const dLat = clat - lat;
+    const dist = dLon*dLon + dLat*dLat;
+    if(dist < bestDist){ bestDist = dist; best = val; }
+    if(bestDist === 0) break;
+  }
+  return {val: best, obsTime: data['Observation Time']};
+}
+
+function ovationLabelFor(v){
+  if(v === null || v === undefined) return {text:'dato non disponibile', kind:'neutral'};
+  if(v <= 0) return {text:'improbabile', kind:'neutral'};
+  if(v <= 2) return {text:'molto bassa', kind:'neutral'};
+  if(v <= 4) return {text:'possibile con buone condizioni locali', kind:'warn'};
+  return {text:'buona probabilità', kind:'good'};
+}
+
+function auroraZoneLabel(lat){
+  const a = Math.abs(lat);
+  if(a >= 75) return 'calotta polare — aurora spesso più debole';
+  if(a >= 60) return 'zona aurorale — la più probabile in assoluto';
+  if(a >= 55) return 'subaurorale — visibile con vento solare potenziato';
+  return 'bassa latitudine — solo con tempeste geomagnetiche forti';
+}
+
+function updateOvationCard(){
+  const lat = parseFloat($('latInput').value);
+  const lon = parseFloat($('lonInput').value);
+  if(isNaN(lat) || isNaN(lon)) return;
+  const r = nearestOvation(lat, lon);
+  if(!r || r.val===null){
+    $('ovationVal').innerHTML = '–<span class="unit">/ 7</span>';
+    $('ovationLabel').textContent = 'dato non disponibile ora';
+  } else {
+    $('ovationVal').innerHTML = r.val + '<span class="unit">/ 7</span>';
+    const lbl = ovationLabelFor(r.val);
+    $('ovationLabel').innerHTML = pill(lbl.text, lbl.kind);
+    $('ovationTime').textContent = fmtTime(r.obsTime);
+  }
+  $('zoneVal').textContent = auroraZoneLabel(lat);
+  OVERVIEW.ovation = (r && r.val !== null && r.val !== undefined) ? r.val : null;
+  updateOverview();
+}
+
+// ---- weather (Open-Meteo, no key needed) ----
+let cloudChartInstance = null;
+
+async function loadWeather(){
+  const lat = parseFloat($('latInput').value);
+  const lon = parseFloat($('lonInput').value);
+  if(isNaN(lat) || isNaN(lon)) return;
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&hourly=cloud_cover,temperature_2m,precipitation_probability` +
+    `&current=cloud_cover,temperature_2m,wind_speed_10m` +
+    `&forecast_days=2&timezone=auto`;
+
+  const data = await getJSON(url);
+  if(!data || !data.current){
+    $('cloudVal').innerHTML = '–<span class="unit">%</span>';
+    $('cloudVerdict').innerHTML = '<span class="err">meteo non disponibile ora</span>';
+    $('tempVal').innerHTML = '–<span class="unit">°C</span>';
+    $('nightVerdict').textContent = '–';
+    $('skyScoreVal').innerHTML = '–<span class="unit">/ 10</span>';
+    OVERVIEW.nightCloud = null;
+    OVERVIEW.skyScore = null;
+    updateOverview();
+    return;
+  }
+
+  const cc = data.current.cloud_cover;
+  $('cloudVal').innerHTML = cc + '<span class="unit">%</span>';
+  const ccKind = cc <= 30 ? 'good' : (cc <= 70 ? 'warn' : 'bad');
+  const ccLabel = cc <= 30 ? 'cielo per lo più sereno' : (cc <= 70 ? 'parzialmente nuvoloso' : 'cielo molto coperto');
+  $('cloudVerdict').innerHTML = pill(ccLabel, ccKind);
+
+  $('tempVal').innerHTML = Math.round(data.current.temperature_2m) + '<span class="unit">°C</span>';
+  $('windVal').textContent = 'vento: ' + Math.round(data.current.wind_speed_10m) + ' km/h';
+
+  // night verdict: average cloud cover between 21:00 and 05:00 (local) over next night
+  if(data.hourly && data.hourly.time && data.hourly.cloud_cover){
+    const times = data.hourly.time, clouds = data.hourly.cloud_cover;
+    const nightVals = [];
+    for(let i=0;i<times.length;i++){
+      const hour = new Date(times[i]).getHours();
+      if(hour >= 21 || hour <= 5) nightVals.push(clouds[i]);
+    }
+    if(nightVals.length){
+      const avg = Math.round(nightVals.reduce((a,b)=>a+b,0)/nightVals.length);
+      const nKind = avg <= 30 ? 'good' : (avg <= 70 ? 'warn' : 'bad');
+      const nLabel = avg <= 30 ? '✅ probabile cielo sereno' : (avg <= 70 ? '⚠️ variabile' : '❌ probabile cielo coperto');
+      $('nightVerdict').innerHTML = nLabel;
+      $('nightVerdict').nextElementSibling.textContent = `media nuvole stanotte: ~${avg}%`;
+      const skyScore = Math.round((100 - avg) / 10);
+      $('skyScoreVal').innerHTML = skyScore + '<span class="unit">/ 10</span>';
+      OVERVIEW.nightCloud = avg;
+      OVERVIEW.skyScore = skyScore;
+      updateOverview();
+    }
+
+    // chart
+    if(window.Chart){
+      const labels = times.slice(0,48).map(t => new Date(t).toLocaleTimeString('it-IT',{hour:'2-digit'}) );
+      const values = clouds.slice(0,48);
+      const ctx = document.getElementById('cloudChart').getContext('2d');
+      if(cloudChartInstance) cloudChartInstance.destroy();
+      cloudChartInstance = new Chart(ctx, {
+        type:'bar',
+        data:{ labels, datasets:[{ label:'Copertura nuvolosa %', data: values, backgroundColor: values.map(v=> v<=30?'rgba(61,220,151,.55)': v<=70?'rgba(255,200,94,.55)':'rgba(255,107,107,.55)') }]},
+        options:{
+          responsive:true,
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ ticks:{ color:'#8b93ad', maxTicksLimit:12 }, grid:{ display:false } },
+            y:{ ticks:{ color:'#8b93ad' }, grid:{ color:'#1a2138' }, suggestedMin:0, suggestedMax:100 }
+          }
+        }
+      });
+    }
+  }
+}
+
+// ---- nearby webcams: live query to OpenStreetMap (Overpass API) + curated dedicated aurora cams ----
+const CURATED_WEBCAMS = [
+  {name:'Fairbanks, Alaska — Aurora Cam (Explore.org)', lat:64.84, lon:-147.72, url:'https://explore.org/livecams/aurora-borealis/aurora-borealis-northern-lights-cam'},
+  {name:'Longyearbyen, Svalbard — All-Sky Camera (KHO/UNIS)', lat:78.15, lon:16.04, url:'https://kho.unis.no/'},
+  {name:'Rete webcam Islanda/Scandinavia — Aurora Webcams', lat:64.96, lon:-19.02, url:'https://www.aurorawebcams.com/'},
+  {name:'Rete webcam Nord Europa/Baltico — Virmalised.ee', lat:59.44, lon:24.75, url:'https://virmalised.ee/aurora-live-cameras/'},
+  {name:'Yellowknife, Canada — zona aurora boreale', lat:62.45, lon:-114.37, url:'https://www.spaceweatherlive.com/en/auroral-activity/webcams.html'},
+];
+
+function haversineKm(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+async function getJSONTimeout(url, ms){
+  const controller = new AbortController();
+  const id = setTimeout(()=>controller.abort(), ms);
+  try{
+    const res = await fetch(url, {signal: controller.signal, cache:'no-store'});
+    clearTimeout(id);
+    if(!res.ok) throw new Error('http '+res.status);
+    return await res.json();
+  }catch(e){
+    clearTimeout(id);
+    console.warn('fetch timeout/failed', url, e);
+    return null;
+  }
+}
+
+async function loadNearbyWebcams(){
+  const lat = parseFloat($('latInput').value);
+  const lon = parseFloat($('lonInput').value);
+  if(isNaN(lat) || isNaN(lon)) return;
+
+  $('webcamStatus').textContent = 'Ricerca webcam nelle vicinanze (OpenStreetMap)...';
+
+  let osmCams = [];
+  const query = `[out:json][timeout:20];node["tourism"="webcam"](around:600000,${lat},${lon});out body;`;
+  // mirror kumi.systems invece dell'istanza principale overpass-api.de: gestisce meglio le richieste
+  // cross-origin da pagine file:// (l'istanza principale a volte rifiuta l'origine "null")
+  const url = 'https://overpass.kumi.systems/api/interpreter?data=' + encodeURIComponent(query);
+  const data = await getJSONTimeout(url, 15000);
+
+  if(data && Array.isArray(data.elements)){
+    osmCams = data.elements
+      .filter(el => typeof el.lat === 'number' && typeof el.lon === 'number')
+      .map(el => {
+        const tags = el.tags || {};
+        const link = tags.website || tags['contact:webcam'] || tags.url || tags.image || null;
+        return {
+          name: tags.name || 'Webcam',
+          lat: el.lat, lon: el.lon,
+          url: link,
+          image: (tags.image && /\.(jpe?g|png)(\?.*)?$/i.test(tags.image)) ? tags.image : null
+        };
+      })
+      .filter(c => c.url);
+  }
+
+  const combined = [...osmCams, ...CURATED_WEBCAMS].map(c => ({...c, dist: haversineKm(lat, lon, c.lat, c.lon)}));
+  const seen = new Set();
+  const unique = combined.filter(c => {
+    const key = (c.name||'') + '|' + c.lat.toFixed(1) + '|' + c.lon.toFixed(1);
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  unique.sort((a,b)=> a.dist - b.dist);
+  const top = unique.slice(0, 24);
+
+  if(!top.length){
+    $('webcamStatus').innerHTML = '<span class="err">ricerca automatica non disponibile ora — usa i link nella sezione "Altre risorse" qui sotto</span>';
+    $('webcamGrid').innerHTML = '';
+    return;
+  }
+
+  $('webcamStatus').textContent = (osmCams.length ? `${osmCams.length} webcam trovate su OpenStreetMap entro 600km` : 'ricerca OpenStreetMap non riuscita, mostro la lista curata') + ` · le ${top.length} più vicine, ordinate per distanza`;
+
+  // render subito la griglia (veloce), con un placeholder al posto dell'anteprima dove non abbiamo già un'immagine diretta
+  $('webcamGrid').innerHTML = top.map((c,i) => `
+    <a class="linkcard" href="${c.url}" target="_blank" rel="noopener">
+      <div class="lc-thumb" id="wcThumb${i}" style="width:100%; aspect-ratio:16/9; border-radius:8px; margin-bottom:8px; overflow:hidden; background:#0a0e1a; display:flex; align-items:center; justify-content:center;">
+        ${c.image
+          ? `<img src="${c.image}" alt="" style="width:100%; height:100%; object-fit:cover; display:block;" loading="lazy" onerror="this.parentElement.innerHTML='📷'">`
+          : `<span style="font-size:1.3rem; opacity:.35;">📷</span>`}
+      </div>
+      <div class="lc-title">${c.name}</div>
+      <div class="lc-desc">📏 ${c.dist < 10 ? c.dist.toFixed(1) : Math.round(c.dist)} km da te</div>
+    </a>
+  `).join('');
+
+  // poi, in background, prova a caricare un'anteprima (screenshot) per le più vicine che non hanno già un'immagine diretta
+  loadWebcamPreviews(top.slice(0, 12));
+}
+
+const webcamPreviewCache = new Map();
+
+async function getScreenshotPreview(pageUrl){
+  if(webcamPreviewCache.has(pageUrl)) return webcamPreviewCache.get(pageUrl);
+  const promise = (async () => {
+    try{
+      const api = 'https://api.microlink.io/?url=' + encodeURIComponent(pageUrl) + '&screenshot=true&meta=false&waitFor=800';
+      const data = await getJSONTimeout(api, 10000);
+      if(data && data.status === 'success' && data.data && data.data.screenshot && data.data.screenshot.url){
+        return data.data.screenshot.url;
+      }
+    }catch(e){}
+    return null;
+  })();
+  webcamPreviewCache.set(pageUrl, promise);
+  return promise;
+}
+
+async function loadWebcamPreviews(cams){
+  cams.forEach(async (c, i) => {
+    if(c.image) return; // ha già un'immagine diretta
+    const shot = await getScreenshotPreview(c.url);
+    const el = document.getElementById('wcThumb' + i);
+    if(el && shot){
+      el.innerHTML = `<img src="${shot}" alt="" style="width:100%; height:100%; object-fit:cover; display:block;" loading="lazy" onerror="this.parentElement.innerHTML='📷'">`;
+    }
+  });
+}
+
+$('webcamRefreshBtn').addEventListener('click', loadNearbyWebcams);
+
+// ---- moon phase (SunCalc if available, else a local fallback formula) ----
+function moonPhaseInfo(date){
+  const stages = [
+    {max:0.03, icon:'🌑', name:'Nuova'},
+    {max:0.22, icon:'🌒', name:'Crescente'},
+    {max:0.28, icon:'🌓', name:'Primo quarto'},
+    {max:0.47, icon:'🌔', name:'Gibbosa crescente'},
+    {max:0.53, icon:'🌕', name:'Piena'},
+    {max:0.72, icon:'🌖', name:'Gibbosa calante'},
+    {max:0.78, icon:'🌗', name:'Ultimo quarto'},
+    {max:0.97, icon:'🌘', name:'Calante'},
+    {max:1.01, icon:'🌑', name:'Nuova'}
+  ];
+  let phase, illum;
+  if(window.SunCalc){
+    const m = SunCalc.getMoonIllumination(date);
+    phase = m.phase; illum = Math.round(m.fraction*100);
+  } else {
+    const synMonth = 29.53058867;
+    const knownNewMoon = Date.UTC(2000,0,6,18,14,0);
+    const diffDays = (date.getTime() - knownNewMoon) / 86400000;
+    phase = (diffDays % synMonth) / synMonth;
+    if(phase < 0) phase += 1;
+    illum = Math.round((1 - Math.cos(2*Math.PI*phase)) / 2 * 100);
+  }
+  const stage = stages.find(s => phase <= s.max) || stages[stages.length-1];
+  return {icon:stage.icon, name:stage.name, illum};
+}
+
+function updateMoon(){
+  const m = moonPhaseInfo(new Date());
+  $('moonVal').textContent = m.icon;
+  $('moonSub').textContent = m.name + ' · ' + m.illum + '% illuminata';
+  OVERVIEW.moonIllum = m.illum;
+  updateOverview();
+}
+
+function fmtHM(d){
+  if(!d || isNaN(d.getTime())) return '–';
+  return d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+}
+
+// ---- sun/moon times for the chosen location (SunCalc, 100% locale, nessuna chiamata di rete) ----
+function updateSunMoonTimes(){
+  const lat = parseFloat($('latInput').value);
+  const lon = parseFloat($('lonInput').value);
+  if(isNaN(lat) || isNaN(lon) || !window.SunCalc){ return; }
+  const now = new Date();
+  const t = SunCalc.getTimes(now, lat, lon);
+  if(!t.night || isNaN(t.night.getTime())){
+    $('darkVal').textContent = 'niente buio astronomico in questo periodo';
+    OVERVIEW.hasDarkness = false;
+    updateOverview();
+  } else {
+    const tomorrow = new Date(now.getTime() + 24*3600*1000);
+    const tTom = SunCalc.getTimes(tomorrow, lat, lon);
+    $('darkVal').textContent = fmtHM(t.night) + ' → ' + fmtHM(tTom.nightEnd);
+    OVERVIEW.hasDarkness = true;
+    updateOverview();
+  }
+  const mt = SunCalc.getMoonTimes(now, lat, lon);
+  let parts = [];
+  if(mt.alwaysUp) parts.push('sempre sopra l\'orizzonte oggi');
+  else if(mt.alwaysDown) parts.push('non sorge oggi');
+  else {
+    if(mt.rise) parts.push('sorge ' + fmtHM(mt.rise));
+    if(mt.set) parts.push('tramonta ' + fmtHM(mt.set));
+  }
+  $('moonTimesVal').textContent = parts.length ? parts.join(' · ') : '–';
+}
+
+// ---- location controls ----
+function setPlaceLabel(lat, lon, label){
+  const coordTxt = Number(lat).toFixed(2) + '°, ' + Number(lon).toFixed(2) + '°';
+  $('placeLabel').innerHTML = label ? `📍 <strong>${label}</strong> (${coordTxt})` : `📍 <strong>${coordTxt}</strong>`;
+}
+
+async function reverseGeocode(lat, lon){
+  setPlaceLabel(lat, lon, 'ricerca nome zona...');
+  const data = await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=it`);
+  let name = null;
+  if(data){
+    name = data.city || data.locality || data.principalSubdivision || null;
+    if(name && data.countryName) name += ', ' + data.countryName;
+  }
+  setPlaceLabel(lat, lon, name);
+  try{
+    const saved = JSON.parse(localStorage.getItem('aurora_loc') || '{}');
+    localStorage.setItem('aurora_loc', JSON.stringify({...saved, lat, lon, label:name}));
+  }catch(e){}
+}
+
+function setLatLon(lat, lon, label){
+  $('latInput').value = lat;
+  $('lonInput').value = lon;
+  updateOvationCard();
+  loadWeather();
+  updateSunMoonTimes();
+  loadNearbyWebcams();
+  if(label){ setPlaceLabel(lat, lon, label); }
+  else { reverseGeocode(lat, lon); }
+  try{ localStorage.setItem('aurora_loc', JSON.stringify({lat,lon,label})); }catch(e){}
+}
+
+$('locPreset').addEventListener('change', (e)=>{
+  if(e.target.value === 'custom') return;
+  const [lat,lon,name,country] = e.target.value.split(',');
+  setLatLon(parseFloat(lat), parseFloat(lon), country ? `${name}, ${country}` : name);
+});
+
+$('advToggle').addEventListener('click', ()=>{
+  const row = $('advRow');
+  row.style.display = (row.style.display === 'none' || !row.style.display) ? 'flex' : 'none';
+});
+$('applyManualBtn').addEventListener('click', ()=>{
+  const lat = parseFloat($('latInput').value), lon = parseFloat($('lonInput').value);
+  if(isNaN(lat) || isNaN(lon)){ alert('Inserisci coordinate valide.'); return; }
+  $('locPreset').value = 'custom';
+  setLatLon(lat, lon);
+});
+
+$('geoBtn').addEventListener('click', ()=>{
+  if(!navigator.geolocation){ alert('Geolocalizzazione non supportata da questo browser.'); return; }
+  setPlaceLabel(0,0,'individuazione posizione...');
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{ $('locPreset').value='custom'; setLatLon(pos.coords.latitude.toFixed(3), pos.coords.longitude.toFixed(3)); },
+    ()=>{ alert('Non è stato possibile ottenere la posizione (permesso negato o non disponibile).'); }
+  );
+});
+
+// ---- ricerca località (Open-Meteo geocoding, gratuita e senza chiave) ----
+// La tendina mostra SEMPRE uno stato: sto cercando / risultati / nessun risultato / errore.
+// Prima, quando la ricerca non trovava nulla, la tendina spariva in silenzio ed era
+// indistinguibile da "non funziona".
+let searchDebounce = null;
+let searchResults = [];
+let searchHighlight = -1;
+let lastQuery = '';
+
+function suggestBox(){ return $('placeSuggestions'); }
+
+function showSuggestMessage(html){
+  const box = suggestBox();
+  box.innerHTML = '<div style="padding:10px 12px; font-size:.8rem; color:var(--muted);">' + html + '</div>';
+  box.style.display = 'block';
+}
+
+function renderSuggestions(){
+  const box = suggestBox();
+  if(!searchResults.length){ box.style.display = 'none'; return; }
+  box.innerHTML = searchResults.map((r,i)=>{
+    const sub = [r.admin1, r.country].filter(Boolean).join(', ');
+    const sel = i === searchHighlight ? ' style="background:rgba(157,123,255,.22);"' : '';
+    return '<div class="suggest-item" data-i="' + i + '"' + sel + '>' + r.name + '<small>' + sub + '</small></div>';
+  }).join('');
+  box.style.display = 'block';
+}
+
+function chooseResult(i){
+  const r = searchResults[i];
+  if(!r) return;
+  const label = [r.name, r.admin1, r.country].filter(Boolean).join(', ');
+  $('locPreset').value = 'custom';
+  setLatLon(r.latitude, r.longitude, label);
+  $('placeSearch').value = '';
+  searchResults = []; searchHighlight = -1;
+  suggestBox().style.display = 'none';
+}
+
+async function runPlaceSearch(q){
+  q = (q || '').trim();
+  if(q.length < 2){ suggestBox().style.display = 'none'; return; }
+  lastQuery = q;
+  showSuggestMessage('<span class="spinner"></span> sto cercando «' + q + '»...');
+  const url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=8&language=it&format=json';
+  const data = await getJSON(url, 'Ricerca località (geocoding)');
+  if(q !== lastQuery) return; // nel frattempo ha scritto altro
+  if(data === null){
+    showSuggestMessage('<span style="color:var(--red)">Il servizio di ricerca non risponde.</span><br>Controlla il pannello 🩺 Diagnostica in fondo alla pagina, oppure usa «⚙️ coordinate manuali».');
+    return;
+  }
+  searchResults = (data.results || []).filter(r => r && r.latitude != null && r.longitude != null);
+  searchHighlight = searchResults.length ? 0 : -1;
+  if(!searchResults.length){
+    showSuggestMessage('Nessun risultato per «' + q + '».<br>Prova col nome in inglese o senza accenti (es. <em>Tromso</em>), oppure inserisci le coordinate con «⚙️ coordinate manuali».');
+    return;
+  }
+  renderSuggestions();
+}
+
+$('placeSearch').addEventListener('input', (e)=>{
+  const q = e.target.value;
+  clearTimeout(searchDebounce);
+  if(q.trim().length < 2){ suggestBox().style.display = 'none'; return; }
+  searchDebounce = setTimeout(()=>runPlaceSearch(q), 350);
+});
+
+// Invio sceglie il risultato evidenziato, le frecce scorrono l'elenco
+$('placeSearch').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    clearTimeout(searchDebounce);
+    if(searchResults.length){ chooseResult(searchHighlight >= 0 ? searchHighlight : 0); }
+    else { runPlaceSearch($('placeSearch').value); }
+    return;
+  }
+  if(!searchResults.length) return;
+  if(e.key === 'ArrowDown'){ e.preventDefault(); searchHighlight = (searchHighlight + 1) % searchResults.length; renderSuggestions(); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); searchHighlight = (searchHighlight - 1 + searchResults.length) % searchResults.length; renderSuggestions(); }
+  else if(e.key === 'Escape'){ suggestBox().style.display = 'none'; }
+});
+
+$('placeSearchBtn').addEventListener('click', ()=>{
+  clearTimeout(searchDebounce);
+  runPlaceSearch($('placeSearch').value);
+});
+
+$('placeSearch').addEventListener('focus', ()=>{ if(searchResults.length) renderSuggestions(); });
+
+suggestBox().addEventListener('click', (e)=>{
+  const item = e.target.closest('.suggest-item');
+  if(!item) return;
+  chooseResult(parseInt(item.dataset.i, 10));
+});
+
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('#placeSearch') && !e.target.closest('#placeSearchBtn') && !e.target.closest('#placeSuggestions')){
+    suggestBox().style.display = 'none';
+  }
+});
+
+// init location from preset / storage
+(function initLocation(){
+  try{
+    const saved = localStorage.getItem('aurora_loc');
+    if(saved){
+      const {lat,lon,label} = JSON.parse(saved);
+      $('locPreset').value = 'custom';
+      $('latInput').value = lat; $('lonInput').value = lon;
+      if(label){ setPlaceLabel(lat, lon, label); } else { reverseGeocode(lat, lon); }
+      return;
+    }
+  }catch(e){}
+  const [lat,lon,name,country] = $('locPreset').value.split(',');
+  $('latInput').value = lat; $('lonInput').value = lon;
+  setPlaceLabel(lat, lon, country ? `${name}, ${country}` : name);
+})();
+
+// ---- refresh controls ----
+const REFRESH_MS = 60*1000; // 60s: la cadenza reale dei dati NOAA è ~1 minuto, andare più veloci non serve
+let autoRefresh = true;
+let timer = null;
+let countdownTimer = null;
+let nextRefreshAt = Date.now() + REFRESH_MS;
+
+function refreshNow(){
+  DIAG.errors.length = 0;
+  boot('Sezione grafico campo magnetico', loadIMFChart);
+  boot('Sezione grafico vento solare', loadPlasmaChart);
+  boot('Sezione dati principali', loadAll);
+  boot('Sezione allerte NOAA', loadAlerts);
+  boot('Sezione meteo', loadWeather);
+  boot('Sezione potenza emisferica', loadHemiPower);
+  nextRefreshAt = Date.now() + REFRESH_MS;
+}
+
+function scheduleRefresh(){
+  if(timer) clearInterval(timer);
+  if(autoRefresh){
+    nextRefreshAt = Date.now() + REFRESH_MS;
+    timer = setInterval(refreshNow, REFRESH_MS);
+  } else {
+    $('countdown').textContent = '';
+  }
+}
+
+function tickCountdown(){
+  try{ tickBzCountdown(); }catch(e){}
+  if(!autoRefresh){ return; }
+  const secs = Math.max(0, Math.round((nextRefreshAt - Date.now())/1000));
+  $('countdown').textContent = '· prossimo aggiornamento tra ' + secs + 's';
+}
+
+if($('diagCopy')) $('diagCopy').addEventListener('click', ()=>{
+  const txt = diagReport();
+  const done = ()=>{ $('diagCopyMsg').textContent = 'copiato!'; setTimeout(()=>{ $('diagCopyMsg').textContent=''; }, 2500); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt, done));
+  } else fallbackCopy(txt, done);
+});
+function fallbackCopy(txt, done){
+  // su file:// la Clipboard API puo' essere bloccata: si ripiega su una textarea temporanea
+  const ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position='fixed'; ta.style.top='-1000px';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ alert(txt); }
+  document.body.removeChild(ta);
+}
+
+if($('magStation')) $('magStation').addEventListener('change', updateMagFrame);
+if($('magHours')) $('magHours').addEventListener('change', updateMagFrame);
+
+$('refreshBtn').addEventListener('click', refreshNow);
+$('autoBtn').addEventListener('click', (e)=>{
+  autoRefresh = !autoRefresh;
+  e.target.textContent = '⏱ Auto: ' + (autoRefresh?'ON':'OFF');
+  e.target.classList.toggle('active', autoRefresh);
+  scheduleRefresh();
+});
+
+// ---- boot ----
+loadAlertSettings();
+if(window.Notification && Notification.permission === 'granted'){
+  notificationsEnabled = true;
+  $('alertPermStatus').textContent = 'Notifiche del browser: attive';
+}
+// diagnostica librerie esterne
+diagSet('Libreria grafici (Chart.js)', window.Chart ? 'ok' : 'err', window.Chart ? ('v' + (window.Chart.version || '?')) : 'NON caricata: cdnjs e jsDelivr irraggiungibili (rete/antivirus?)');
+diagSet('Libreria sole/luna (SunCalc)', window.SunCalc ? 'ok' : 'err', window.SunCalc ? 'ok' : 'NON caricata');
+
+// ogni sezione parte per conto suo: se una fallisce, le altre continuano
+function boot(name, fn){
+  try{
+    const r = fn();
+    if(r && typeof r.catch === 'function') r.catch(e=>{ diagSet(name, 'err', e && e.message ? e.message : String(e)); console.error('[aurora] ' + name, e); });
+  }catch(e){
+    diagSet(name, 'err', e && e.message ? e.message : String(e));
+    console.error('[aurora] ' + name, e);
+  }
+}
+
+// i grafici partono per primi: cosi' loadAll puo' usarli come fallback se la sintesi NOAA non risponde
+boot('Sezione grafico campo magnetico', loadIMFChart);
+boot('Sezione grafico vento solare', loadPlasmaChart);
+boot('Sezione dati principali', loadAll);
+boot('Sezione allerte NOAA', loadAlerts);
+boot('Sezione previsione 3 giorni', loadForecastText);
+boot('Sezione meteo', loadWeather);
+boot('Sezione luna', updateMoon);
+boot('Sezione alba/tramonto', updateSunMoonTimes);
+boot('Sezione potenza emisferica', loadHemiPower);
+boot('Sezione magnetometro locale', updateMagFrame);
+boot('Sezione punti di osservazione', loadNearbyWebcams);
+scheduleRefresh();
+countdownTimer = setInterval(tickCountdown, 1000);
+setInterval(loadForecastText, 15*60*1000);
+setInterval(()=>{ updateMoon(); updateSunMoonTimes(); }, 60*60*1000);
+</script>
+
+</body>
+</html>
