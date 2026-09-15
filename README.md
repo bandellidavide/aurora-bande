@@ -19,6 +19,19 @@ Dati in tempo reale da:
 - **Rete IMAGE / Istituto Meteorologico Finlandese** — magnetometri in tempo reale
 - **OpenStreetMap / Overpass** — punti panoramici vicini
 
+## Confronto numerico col magnetometro (opzionale)
+
+I dati del magnetometro terrestre (rete FMI IMAGE) non hanno header CORS, quindi il
+browser non può leggerli direttamente da un sito online. Sulla pagina pubblica questa
+sezione mostra "dati insufficienti" — il resto del sito funziona comunque normalmente.
+
+Per il confronto numerico completo, scarica anche `aurora-server.py` e avvialo con
+Python 3 nella stessa cartella di `index.html`, poi apri `http://127.0.0.1:8866/`:
+
+```
+python aurora-server.py
+```
+
 ## Aggiornare il sito
 
 Sostituisci `index.html` con la versione nuova e fai commit: GitHub Pages si aggiorna
