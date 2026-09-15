@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sole & previsioni NOAA · Aurora Bande</title>
+<style>
+:root{--bg:#090e16;--panel:#101721;--panel-2:#141d29;--border:#24303e;--text:#eaf0f4;--muted:#96a6b8;--green:#63e6ba;--blue:#84bbef;--red:#f58389;--amber:#dfbd8b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--blue)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px 60px}
+header{border-bottom:1px solid var(--border);margin-bottom:22px}
+.header-inner{max-width:1040px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);font-size:18px;font-weight:600}
+.brand svg{width:26px;height:26px;color:var(--amber)}
+.brand small{display:block;font-size:9px;letter-spacing:1px;color:var(--muted);font-weight:500}
+nav{margin-left:auto;display:flex;gap:18px;font-size:12px}
+nav a{color:var(--muted);text-decoration:none;font-weight:500}
+nav a.active,nav a:hover{color:var(--text)}
+.controls{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted)}
+.btn{background:#1a2330;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:7px 11px;font-size:11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:#232e3d}
+.btn.small{padding:4px 8px;font-size:10px}
+h1{font-size:22px;margin:0 0 4px}
+.lede{color:var(--muted);font-size:12.5px;margin:0 0 26px}
+.section-heading{display:flex;align-items:baseline;gap:10px;margin:38px 0 14px}
+.section-heading .no{font-size:11px;color:var(--amber);font-weight:700;letter-spacing:1px}
+.section-heading h2{font-size:15px;margin:0}
+.section-heading .eyebrow{margin-left:auto;font-size:9px;letter-spacing:1.4px;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}nav{width:100%;order:3;border-top:1px solid var(--border);padding-top:10px}}
+.daycard{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.daycard .day{font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between}
+.daycard .tag{font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border)}
+.tag.observed{color:var(--green);border-color:#2b5245}
+.tag.forecast{color:var(--amber);border-color:#5a4b31}
+.scaleline{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:12px}
+.scaleline b{color:var(--text)}
+.scaleline small{color:var(--muted);font-size:10px}
+.badge{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700;background:#1c2531;color:var(--muted)}
+.badge.g1,.badge.s1,.badge.r1{color:#f4d58d}
+.badge.g2,.badge.s2,.badge.r2{color:#f0a95e}
+.badge.g3,.badge.s3,.badge.r3,.badge.g4,.badge.g5{color:var(--red)}
+details.raw{margin-top:14px;border-top:1px solid var(--border);padding-top:10px}
+details.raw summary{cursor:pointer;font-size:11px;color:var(--muted)}
+pre.bulletin{white-space:pre-wrap;font:11.5px/1.6 ui-monospace,monospace;color:#c7cfd8;margin:10px 0 0;max-height:340px;overflow:auto;background:#0b111a;border:1px solid var(--border);border-radius:5px;padding:12px}
+.alertlist{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+.alertitem{font-size:11.5px;border-left:2px solid var(--amber);padding:6px 0 6px 10px;color:#cfd6df}
+.alertitem .id{color:var(--muted);font-size:9px;letter-spacing:.5px;display:block;margin-bottom:2px}
+.alertitem .t{color:var(--muted);font-size:10px;display:block;margin-top:2px}
+.imgpanel{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
+.imgpanel .imghead{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border)}
+.imgpanel .imgbody{position:relative;background:#000;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.imgpanel img{width:100%;height:100%;object-fit:contain;display:block}
+.imgpanel .imgfoot{padding:9px 12px;font-size:10px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.imgpanel .err{color:var(--muted);font-size:11px;padding:20px;text-align:center}
+.imgpanel.enlil .imgbody{aspect-ratio:16/10}
+table.regions{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:12px}
+table.regions th{text-align:left;color:var(--muted);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:6px 8px;border-bottom:1px solid var(--border)}
+table.regions td{padding:7px 8px;border-bottom:1px solid #1a222c}
+.flarelist{display:flex;flex-direction:column;margin-top:10px}
+.flarerow{display:grid;grid-template-columns:110px 60px 1fr;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #1a222c;font-size:12px}
+.flarerow:last-child{border-bottom:0}
+.flarerow .cls{font-weight:700;padding:2px 8px;border-radius:4px;text-align:center;font-size:11px}
+.flarerow .cls.c{background:#1e2a3a;color:var(--blue)}
+.flarerow .cls.m{background:#3a2e1a;color:var(--amber)}
+.flarerow .cls.x{background:#3a1a1e;color:var(--red)}
+.flarerow .cls.b{background:#1a222c;color:var(--muted)}
+.flarerow .note{color:var(--muted);font-size:11px}
+.cme-official{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-top:12px;font-size:12.5px;line-height:1.7}
+.cme-official .kicker{font-size:9px;letter-spacing:1.2px;color:var(--amber);display:block;margin-bottom:6px}
+.foot{margin-top:44px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:10.5px;text-align:center}
+.status-strip{font-size:10.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+.status-strip b{color:var(--text)}
+.loading{color:var(--muted);font-size:12px;padding:14px 0}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+  <a class="brand" href="index.html"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="currentColor" opacity=".15"/><circle cx="20" cy="20" r="8" fill="currentColor"/><g stroke="currentColor" stroke-width="1.6"><path d="M20 2v6M20 32v6M2 20h6M32 20h6M7 7l4.2 4.2M28.8 28.8L33 33M33 7l-4.2 4.2M11.2 28.8L7 33"/></g></svg><span>Aurora <b>Bande</b><small>SOLE &amp; PREVISIONI NOAA</small></span></a>
+  <nav aria-label="Navigazione">
+    <a href="index.html">← Monitor L1</a>
+    <a href="#forecastSection" class="active">Previsione NOAA</a>
+    <a href="#sunSection">Il Sole adesso</a>
+    <a href="#eventsSection">Eventi solari</a>
+    <a href="#earthSection">Verso la Terra</a>
+  </nav>
+  <div class="controls"><span id="lastUpdate">Caricamento…</span><button class="btn" id="refreshBtn">↻ Aggiorna</button></div>
+</div></header>
+
+<div class="wrap">
+  <h1>Sole &amp; previsioni NOAA</h1>
+  <p class="lede">Bollettini ufficiali, immagini solari e stima delle strutture dirette verso la Terra — fonte unica: NOAA / NWS Space Weather Prediction Center.</p>
+
+  <section id="forecastSection">
+    <div class="section-heading"><span class="no">01</span><h2>Cosa prevede NOAA</h2><span class="eyebrow">PREVISIONE 3 GIORNI</span></div>
+    <div class="grid3" id="forecastCards">
+      <div class="loading">Caricamento previsione…</div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="section-heading" style="margin:0 0 4px"><h2 style="font-size:13px">Allerte ufficiali recenti</h2></div>
+      <div class="alertlist" id="alertsList"><div class="loading">Caricamento allerte…</div></div>
+      <details class="raw"><summary>Bollettino completo (3-day-forecast.txt)</summary><pre class="bulletin" id="forecastRaw">Caricamento…</pre></details>
+    </div>
+  </section>
+
+  <section id="sunSection">
+    <div class="section-heading"><span class="no">02</span><h2>Il Sole adesso</h2><span class="eyebrow">DISCO SOLARE · CORONOGRAFO</span></div>
+    <div class="grid2">
+      <div class="imgpanel" id="diskPanel">
+        <div class="imghead"><span>Disco solare · SUVI 195 Å (GOES)</span><button class="btn small" data-anim="disk">▶ Animazione</button></div>
+        <div class="imgbody"><div class="loading">Caricamento immagine…</div></div>
+        <div class="imgfoot"><span id="diskTime">—</span><a href="https://www.swpc.noaa.gov/products/goes-solar-ultraviolet-imager-suvi" target="_blank" rel="noopener">fonte NOAA ↗</a></div>
+      </div>
+      <div class="imgpanel" id="coronaPanel">
+        <div class="imghead"><span>Coronografo · CCOR1 (GOES-19)</span><button class="btn small" data-anim="corona">▶ Animazione</button></div>
+        <div class="imgbody"><div class="loading">Caricamento immagine…</div></div>
+        <div class="imgfoot"><span id="coronaTime">—</span><a href="https://www.swpc.noaa.gov/products/compact-coronagraph-ccor-1" target="_blank" rel="noopener">fonte NOAA ↗</a></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="section-heading" style="margin:0 0 4px"><h2 style="font-size:13px">Regioni attive sul disco</h2><span class="eyebrow" id="regionsTime"></span></div>
+      <table class="regions" id="regionsTable"><tbody><tr><td class="loading">Caricamento regioni…</td></tr></tbody></table>
+    </div>
+  </section>
+
+  <section id="eventsSection">
+    <div class="section-heading"><span class="no">03</span><h2>Ultimi eventi solari</h2><span class="eyebrow">BRILLAMENTI · ULTIMI 7 GIORNI</span></div>
+    <div class="panel">
+      <div class="flarelist" id="flareList"><div class="loading">Caricamento eventi…</div></div>
+      <p style="color:var(--muted);font-size:10.5px;margin:12px 0 0">NOAA non pubblica in automatico l'abbinamento fra un singolo brillamento e un'eventuale CME: per l'informazione ufficiale su strutture dirette verso la Terra vedi la sezione qui sotto, che riporta il commento dei previsori invece di un'associazione dedotta.</p>
+    </div>
+  </section>
+
+  <section id="earthSection">
+    <div class="section-heading"><span class="no">04</span><h2>Strutture dirette verso la Terra</h2><span class="eyebrow">MODELLO ENLIL</span></div>
+    <div class="imgpanel enlil">
+      <div class="imghead"><span>WSA-ENLIL · modello di propagazione del vento solare/CME</span><button class="btn small" data-anim="enlil">▶ Animazione</button></div>
+      <div class="imgbody"><div class="loading">Caricamento modello…</div></div>
+      <div class="imgfoot"><span id="enlilTime">—</span><a href="https://www.swpc.noaa.gov/products/wsa-enlil-solar-wind-prediction" target="_blank" rel="noopener">modello completo su swpc.noaa.gov ↗</a></div>
+    </div>
+    <div class="cme-official"><span class="kicker">COMMENTO UFFICIALE NOAA · ATTIVITÀ SOLARE (discussion.txt)</span><div id="cmeOfficial">Caricamento…</div></div>
+  </section>
+
+  <div class="foot">
+    Dati e immagini in tempo reale da NOAA / NWS Space Weather Prediction Center (servizio pubblico).<br>
+    Nessuna previsione di aurora o di tempesta geomagnetica è mai certa — questa pagina riporta i bollettini ufficiali, non li interpreta.<br>
+    <span id="diagSummary"></span>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const SWPC = 'https://services.swpc.noaa.gov';
+const STATE = { ok:0, err:0 };
+const ANIM = {}; // per-panel: {frames:[], timer:null, playing:false}
+
+function fmtTime(d){
+  try{ return new Date(d).toLocaleString('it-IT', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}); }
+  catch(e){ return d || '–'; }
+}
+function fmtDate(d){
+  try{ return new Date(d).toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit'}); }
+  catch(e){ return d || '–'; }
+}
+
+async function getJSON(url){
+  try{
+    const res = await fetch(url + (url.includes('?')?'&':'?') + '_=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    STATE.ok++; return await res.json();
+  }catch(e){ STATE.err++; console.warn('[sole-noaa] fetch fallito', url, e); return null; }
+}
+async function getTEXT(url){
+  try{
+    const res = await fetch(url + (url.includes('?')?'&':'?') + '_=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    STATE.ok++; return await res.text();
+  }catch(e){ STATE.err++; console.warn('[sole-noaa] fetch fallito', url, e); return null; }
+}
+
+function scaleCell(d){
+  if(!d) return {text:'–', level:0};
+  if(d.Scale != null && d.Scale !== '' && Number(d.Scale) > 0) return {text:'Livello ' + d.Scale + (d.Text ? ' · ' + d.Text : ''), level:Number(d.Scale)};
+  const probs = [];
+  if(d.MinorProb != null && d.MinorProb !== '') probs.push('minore ' + d.MinorProb + '%');
+  if(d.MajorProb != null && d.MajorProb !== '') probs.push('forte ' + d.MajorProb + '%');
+  if(d.Prob != null && d.Prob !== '') probs.push(d.Prob + '%');
+  return {text: probs.length ? probs.join(' · ') : 'nessuna attività prevista', level:0};
+}
+
+// ============================= 1. PREVISIONE NOAA =============================
+async function loadNoaaForecast(){
+  const [scales, alerts, forecastTxt] = await Promise.all([
+    getJSON(SWPC + '/products/noaa-scales.json'),
+    getJSON(SWPC + '/products/alerts.json'),
+    getTEXT(SWPC + '/text/3-day-forecast.txt'),
+  ]);
+  renderForecastCards(scales);
+  renderAlerts(alerts);
+  $('forecastRaw').textContent = forecastTxt || 'dato non disponibile ora — apri swpc.noaa.gov/products/3-day-forecast';
+}
+
+function renderForecastCards(scales){
+  const el = $('forecastCards');
+  if(!scales){ el.innerHTML = '<div class="loading">dati non disponibili ora</div>'; return; }
+  const dayLabel = {'0':'Oggi','1':'Domani (+1)','2':'+2 giorni','3':'+3 giorni'};
+  let html = '';
+  ['0','1','2','3'].forEach(k=>{
+    const d = scales[k]; if(!d) return;
+    const isToday = k === '0';
+    const R = scaleCell(d.R), S = scaleCell(d.S), G = scaleCell(d.G);
+    html += `<div class="daycard">
+      <div class="day">${dayLabel[k]}<span class="tag ${isToday?'observed':'forecast'}">${isToday?'osservato oggi':'previsto'}</span></div>
+      <div class="scaleline"><small>G · geomagnetica</small><b>${G.text}</b></div>
+      <div class="scaleline"><small>S · radiazione</small><b>${S.text}</b></div>
+      <div class="scaleline"><small>R · radio</small><b>${R.text}</b></div>
+    </div>`;
+  });
+  el.innerHTML = html || '<div class="loading">dati non disponibili ora</div>';
+}
+
+function renderAlerts(alerts){
+  const el = $('alertsList');
+  if(!alerts){ el.innerHTML = '<div class="loading">dati non disponibili ora</div>'; return; }
+  const top = alerts.slice(0,6);
+  el.innerHTML = top.map(a=>{
+    const firstLine = (a.message||'').split('\n').find(l=>l.trim() && !l.startsWith('Space Weather')) || (a.message||'').split('\n')[0] || '';
+    return `<div class="alertitem"><span class="id">${a.product_id||''}</span>${firstLine}<span class="t">${fmtTime(a.issue_datetime)}</span></div>`;
+  }).join('') || '<div class="loading">nessuna allerta recente</div>';
+}
+
+// ============================= 2. IMMAGINI SOLARI =============================
+async function loadSolarImages(){
+  const [diskFrames, coronaFrames, regionsTxt] = await Promise.all([
+    getJSON(SWPC + '/products/animations/suvi-primary-195.json'),
+    getJSON(SWPC + '/products/ccor1/jpegs.json'),
+    getTEXT(SWPC + '/text/srs.txt'),
+  ]);
+  setupImagePanel('disk', diskPanel(), diskFrames);
+  setupImagePanel('corona', coronaPanel(), coronaFrames);
+  renderRegions(regionsTxt);
+
+  const enlilFrames = await getJSON(SWPC + '/products/animations/enlil.json');
+  setupImagePanel('enlil', document.querySelector('.imgpanel.enlil'), enlilFrames, true);
+}
+
+function diskPanel(){ return $('diskPanel'); }
+function coronaPanel(){ return $('coronaPanel'); }
+
+// enlil.json contiene anche fotogrammi futuri (corsa di previsione): per "adesso" si prende
+// l'ultimo fotogramma con orario non successivo a questo momento, altrimenti l'ultimo disponibile.
+function pickCurrentFrame(frames, isForecastRun){
+  if(!frames || !frames.length) return null;
+  if(!isForecastRun) return frames[frames.length-1];
+  const now = Date.now();
+  const past = frames.filter(f=>{
+    const m = (f.url||'').match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
+    if(!m) return true;
+    const t = Date.parse(m[1]+'-'+m[2]+'-'+m[3]+'T'+m[4]+':'+m[5]+':'+m[6]+'Z');
+    return isFinite(t) ? t <= now : true;
+  });
+  return (past.length ? past[past.length-1] : frames[frames.length-1]);
+}
+
+function setupImagePanel(key, panelEl, frames, isForecastRun){
+  if(!panelEl) return;
+  const body = panelEl.querySelector('.imgbody');
+  const timeEl = panelEl.querySelector('.imgfoot span');
+  if(!frames || !frames.length){ body.innerHTML = '<div class="err">Immagine non disponibile ora.</div>'; return; }
+  const current = pickCurrentFrame(frames, isForecastRun);
+  const img = document.createElement('img');
+  img.alt = key; img.loading = 'eager';
+  img.onerror = () => { body.innerHTML = '<div class="err">Immagine non disponibile ora.</div>'; };
+  img.src = SWPC + current.url;
+  body.innerHTML = ''; body.appendChild(img);
+  const m = (current.url||'').match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
+  if(timeEl) timeEl.textContent = m ? (m[3]+'/'+m[2]+' '+m[4]+':'+m[5]+' UTC') : (current.time_tag ? fmtTime(current.time_tag) : '—');
+  // ultimi fotogrammi utili per l'animazione (evita di scaricarne centinaia)
+  const tail = frames.slice(-30);
+  ANIM[key] = { frames: tail, idx: tail.length-1, timer:null, playing:false, img, body, panelEl };
+}
+
+function toggleAnimation(key){
+  const a = ANIM[key]; if(!a) return;
+  const btn = a.panelEl.querySelector('[data-anim]');
+  if(a.playing){
+    clearInterval(a.timer); a.playing = false; btn.textContent = '▶ Animazione';
+    // torna all'ultimo fotogramma (live)
+    a.img.src = SWPC + a.frames[a.frames.length-1].url;
+    return;
+  }
+  a.playing = true; btn.textContent = '⏸ Ferma';
+  a.idx = 0;
+  a.timer = setInterval(()=>{
+    a.idx = (a.idx + 1) % a.frames.length;
+    a.img.src = SWPC + a.frames[a.idx].url;
+  }, 450);
+}
+document.addEventListener('click', ev=>{
+  const btn = ev.target.closest('[data-anim]');
+  if(btn) toggleAnimation(btn.dataset.anim);
+});
+
+// ---- regioni attive: parsing del testo a colonne fisse di srs.txt (Solar Region Summary) ----
+function renderRegions(txt){
+  const tbody = document.querySelector('#regionsTable tbody');
+  if(!txt){ tbody.innerHTML = '<tr><td>dati non disponibili ora</td></tr>'; return; }
+  const issued = txt.match(/:Issued:\s*(.+)/);
+  if(issued) $('regionsTime').textContent = 'bollettino ' + issued[1].trim();
+  const lines = txt.split('\n');
+  const start = lines.findIndex(l=>/^Nmbr\s+Location/i.test(l.trim()));
+  if(start === -1){ tbody.innerHTML = '<tr><td>nessuna regione numerata nel bollettino odierno</td></tr>'; return; }
+  const rows = [];
+  for(let i=start+1;i<lines.length;i++){
+    const l = lines[i].trim();
+    if(!l || /^IA\./.test(l) || /^I[.\s]/.test(l)) break;
+    const cells = l.split(/\s+/);
+    if(cells.length < 8) break;
+    rows.push({ num:cells[0], loc:cells[1], area:cells[3], spots:cells[5], mag:cells[7] });
+  }
+  if(!rows.length){ tbody.innerHTML = '<tr><td>nessuna regione numerata nel bollettino odierno</td></tr>'; return; }
+  tbody.innerHTML = '<tr><th>Regione</th><th>Posizione</th><th>Area</th><th>N. macchie</th><th>Classe magnetica</th></tr>' +
+    rows.map(r=>`<tr><td>NOAA ${r.num}</td><td>${r.loc}</td><td>${r.area}</td><td>${r.spots}</td><td>${r.mag}</td></tr>`).join('');
+}
+
+// ============================= 3. EVENTI SOLARI =============================
+async function loadSolarEvents(){
+  const flares = await getJSON(SWPC + '/json/goes/primary/xray-flares-7-day.json');
+  renderFlareList(flares);
+}
+
+function classGroup(cls){
+  if(!cls) return 'b';
+  const c = cls[0].toUpperCase();
+  return (c==='X'||c==='M'||c==='C') ? c.toLowerCase() : 'b';
+}
+
+function renderFlareList(flares){
+  const el = $('flareList');
+  if(!flares || !flares.length){ el.innerHTML = '<div class="loading">dati non disponibili ora</div>'; return; }
+  const notable = flares.filter(f=>/^[CMX]/.test(f.max_class||''));
+  const shown = (notable.length ? notable : flares).slice(-12).reverse();
+  el.innerHTML = shown.map(f=>{
+    const grp = classGroup(f.max_class);
+    return `<div class="flarerow">
+      <span>${fmtDate(f.max_time)} · ${fmtTime(f.max_time).split(' ').pop()}</span>
+      <span class="cls ${grp}">${f.max_class||'–'}</span>
+      <span class="note">CME associata: non documentata automaticamente — vedi «Strutture dirette verso la Terra»</span>
+    </div>`;
+  }).join('');
+  if(!notable.length){
+    el.insertAdjacentHTML('afterbegin', '<p style="color:var(--muted);font-size:10.5px;margin:0 0 10px">Negli ultimi 7 giorni non ci sono stati brillamenti di classe C, M o X: sotto, i picchi di classe B più recenti (attività di fondo).</p>');
+  }
+}
+
+// ============================= 4. VERSO LA TERRA =============================
+function extractSolarActivityParagraph(discussion){
+  if(!discussion) return null;
+  const lines = discussion.split('\n');
+  const start = lines.findIndex(l=>/^Solar Activity/i.test(l.trim()));
+  const nextHeading = lines.findIndex((l,i)=> i>start && start!==-1 && /^Energetic Particle/i.test(l.trim()));
+  if(start === -1) return null;
+  return lines.slice(start+1, nextHeading===-1?undefined:nextHeading).join('\n').trim();
+}
+
+async function loadEarthDirected(){
+  const discussion = await getTEXT(SWPC + '/text/discussion.txt');
+  const para = extractSolarActivityParagraph(discussion);
+  const el = $('cmeOfficial');
+  if(!para){ el.textContent = 'Bollettino non disponibile ora — apri swpc.noaa.gov/products/discussion.'; return; }
+  el.innerHTML = para.split(/\n\n+/).map(p=>`<p style="margin:0 0 10px">${p.replace(/\n/g,' ')}</p>`).join('');
+}
+
+// ============================= ORCHESTRAZIONE =============================
+async function renderSolarPage(){
+  $('lastUpdate').innerHTML = '<span></span> aggiornamento...';
+  STATE.ok = 0; STATE.err = 0;
+  await Promise.all([
+    loadNoaaForecast(),
+    loadSolarImages(),
+    loadSolarEvents(),
+    loadEarthDirected(),
+  ]);
+  $('lastUpdate').textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleTimeString('it-IT');
+  $('diagSummary').textContent = 'Fonti NOAA: ' + STATE.ok + ' ok' + (STATE.err ? ' · ' + STATE.err + ' non disponibili ora' : '');
+}
+
+$('refreshBtn').addEventListener('click', renderSolarPage);
+renderSolarPage();
+setInterval(renderSolarPage, 5*60*1000);
+</script>
+</body>
+</html>

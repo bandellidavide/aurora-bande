@@ -33,6 +33,7 @@ jobs:
         run: |
           mkdir -p site
           cp index.html site/
+          cp sole-noaa.html site/
           cp README.md site/ 2>/dev/null || true
           cp -r data site/
       - uses: actions/upload-pages-artifact@v3
