@@ -1,0 +1,50 @@
+name: Deploy Aurora Bande
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Ogni 5 minuti: riscarica i dati del magnetometro e ripubblica il sito.
+    # Nota: GitHub disabilita automaticamente i workflow schedulati dopo 60
+    # giorni senza commit sul repo — un push su main li riattiva.
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scarica i dati del magnetometro (FMI IMAGE)
+        run: python scripts/update_ground_data.py
+      - name: Prepara il sito da pubblicare
+        run: |
+          mkdir -p site
+          cp index.html site/
+          cp README.md site/ 2>/dev/null || true
+          cp -r data site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

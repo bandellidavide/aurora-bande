@@ -19,23 +19,34 @@ Dati in tempo reale da:
 - **Rete IMAGE / Istituto Meteorologico Finlandese** — magnetometri in tempo reale
 - **OpenStreetMap / Overpass** — punti panoramici vicini
 
-## Confronto numerico col magnetometro (opzionale)
+## Confronto numerico col magnetometro
 
 I dati del magnetometro terrestre (rete FMI IMAGE) non hanno header CORS, quindi il
-browser non può leggerli direttamente da un sito online. Sulla pagina pubblica questa
-sezione mostra "dati insufficienti" — il resto del sito funziona comunque normalmente.
+browser non può leggerli in diretta da un sito online. Il sito pubblico li legge invece
+da `data/ground/<STAZIONE>.json`, rigenerato ogni 5 minuti da un workflow di GitHub
+Actions (`.github/workflows/pages.yml` + `scripts/update_ground_data.py`) che scarica i
+dati da FMI e ripubblica il sito — non serve nessuna azione manuale.
 
-Per il confronto numerico completo, scarica anche `aurora-server.py` e avvialo con
-Python 3 nella stessa cartella di `index.html`, poi apri `http://127.0.0.1:8866/`:
+**Nota**: GitHub disabilita automaticamente i workflow schedulati dopo 60 giorni senza
+commit sul repo. Se il magnetometro smette di aggiornarsi dopo una lunga pausa, basta
+un push qualsiasi su `main` per riattivarlo (o "Run workflow" nella tab Actions).
+
+Chi lavora sul codice in locale può anche avviare `aurora-server.py` (Python 3, nessuna
+dipendenza) nella stessa cartella di `index.html` per dati live al minuto invece che al
+refresh dei 5 minuti:
 
 ```
 python aurora-server.py
 ```
 
+poi aprire `http://127.0.0.1:8866/` — la pagina lo rileva automaticamente e lo preferisce
+al file statico.
+
 ## Aggiornare il sito
 
-Sostituisci `index.html` con la versione nuova e fai commit: GitHub Pages si aggiorna
-da solo in un paio di minuti.
+Il sito su GitHub Pages si pubblica tramite GitHub Actions (non più dal branch
+direttamente): basta un push su `main` con `index.html` aggiornato e il workflow
+ricostruisce e ripubblica tutto in un paio di minuti.
 
 ## Licenza
 

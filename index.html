@@ -1988,10 +1988,8 @@ function renderGroundResponse(e){
   $('groundStationInfo').textContent='IMAGE · '+st+(distance!=null?' · '+Math.round(distance)+' km dalla posizione':'');
   const local=distance!=null&&distance<=800;
   $('groundScope').hidden=local;$('groundScope').textContent='Stazione lontana o non supportata: confronto regionale, non conferma locale.';
-  const numeric=HAS_LOCAL_SERVER;
   let analysis=groundAnalysis(e,GROUND.station===st?GROUND.samples:[],Date.now());
-  if(!numeric)analysis={state:'unknown',label:'Confronto visivo IMAGE',detail:'Apri il magnetogramma qui sotto. Il confronto numerico si attiva usando il servizio locale.'};
-  else if(GROUND.pending&&!GROUND.samples.length)analysis={state:'waiting',label:'Caricamento misure IMAGE',detail:'Lettura del campo magnetico terrestre…'};
+  if(GROUND.pending&&!GROUND.samples.length)analysis={state:'waiting',label:'Caricamento misure IMAGE',detail:'Lettura del campo magnetico terrestre…'};
   else if(GROUND.error)analysis={state:'unknown',label:'Misure numeriche non disponibili',detail:GROUND.error};
   $('groundBadge').textContent=analysis.label;$('groundBadge').className='ground-badge '+analysis.state;
   const groundRows=GROUND.station===st?GROUND.samples:[],latest=groundRows.length?groundRows[groundRows.length-1]:null;
@@ -2022,7 +2020,7 @@ function frontGroundSummary(e,now){
   const results=stations.map(st=>groundAnalysis(e,GROUND.errors[st]?[]:(GROUND.byStation[st]||[]),now));
   const usable=results.filter(r=>r.delta!=null),signals=usable.filter(r=>r.state==='signal').length;
   const overlaps=bzEpisodes.some(q=>q!==e&&q.arrStart!=null&&q.arrStart-ARRIVAL_MARGIN_MS<=e.arrStart+ARRIVAL_MARGIN_MS&&(q.ongoing||(q.arrEnd??q.arrStart)+30*60000>=e.arrStart-ARRIVAL_MARGIN_MS));
-  if(!usable.length)return {label:results.some(r=>r.state==='waiting')?'Raccolta misure terrestri':'Dati insufficienti',note:!HAS_LOCAL_SERVER?'Confronto numerico disponibile avviando aurora-server.py.':'Servono misure recenti e un riferimento precedente.',kind:'unknown'};
+  if(!usable.length)return {label:results.some(r=>r.state==='waiting')?'Raccolta misure terrestri':'Dati insufficienti',note:'Servono misure recenti e un riferimento precedente.',kind:'unknown'};
   const coverage=usable.length+'/'+stations.length+' stazioni utilizzabili';
   return {label:signals?'Risposta terrestre rilevata · '+signals+'/'+stations.length+' stazioni':'Nessuna variazione marcata',note:coverage+' · '+(overlaps?'finestre sovrapposte, attribuzione incerta.':signals?'compatibilità temporale, arrivo non confermato.':'un segnale assente non esclude l’arrivo.'),kind:signals?'signal':'monitoring'};
 }
@@ -2038,7 +2036,7 @@ function drawGroundComparison(e){
     const ref=groundMedian(base.map(p=>p[1]));return {st,i,points:rows.filter(p=>p[0]>=cut&&p[0]<=now).map(p=>[p[0],p[1]-ref])};
   }).filter(line=>line&&line.points.length);
   $('groundChartNote').textContent='ΔX in nT · stesso intervallo di riferimento '+fmtClock(baseStart)+'–'+fmtClock(baseEnd)+(e?' prima del fronte selezionato.':'. Seleziona un fronte per il confronto d’arrivo.');
-  $('groundChartEmpty').hidden=!!lines.length;$('groundChartEmpty').textContent=!HAS_LOCAL_SERVER?'Per il grafico comparativo avvia aurora-server.py. Il magnetogramma originale resta disponibile qui sotto.':'Nessuna serie visualizzabile: dati o riferimento insufficienti, oppure tutte le stazioni spente.';
+  $('groundChartEmpty').hidden=!!lines.length;$('groundChartEmpty').textContent='Nessuna serie visualizzabile: dati o riferimento insufficienti, oppure tutte le stazioni spente.';
   $('groundCanvas').hidden=!lines.length;if(!lines.length)return;
   const canvas=$('groundCanvas'),host=canvas.parentElement,width=Math.max(260,host.clientWidth),height=260,dpr=window.devicePixelRatio||1,ctx=canvas.getContext('2d');
   canvas.width=width*dpr;canvas.height=height*dpr;canvas.style.width='100%';canvas.style.height=height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
@@ -2052,11 +2050,14 @@ function drawGroundComparison(e){
 async function loadGroundResponse(){
   const station=$('magStation').value,requestId=++GROUND.requestId,stations=comparisonStations(station);
   if(GROUND.station!==station)GROUND.samples=[];GROUND.station=station;GROUND.stations=stations;GROUND.error=null;GROUND.pending=true;renderGroundResponse(pickArrivalEvent(Date.now()));
-  if(!HAS_LOCAL_SERVER){GROUND.pending=false;renderGroundResponse(pickArrivalEvent(Date.now()));return;}
   await Promise.allSettled(stations.map(async st=>{
     const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),15000);
     try{
-      const response=await fetch('/_aurora/ground?station='+encodeURIComponent(st),{cache:'no-store',signal:abort.signal});if(!response.ok)throw new Error('Fonte non disponibile');
+      // Con il server locale i dati sono live (aggiornati al minuto); sul sito pubblico
+      // si legge lo stesso formato da un file statico rigenerato da GitHub Actions ogni
+      // pochi minuti (vedi .github/workflows/pages.yml e scripts/update_ground_data.py).
+      const url=HAS_LOCAL_SERVER?('/_aurora/ground?station='+encodeURIComponent(st)):('data/ground/'+encodeURIComponent(st)+'.json');
+      const response=await fetch(url,{cache:'no-store',signal:abort.signal});if(!response.ok)throw new Error('Fonte non disponibile');
       const payload=await response.json();if(requestId!==GROUND.requestId)return;
       if(payload.station!==st||!Array.isArray(payload.samples))throw new Error('Formato non riconosciuto');
       GROUND.byStation[st]=payload.samples.filter(p=>Array.isArray(p)&&p.length>=2&&Number.isFinite(p[0])&&Number.isFinite(p[1])&&Math.abs(p[1])<90000).sort((a,b)=>a[0]-b[0]);delete GROUND.errors[st];

@@ -22,9 +22,10 @@ _CACHE = {}
 _LOCK = threading.Lock()
 
 def parse_fmi(text, expected_station):
-    """Keep finite X/Y/Z samples; require the documented station header."""
+    """Keep finite X/Y/Z samples; require an X/Y/Z header (FMI uses instrument
+    codes that don't always match the station code, e.g. NUR is reported as NU3)."""
     rows = text.splitlines()
-    if not rows or f'{expected_station} X' not in rows[0]:
+    if not rows or not re.search(r'\bX\b.*\bY\b.*\bZ\b', rows[0]):
         raise ValueError('Intestazione IMAGE non riconosciuta per la stazione richiesta')
     buckets = {}
     for line in rows[2:]:
