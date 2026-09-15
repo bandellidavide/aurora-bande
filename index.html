@@ -1733,17 +1733,20 @@ async function loadHemiPower(){
 }
 
 // ---- magnetometro locale (rete IMAGE / FMI) ----
-// I dati FMI non espongono header CORS, quindi non si possono leggere via fetch da file://:
-// si incorpora direttamente la pagina del magnetogramma, che si aggiorna da sola ogni minuto.
+// I dati FMI non espongono header CORS: si possono leggere via fetch solo passando dal
+// proxy locale aurora-server.py (127.0.0.1:8866). Ovunque altrove — sia da file:// sia
+// su un sito pubblico come GitHub Pages, dove quel proxy non esiste — si incorpora
+// direttamente la pagina del magnetogramma, che si aggiorna da sola ogni minuto.
+const HAS_LOCAL_SERVER = (location.hostname==='127.0.0.1'||location.hostname==='localhost') && location.port==='8866';
 function updateMagFrame(){
   const st=$('magStation').value,hh=$('magHours').value;
   const url='https://space.fmi.fi/image/realtime/UT/'+st+'/XYZlast'+hh+'.html';
-  const local=location.protocol!=='file:';
+  const local=HAS_LOCAL_SERVER;
   $('magOpenBtn').href=url;$('magFallbackLink').href=url;$('magImageError').hidden=true;
   $('magFrame').hidden=local;$('magImage').hidden=!local;
   if(local)$('magImage').src='/_aurora/magnetogram?station='+encodeURIComponent(st)+'&hours='+hh+'&minute='+Math.floor(Date.now()/60000);
   else $('magFrame').src=url;
-  diagSet('Magnetometro terrestre (FMI IMAGE)','ok',st+' · '+parseInt(hh,10)+'h');
+  diagSet('Magnetometro terrestre (FMI IMAGE)','ok',st+' · '+parseInt(hh,10)+'h'+(local?'':' (pagina incorporata)'));
 }
 
 // ======================= EPISODI DI Bz SUD =================================
@@ -1985,7 +1988,7 @@ function renderGroundResponse(e){
   $('groundStationInfo').textContent='IMAGE · '+st+(distance!=null?' · '+Math.round(distance)+' km dalla posizione':'');
   const local=distance!=null&&distance<=800;
   $('groundScope').hidden=local;$('groundScope').textContent='Stazione lontana o non supportata: confronto regionale, non conferma locale.';
-  const numeric=location.protocol!=='file:';
+  const numeric=HAS_LOCAL_SERVER;
   let analysis=groundAnalysis(e,GROUND.station===st?GROUND.samples:[],Date.now());
   if(!numeric)analysis={state:'unknown',label:'Confronto visivo IMAGE',detail:'Apri il magnetogramma qui sotto. Il confronto numerico si attiva usando il servizio locale.'};
   else if(GROUND.pending&&!GROUND.samples.length)analysis={state:'waiting',label:'Caricamento misure IMAGE',detail:'Lettura del campo magnetico terrestre…'};
@@ -2019,7 +2022,7 @@ function frontGroundSummary(e,now){
   const results=stations.map(st=>groundAnalysis(e,GROUND.errors[st]?[]:(GROUND.byStation[st]||[]),now));
   const usable=results.filter(r=>r.delta!=null),signals=usable.filter(r=>r.state==='signal').length;
   const overlaps=bzEpisodes.some(q=>q!==e&&q.arrStart!=null&&q.arrStart-ARRIVAL_MARGIN_MS<=e.arrStart+ARRIVAL_MARGIN_MS&&(q.ongoing||(q.arrEnd??q.arrStart)+30*60000>=e.arrStart-ARRIVAL_MARGIN_MS));
-  if(!usable.length)return {label:results.some(r=>r.state==='waiting')?'Raccolta misure terrestri':'Dati insufficienti',note:location.protocol==='file:'?'Confronto numerico disponibile avviando aurora-server.py.':'Servono misure recenti e un riferimento precedente.',kind:'unknown'};
+  if(!usable.length)return {label:results.some(r=>r.state==='waiting')?'Raccolta misure terrestri':'Dati insufficienti',note:!HAS_LOCAL_SERVER?'Confronto numerico disponibile avviando aurora-server.py.':'Servono misure recenti e un riferimento precedente.',kind:'unknown'};
   const coverage=usable.length+'/'+stations.length+' stazioni utilizzabili';
   return {label:signals?'Risposta terrestre rilevata · '+signals+'/'+stations.length+' stazioni':'Nessuna variazione marcata',note:coverage+' · '+(overlaps?'finestre sovrapposte, attribuzione incerta.':signals?'compatibilità temporale, arrivo non confermato.':'un segnale assente non esclude l’arrivo.'),kind:signals?'signal':'monitoring'};
 }
@@ -2035,7 +2038,7 @@ function drawGroundComparison(e){
     const ref=groundMedian(base.map(p=>p[1]));return {st,i,points:rows.filter(p=>p[0]>=cut&&p[0]<=now).map(p=>[p[0],p[1]-ref])};
   }).filter(line=>line&&line.points.length);
   $('groundChartNote').textContent='ΔX in nT · stesso intervallo di riferimento '+fmtClock(baseStart)+'–'+fmtClock(baseEnd)+(e?' prima del fronte selezionato.':'. Seleziona un fronte per il confronto d’arrivo.');
-  $('groundChartEmpty').hidden=!!lines.length;$('groundChartEmpty').textContent=location.protocol==='file:'?'Per il grafico comparativo avvia aurora-server.py. Il magnetogramma originale resta disponibile qui sotto.':'Nessuna serie visualizzabile: dati o riferimento insufficienti, oppure tutte le stazioni spente.';
+  $('groundChartEmpty').hidden=!!lines.length;$('groundChartEmpty').textContent=!HAS_LOCAL_SERVER?'Per il grafico comparativo avvia aurora-server.py. Il magnetogramma originale resta disponibile qui sotto.':'Nessuna serie visualizzabile: dati o riferimento insufficienti, oppure tutte le stazioni spente.';
   $('groundCanvas').hidden=!lines.length;if(!lines.length)return;
   const canvas=$('groundCanvas'),host=canvas.parentElement,width=Math.max(260,host.clientWidth),height=260,dpr=window.devicePixelRatio||1,ctx=canvas.getContext('2d');
   canvas.width=width*dpr;canvas.height=height*dpr;canvas.style.width='100%';canvas.style.height=height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
@@ -2049,7 +2052,7 @@ function drawGroundComparison(e){
 async function loadGroundResponse(){
   const station=$('magStation').value,requestId=++GROUND.requestId,stations=comparisonStations(station);
   if(GROUND.station!==station)GROUND.samples=[];GROUND.station=station;GROUND.stations=stations;GROUND.error=null;GROUND.pending=true;renderGroundResponse(pickArrivalEvent(Date.now()));
-  if(location.protocol==='file:'){GROUND.pending=false;renderGroundResponse(pickArrivalEvent(Date.now()));return;}
+  if(!HAS_LOCAL_SERVER){GROUND.pending=false;renderGroundResponse(pickArrivalEvent(Date.now()));return;}
   await Promise.allSettled(stations.map(async st=>{
     const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),15000);
     try{

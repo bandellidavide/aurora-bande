@@ -16,7 +16,8 @@ import time
 import webbrowser
 
 STATIONS = {'KEV', 'MAS', 'KIL', 'IVA', 'MUO', 'PEL', 'RAN', 'OUJ', 'HAN', 'NUR'}
-HTML_FILE = Path(__file__).resolve().with_name('aurora-bande.html')
+_HERE = Path(__file__).resolve().parent
+HTML_FILE = next((p for p in (_HERE / 'index.html', _HERE / 'aurora-bande.html') if p.is_file()), _HERE / 'index.html')
 _CACHE = {}
 _LOCK = threading.Lock()
 
@@ -100,11 +101,11 @@ class Handler(BaseHTTPRequestHandler):
             self.reply(403, b'Host non consentito', 'text/plain; charset=utf-8')
             return
         route = urlsplit(self.path)
-        if route.path in {'/', '/aurora-bande.html'}:
+        if route.path in {'/', '/index.html', '/aurora-bande.html'}:
             if HTML_FILE.is_file():
                 self.reply(200, HTML_FILE.read_bytes(), 'text/html; charset=utf-8')
             else:
-                self.reply(404, b'Metti aurora-bande.html nella stessa cartella del file Python.', 'text/plain; charset=utf-8')
+                self.reply(404, b'Metti index.html (o aurora-bande.html) nella stessa cartella del file Python.', 'text/plain; charset=utf-8')
         elif route.path == '/_aurora/magnetogram':
             query = parse_qs(route.query)
             station = query.get('station', [''])[0]
