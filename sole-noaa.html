@@ -15,10 +15,15 @@ header{border-bottom:1px solid var(--border);margin-bottom:22px}
 .brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);font-size:18px;font-weight:600}
 .brand svg{width:26px;height:26px;color:var(--amber)}
 .brand small{display:block;font-size:9px;letter-spacing:1px;color:var(--muted);font-weight:500}
-nav{margin-left:auto;display:flex;gap:18px;font-size:12px}
+nav{display:flex;gap:18px;font-size:12px}
 nav a{color:var(--muted);text-decoration:none;font-weight:500}
 nav a.active,nav a:hover{color:var(--text)}
+.page-switch{display:flex;gap:4px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:3px;margin-left:auto}
+.page-switch a{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;color:var(--muted);white-space:nowrap}
+.page-switch a.active{background:var(--panel);color:var(--green,#63e6ba);box-shadow:0 0 0 1px var(--border) inset}
+.page-switch a:not(.active):hover{color:var(--text)}
 .controls{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted)}
+@media(max-width:760px){.page-switch{order:2;width:100%}.page-switch a{flex:1;text-align:center}nav{order:3;width:100%;border-top:1px solid var(--border);padding-top:10px}}
 .btn{background:#1a2330;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:7px 11px;font-size:11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{background:#232e3d}
 .btn.small{padding:4px 8px;font-size:10px}
@@ -31,7 +36,7 @@ h1{font-size:22px;margin:0 0 4px}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:760px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}nav{width:100%;order:3;border-top:1px solid var(--border);padding-top:10px}}
+@media(max-width:760px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
 .daycard{background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
 .daycard .day{font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between}
 .daycard .tag{font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border)}
@@ -81,8 +86,8 @@ table.regions td{padding:7px 8px;border-bottom:1px solid #1a222c}
 <body>
 <header><div class="header-inner">
   <a class="brand" href="index.html"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="currentColor" opacity=".15"/><circle cx="20" cy="20" r="8" fill="currentColor"/><g stroke="currentColor" stroke-width="1.6"><path d="M20 2v6M20 32v6M2 20h6M32 20h6M7 7l4.2 4.2M28.8 28.8L33 33M33 7l-4.2 4.2M11.2 28.8L7 33"/></g></svg><span>Aurora <b>Bande</b><small>SOLE &amp; PREVISIONI NOAA</small></span></a>
+  <div class="page-switch" role="tablist" aria-label="Pagine"><a href="index.html" role="tab" aria-selected="false">🌊 Vento solare · L1→Terra</a><a href="sole-noaa.html" class="active" role="tab" aria-selected="true">☀️ Sole &amp; NOAA</a></div>
   <nav aria-label="Navigazione">
-    <a href="index.html">← Monitor L1</a>
     <a href="#forecastSection" class="active">Previsione NOAA</a>
     <a href="#sunSection">Il Sole adesso</a>
     <a href="#eventsSection">Eventi solari</a>
