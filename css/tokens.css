@@ -1,0 +1,11 @@
+/* Aurora Bande · token (dal design system, palette notte) */
+:root{color-scheme:dark;--surface-0:#060a12;--surface-1:#0d1420;--surface-2:#152134;--line:#2a3b55;--line-strong:#61789a;--ink:#eaf0f7;--ink-2:#b1bdcf;--ink-3:#8797ad;--on-signal:#04110b;--aurora-green:#5eeaa8;--aurora-magenta:#f28ad0;--level-0:#8a9ab0;--level-1:#45d3ca;--level-2:var(--aurora-green);--level-3:var(--aurora-magenta);--north:#8fb0e0;--warning:#ffc457;--error:#ff7f88;--focus:#9ad7ff;--series-bt:var(--ink);--series-bz:#ff6b7a;--series-bx:var(--north);--series-by:#e7c896;--glow-0:0 0 0 1px rgba(138,154,176,.25);--glow-1:0 0 28px rgba(69,211,202,.14);--glow-2:0 0 36px rgba(94,234,168,.18);--glow-3:0 0 44px rgba(242,138,208,.22);--sheet-shadow:0 -12px 40px rgba(0,0,0,.6);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;--tap-min:44px;--tap-comfort:48px;--tabbar-h:64px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:24px;--radius-pill:999px;--bp-tablet:768px;--bp-desktop:1100px;--content-max:1180px;--font-sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;--font-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;}
+.t-verdict{font-family:var(--font-sans);font-size:32px;line-height:36px;font-weight:600;letter-spacing:-0.01em;}
+.t-window{font-family:var(--font-mono);font-size:32px;line-height:36px;font-weight:500;letter-spacing:-0.01em;}
+.t-num-lg{font-family:var(--font-sans);font-size:32px;line-height:36px;font-weight:500;}
+.t-num-md{font-family:var(--font-sans);font-size:20px;line-height:24px;font-weight:500;}
+.t-title{font-family:var(--font-sans);font-size:20px;line-height:26px;font-weight:600;}
+.t-body{font-family:var(--font-sans);font-size:16px;line-height:24px;font-weight:400;}
+.t-body-sm{font-family:var(--font-sans);font-size:14px;line-height:20px;font-weight:400;}
+.t-label{font-family:var(--font-sans);font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.06em;}
+.t-caption{font-family:var(--font-sans);font-size:12px;line-height:16px;font-weight:400;}

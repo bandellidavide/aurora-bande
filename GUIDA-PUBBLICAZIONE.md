@@ -1,5 +1,8 @@
 # Come mettere online Aurora Bande con GitHub Pages
 
+> **Aggiornamento (20 settembre 2026):** il sito ora è la nuova versione a più schede e si pubblica con GitHub Actions (non più caricando i file a mano). Al posto del solo `index.html` ci sono `index.html`, `css/`, `js/`, `icons/`, `manifest.webmanifest`, `sw.js` e `versione-precedente/`. Vedi `README.md`. I passaggi qui sotto restano validi per creare da zero account, repository e GitHub Pages.
+
+
 Tempo richiesto: circa 10 minuti la prima volta. È gratis e non scade.
 Alla fine avrai un indirizzo tipo `https://tuonome.github.io/aurora-bande/` da mandare a chiunque.
 

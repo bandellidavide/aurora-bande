@@ -32,10 +32,23 @@ jobs:
       - name: Prepara il sito da pubblicare
         run: |
           mkdir -p site
-          cp index.html site/
-          cp sole-noaa.html site/
+          cp index.html sole-noaa.html manifest.webmanifest sw.js site/
+          cp -r css js icons versione-precedente site/
           cp README.md site/ 2>/dev/null || true
           cp -r data site/
+          # le pagine precedenti leggono i magnetometri da data/ relativo alla loro cartella
+          cp -r data site/versione-precedente/
+      - name: Controlla che il service worker elenchi solo file esistenti
+        run: |
+          python - <<'PY'
+          import re, pathlib
+          s = pathlib.Path('site/sw.js').read_text(encoding='utf-8')
+          block = s[s.index('const SHELL'):s.index('];', s.index('const SHELL'))]
+          files = re.findall(r"'([^']+)'", block)
+          missing = [f for f in files if f != './' and not pathlib.Path('site', f).is_file()]
+          assert not missing, 'File del service worker mancanti: ' + ', '.join(missing)
+          print(len(files), 'file nel guscio, tutti presenti')
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

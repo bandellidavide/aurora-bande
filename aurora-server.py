@@ -20,6 +20,22 @@ _HERE = Path(__file__).resolve().parent
 HTML_FILE = next((p for p in (_HERE / 'index.html', _HERE / 'aurora-bande.html') if p.is_file()), _HERE / 'index.html')
 _CACHE = {}
 _LOCK = threading.Lock()
+# File statici dell'app (solo queste cartelle e questi file, solo queste estensioni)
+STATIC_DIRS = {'css', 'js', 'icons', 'versione-precedente'}
+STATIC_FILES = {'manifest.webmanifest', 'sw.js', 'sole-noaa.html'}
+CONTENT_TYPES = {'.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+                 '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json'}
+
+def static_file(path):
+    rel = path.lstrip('/')
+    parts = rel.split('/')
+    if not rel or '..' in parts or '\\' in rel or not (rel in STATIC_FILES or parts[0] in STATIC_DIRS):
+        return None
+    p = (_HERE / rel).resolve()
+    ctype = CONTENT_TYPES.get(p.suffix.lower())
+    if _HERE not in p.parents or not p.is_file() or not ctype:
+        return None
+    return p, ctype
 
 def parse_fmi(text, expected_station):
     """Keep finite X/Y/Z samples; require an X/Y/Z header (FMI uses instrument
@@ -129,7 +145,11 @@ class Handler(BaseHTTPRequestHandler):
             except Exception:
                 self.reply(502, b'{"error":"Dati numerici FMI temporaneamente non disponibili"}', 'application/json; charset=utf-8')
         else:
-            self.reply(404, b'Not found', 'text/plain; charset=utf-8')
+            found = static_file(route.path)
+            if found:
+                self.reply(200, found[0].read_bytes(), found[1])
+            else:
+                self.reply(404, b'Not found', 'text/plain; charset=utf-8')
 
 if __name__ == '__main__':
     print('Aurora Bande · http://127.0.0.1:8866/')

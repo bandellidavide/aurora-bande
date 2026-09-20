@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "Aurora Bande",
+  "short_name": "Aurora Bande",
+  "description": "Osservatorio aurorale: condizioni misurate a L1, arrivo stimato, cielo e previsioni NOAA. Possibilità, non promesse.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#060a12",
+  "theme_color": "#060a12",
+  "categories": ["weather", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Adesso", "short_name": "Adesso", "url": "./#adesso", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Fronti", "short_name": "Fronti", "url": "./#fronti", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Cielo", "short_name": "Cielo", "url": "./#cielo", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Giorni", "short_name": "Giorni", "url": "./#giorni", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}
