@@ -241,12 +241,103 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
 <style>.arrival-card{padding:16px 20px}.arrival-title{font-size:18px;margin-top:9px}.arrival-copy{font-size:10px;margin:5px 0 8px}.timer.text-state{font-size:24px;margin-top:10px;line-height:1.3}.timer-caption{font-size:8px;margin-top:4px}.arrival-window{position:relative;overflow:hidden;padding:14px 16px 0;border-radius:8px;background:#272932;border:1px solid #6e6559}.arrival-window>div:first-child{font-size:10px}.arrival-window>div:first-child>strong{font-size:14px}.arrival-window .window-line{position:relative;height:20px;margin:16px 14px 0}.arrival-window .window-labels{margin:5px 14px 0;font-size:9px}.arrival-window .window-note{font-size:8px;line-height:1.6;margin:9px 0 12px}.arrival-now em{bottom:27px}.arrival-window .front-ground{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 -16px;padding:12px 16px;border:0;border-top:1px solid #555d6a;background:#202630;border-radius:0}.arrival-window .front-ground .earth-status-copy{display:block;flex:1;min-width:0}.earth-kicker{display:block;font-size:8px;letter-spacing:.8px;color:#a5b0c3}.arrival-window .front-ground .earth-status-copy>strong{font-size:13px;line-height:1.4;margin-top:4px;color:#e7e9ef}.arrival-window .front-ground.signal{background:#25322c;border-top-color:#92cfa166}.arrival-window .front-ground.signal .earth-status-copy>strong{color:#a5dfb3}.arrival-window .front-ground .earth-status-copy>small{font-size:9px;line-height:1.5;margin-top:4px;color:#a5b0c3}.earth-status-arrow{font-size:17px;color:#a5b0c3}.front-sky{padding-top:9px;margin-top:10px}.front-sky span{font-size:9px}.front-sky strong{font-size:13px;margin:3px 0}.front-sky small{font-size:8px}.packet-passage{padding-top:9px;font-size:9px}.packet-passage strong{font-size:14px;margin-top:3px}.packet-passage small{font-size:9px;margin-top:3px}.arrival-facts{margin-top:11px;padding-top:11px;gap:9px;grid-template-columns:repeat(6,minmax(0,1fr))}.arrival-facts strong{font-size:12px;margin-top:4px}.arrival-facts span{font-size:8px}.arrival-footnote{display:none}@media(max-width:1050px){.arrival-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:760px){.arrival-card{padding:14px}.timer.text-state{font-size:21px}.arrival-window{padding:12px 14px 0}.arrival-window .front-ground{margin:0 -14px;padding:11px 14px}.arrival-facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px}.arrival-facts strong{font-size:11px}.arrival-facts span{font-size:7px}}
 </style>
 <style>.arrival-now{display:block;position:absolute;top:0;left:0;width:2px;height:20px;background:#e7e9ef;z-index:3}.arrival-now[hidden]{display:none}.arrival-now em{position:absolute;bottom:27px;left:50%;transform:translateX(-50%);font-style:normal;font-size:8px;background:#414958;padding:2px 5px;border-radius:3px;color:#e7e9ef;white-space:nowrap}</style>
+<style id="mobile-redesign-preview">
+/* Anteprima: testata semplificata e priorità mobile */
+header{padding:13px 22px;background:#15171df2;border-bottom:1px solid #363a45}
+.header-inner{max-width:1184px;display:flex;align-items:center;gap:16px;flex-wrap:nowrap}
+.brand{min-width:max-content;font-size:18px;line-height:1.05;letter-spacing:-.35px}
+.brand b{color:#e1bd82}.brand small{font-size:7px;letter-spacing:1.45px;color:#9299aa;margin-top:5px}
+.page-switch{order:0;display:grid;grid-template-columns:1fr 1fr;gap:7px;flex:1;max-width:620px;margin-left:10px;padding:0;background:transparent;border:0}
+.page-switch a{display:flex;align-items:center;gap:10px;min-height:51px;padding:8px 11px;border:1px solid #414754;border-radius:8px;background:#22252e;color:#d5d9e3;text-align:left}
+.page-switch a.active{background:#2b2929;border-color:#a8885d;box-shadow:inset 3px 0 0 #dfbd82;color:#f0e5d4}
+.page-switch .page-icon{font-size:16px;color:#d7b675;line-height:1}
+.page-switch b{display:block;font-size:11px;font-weight:600;line-height:1.25}
+.page-switch small{display:block;margin-top:3px;font-size:8px;font-weight:400;line-height:1.35;color:#9ca3b2;white-space:normal}
+.instagram-profile{order:0;margin-left:auto;padding:7px 8px;gap:6px;border-color:#66515e;background:#211f25;border-radius:7px}
+.instagram-profile svg{width:18px;height:18px}.instagram-profile small{display:none}.instagram-profile strong{font-size:9px}.instagram-profile b{display:none}
+.header-inner>nav{display:none!important}
+.header-inner>.controls{order:0;width:auto;display:flex;align-items:center;gap:6px;margin:0}
+.controls #lastUpdate{font-size:8px;line-height:1.4;color:#9097a7;max-width:105px}
+.controls #refreshBtn{width:34px;min-height:34px;padding:0;font-size:0;border-color:#454b57;background:#20232b}
+.controls #refreshBtn::before{content:'↻';font-size:16px}
+.controls #autoBtn{min-height:34px;padding:6px 8px;font-size:8px;background:#20272a;border-color:#45574f;color:#a9c6b5}
+#locationSection{margin-top:12px}
+#locationSection .panel{padding:12px 14px;border-radius:8px}
+.metric-section{margin-top:12px}
+.graph-switches{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:12px;margin:10px 0 8px;padding:9px 0;border-top:1px solid #343944;border-bottom:1px solid #343944}
+.graph-switches .control-line{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;margin:0;min-width:0}
+.graph-switches .control-label{width:auto;flex:none;padding:0;font-size:8px;line-height:1;color:#8f97a8}
+.graph-switches .signal-controls,.graph-switches .satellite-controls{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;min-width:0;margin:0}
+.graph-switches .signal-toggle,.graph-switches .satellite-toggle{min-height:30px;height:30px;padding:4px 8px;border-radius:6px;gap:5px;background:#22252d;border-color:#414754}
+.graph-switches .signal-toggle{min-width:48px;justify-content:center}
+.graph-switches .signal-toggle::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 2px #ffffff0d;flex:0 0 auto}
+.graph-switches .signal-name{font-size:10px;line-height:1}
+.graph-switches .signal-name small,.graph-switches .signal-state,.graph-switches .signal-switch{display:none!important}
+.graph-switches .satellite-name{font-size:9px;line-height:1}.graph-switches .satellite-name small{display:none}
+.graph-switches .satellite-toggle svg{width:20px;height:8px}
+.graph-switches .satellite-toggle.active,.graph-switches .signal-toggle.active{background:#30343e;border-color:#737b8e;color:#eef0f5}
+.graph-switches .signal-toggle:not(.active),.graph-switches .satellite-toggle:not(.active){opacity:.55}
+
+@media(max-width:760px){
+  html{scroll-padding-top:150px}
+  .wrap{padding:0 12px}
+  header{position:relative;padding:11px 12px}
+  .header-inner{display:grid;grid-template-columns:1fr auto;gap:10px 8px}
+  .brand{grid-column:1;font-size:17px}
+  .brand small{font-size:6px;letter-spacing:1.15px}
+  .instagram-profile{grid-column:2;padding:7px;margin:0}
+  .instagram-profile strong{display:none}
+  .page-switch{grid-column:1/-1;grid-row:2;width:100%;max-width:none;margin:0;gap:6px}
+  .page-switch a{min-width:0;min-height:58px;padding:8px 9px;gap:8px}
+  .page-switch .page-icon{font-size:14px}
+  .page-switch b{font-size:10px}
+  .page-switch small{font-size:7px}
+  .header-inner>.controls{grid-column:1/-1;grid-row:3;width:100%;justify-content:flex-end;border-top:1px solid #30343e;padding-top:8px}
+  .controls #lastUpdate{max-width:none;margin-right:auto;font-size:8px}
+  .controls #autoBtn{border:0;background:transparent;padding-right:0}
+  #locationSection .panel{padding:10px}
+  #locationSection .loc-row{display:grid;grid-template-columns:1fr auto;gap:7px}
+  #locationSection .loc-row>div:first-child{grid-column:1;min-width:0!important}
+  #placeSearchBtn{grid-column:2;font-size:0;padding:0;width:38px}
+  #placeSearchBtn::before{content:'⌕';font-size:18px}
+  #locPreset{grid-column:1;min-width:0;width:100%;font-size:10px}
+  #geoBtn{grid-column:2;padding:6px 9px;font-size:9px}
+  #advToggle{display:none}
+  #placeLabel{font-size:10px!important;margin-top:8px!important}
+  .watch-alerts{margin-top:14px}
+  .metric-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .metric{min-height:92px;padding:12px}
+  .metric-number{font-size:24px}
+  .graph-switches{display:grid;grid-template-columns:1fr;gap:5px;margin:7px 0 5px;padding:7px 0}
+  .graph-switches .control-line{display:grid;grid-template-columns:52px minmax(0,1fr);gap:5px;margin:0}
+  .graph-switches .control-label{font-size:7px}
+  .graph-switches .signal-controls,.graph-switches .satellite-controls{overflow-x:auto;padding:1px 0 2px;scrollbar-width:none}
+  .graph-switches .signal-controls::-webkit-scrollbar,.graph-switches .satellite-controls::-webkit-scrollbar{display:none}
+  .graph-switches .signal-toggle,.graph-switches .satellite-toggle{min-height:32px;height:32px;padding:5px 7px;flex:0 0 auto}
+  .graph-switches .signal-toggle{min-width:46px}
+  .front-queue{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:9px;padding-bottom:8px;scrollbar-width:none}
+  .front-queue::-webkit-scrollbar{display:none}
+  .front-tab{flex:0 0 84%;min-width:0;scroll-snap-align:start;padding:13px}
+  .front-tab.active{padding:12px}
+  .arrival-facts{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .arrival-facts span{font-size:9px!important}.arrival-facts strong{font-size:13px!important}
+  .camera-grid{grid-template-columns:1fr}
+  .camera-card{display:grid;grid-template-columns:44% 56%;min-height:145px}
+  .camera-picture{aspect-ratio:auto;min-height:145px}
+  .camera-info{padding:12px}
+}
+@media(max-width:370px){
+  .page-switch small{display:none}.page-switch a{min-height:44px}
+  .front-tab{flex-basis:92%}
+  .camera-card{grid-template-columns:1fr}.camera-picture{aspect-ratio:4/3}
+}
+</style>
 </head>
-<body>
+<body><div id="versione-precedente-avviso" style="background:#1b2430;color:#cfd8e3;font:13px/1.4 system-ui,sans-serif;padding:9px 14px;text-align:center;border-bottom:1px solid #2c3a4a">Questa è la <b>versione precedente</b> di Aurora Bande. <a href="../" style="color:#8fd9b6">Vai alla nuova versione</a></div>
 
 <div class="aurora-bg"><span></span><span></span><span></span></div>
 
-<header><div class="header-inner"><a class="brand" href="#top"><svg viewBox="0 0 40 40" aria-hidden="true" fill="none"><circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1"/><path d="M8 25l7-13 5 13 5-8 7 8M10 29h20" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="29" cy="10" r="2" fill="currentColor"/></svg><span>Aurora <b>Bande</b><small>L1 · SOLAR WIND MONITOR</small></span></a><a class="instagram-profile" href="https://www.instagram.com/davidebandelli/" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo Instagram di Davide Bandelli"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg><span><small>SEGUIMI SU INSTAGRAM</small><strong>@davidebandelli</strong></span><b aria-hidden="true">↗</b></a><div class="page-switch" role="tablist" aria-label="Pagine"><a href="index.html" class="active" role="tab" aria-selected="true">🌊 Vento solare · L1→Terra</a><a href="sole-noaa.html" role="tab" aria-selected="false">☀️ Sole &amp; NOAA</a></div><nav aria-label="Navigazione"><a href="#imfSection">Monitor L1</a><a href="#structuresSection">Strutture</a><a href="#locationSection">Dati locali</a></nav><div class="controls"><span id="lastUpdate">Caricamento…</span><span id="countdown"></span><a class="btn webcam-jump" href="#skySection">📷 Webcam e cielo</a><button class="btn" id="refreshBtn" title="Aggiorna i dati">↻ Aggiorna</button><button class="btn active" id="autoBtn">Auto · 1 min</button></div></div></header>
+<header><div class="header-inner"><a class="brand" href="#top"><span>Aurora <b>Bande</b><small>OSSERVATORIO AURORALE</small></span></a><div class="page-switch" role="tablist" aria-label="Pagine principali"><a href="aurora-bande.html" class="active" role="tab" aria-selected="true"><span class="page-icon" aria-hidden="true">↯</span><span><b>Ora · L1 → Terra</b><small>Cosa può arrivare nei prossimi 15–60 minuti</small></span></a><a href="sole-noaa.html" role="tab" aria-selected="false"><span class="page-icon" aria-hidden="true">☼</span><span><b>Prossimi giorni · Sole &amp; NOAA</b><small>Flare, CME e tempeste previste</small></span></a></div><a class="instagram-profile" href="https://www.instagram.com/davidebandelli/" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo Instagram di Davide Bandelli"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg><span><strong>@davidebandelli</strong></span></a><div class="controls"><span id="lastUpdate">Caricamento…</span><span id="countdown"></span><button class="btn" id="refreshBtn" title="Aggiorna i dati">↻ Aggiorna</button><button class="btn active" id="autoBtn">Auto · 1 min</button></div></div></header>
 
 <div class="wrap">
 <section id="locationSection">
@@ -283,7 +374,14 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
 <div class="metric"><span class="metric-label"><i></i> Bt · campo totale</span><div class="metric-number" id="keyBt">— <small>nT</small></div><span class="metric-note" id="keyBtNote">Intensità del campo IMF</span></div>
 <div class="metric wind"><span class="metric-label"><i></i> Vento solare</span><div class="metric-number" id="keySpeed">— <small>km/s</small></div><span class="metric-note" id="keySpeedNote">Tempo di propagazione L1 → Terra</span></div>
 <div class="metric coupling"><span class="metric-label"><i></i> Forzante sud · Ey+</span><div class="metric-number" id="keyEy">— <small>mV/m</small></div><span class="metric-note">Forzante favorevole se Bz è sud</span></div>
-</div><div class="data-ribbon"><span id="l1DataStatus">● Connessione ai dati L1…</span><span id="l1Source">Riferimento NOAA</span></div></section>  <section id="imfSection">
+</div><div class="data-ribbon"><span id="l1DataStatus">● Connessione ai dati L1…</span><span id="l1Source">Riferimento NOAA</span></div></section>
+<a id="quickWeather" class="weather-quick" href="#skySection" aria-label="Apri il meteo dettagliato della posizione scelta">
+  <span id="quickWeatherIcon" class="weather-quick-icon" aria-hidden="true">◌</span>
+  <span class="weather-quick-main"><small>METEO LOCALE</small><strong id="quickWeatherState">In attesa</strong></span>
+  <span id="quickWeatherMeta" class="weather-quick-meta">Caricamento dalla posizione scelta…</span>
+  <span class="weather-quick-place"><span id="quickWeatherPlace">Posizione scelta</span><b>Dettagli ↓</b></span>
+</a>
+<section id="imfSection">
     <div class="section-heading"><h2><span class="section-no">01</span> Campo magnetico a L1</h2><span class="eyebrow">MISURATO · IMF</span></div>
     <div class="panel">
       <div class="loc-row" style="justify-content:space-between;">
@@ -343,9 +441,9 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
         <a class="btn" id="magOpenBtn" href="https://space.fmi.fi/image/www/?page=real_time" target="_blank">↗ apri a schermo intero</a>
       </div>
       <div style="background:#fff; border-radius:8px; overflow:hidden;">
-        <div id="groundCompare"><div id="groundSwitches" class="ground-switches" role="group" aria-label="Stazioni IMAGE visibili"></div><p id="groundChartNote"></p><div class="ground-canvas-wrap"><canvas id="groundCanvas" role="img" aria-label="Variazione X di tre stazioni IMAGE"></canvas></div><p id="groundChartEmpty" hidden></p></div><details class="raw-mag"><summary>Magnetogramma originale X, Y, Z</summary><img id="magImage" alt="Magnetogramma X, Y e Z della stazione IMAGE" hidden><iframe id="magFrame" title="Magnetogramma in tempo reale" style="width:100%; height:430px; border:0; display:block;" loading="eager"></iframe><div id="magImageError" class="mag-image-error" hidden>Immagine non disponibile qui. <a id="magFallbackLink" target="_blank" rel="noopener">Apri il magnetogramma sul sito FMI ↗</a></div></details>
+        <div id="groundCompare"><div id="groundSwitches" class="ground-switches" role="group" aria-label="Stazioni IMAGE visibili"></div><p id="groundChartNote"></p><div class="ground-canvas-wrap"><canvas id="groundCanvas" role="img" aria-label="Variazione X di tre stazioni IMAGE"></canvas></div><p id="groundChartEmpty" hidden></p></div><details class="raw-mag" open><summary>Magnetogramma originale IMAGE · X, Y, Z</summary><p class="mag-live-note">Grafico ufficiale della stazione selezionata · si aggiorna sul sito FMI. Se non viene incorporato dal browser, usa il pulsante qui sotto.</p><img id="magImage" alt="Magnetogramma X, Y e Z della stazione IMAGE" hidden><iframe id="magFrame" title="Magnetogramma IMAGE in tempo reale" style="width:100%; height:430px; border:0; display:block; background:#fff;" loading="eager"></iframe><div class="mag-open-row"><a class="btn" id="magFallbackLink" target="_blank" rel="noopener">Apri il grafico originale FMI ↗</a></div><div id="magImageError" class="mag-image-error" hidden>Il grafico non è incorporabile in questa pagina. Aprilo direttamente sul sito FMI.</div></details>
       </div>
-<p class="ground-credit">Dati terrestri: <a href="https://space.fmi.fi/image/realtime/UT/" target="_blank" rel="noopener">FMI · rete IMAGE</a>, CC BY 4.0. Le stazioni disponibili coprono soprattutto la Fennoscandia.</p></div><details class="ground-method"><summary>Cosa indica il confronto automatico</summary><p>Confrontiamo X terrestre con la mediana nei 10 minuti che terminano 20 minuti prima dell’inizio centrale stimato. Cerchiamo la massima variazione della mediana di cinque campioni al minuto, dalla prima ora della finestra fino a 30 minuti dopo il passaggio previsto, con un limite di 90 minuti dal fronte. Una variazione di almeno 100 nT è segnalata come marcata: è una regola esplorativa, non un test di arrivo calibrato né un rilevatore di substorm.</p><p>Servono dati di riferimento sufficienti, senza interruzioni lunghe, e un ultimo campione entro 10 minuti. Un segnale è solo temporalmente compatibile; con più fronti sovrapposti non possiamo attribuirlo al singolo fronte. La posizione e l’ora locale magnetica della stazione influenzano la risposta.</p><p>Il file HTML aperto da solo offre il confronto visivo. Per leggere automaticamente i dati numerici, avvia aurora-server.py nella stessa cartella dell’HTML e usa la pagina locale che si apre.</p></details></div></section>  <section id="skySection"><div class="section-heading"><h2><span class="section-no">04</span> Cielo e webcam vicine</h2><a id="cloudMap" class="sky-map" target="_blank" rel="noopener">Mappa nuvole ↗</a></div><div class="sky-panel"><div class="sky-now"><span>Copertura nuvolosa stimata</span><strong id="skyCloud">—</strong><small id="skyLocation">Nella posizione scelta in alto</small></div><div class="sky-hourly"><span>Prossime 6 ore · ora locale della posizione</span><div id="skyHours" class="sky-hours">In attesa del meteo</div></div><p id="skySource">Previsioni da modello · Open-Meteo</p></div><div class="webcam-toolbar"><div><h3>Uno sguardo al cielo</h3><p>Webcam di zona e camere dedicate all’aurora</p></div><button class="btn" id="webcamRefreshBtn">Aggiorna webcam</button></div><div class="webcam-filters"><button class="btn active" data-cam-filter="near" aria-pressed="true">Vicino a me</button><button class="btn" data-cam-filter="aurora" aria-pressed="false">Camere aurora</button><button class="btn" data-cam-filter="favorites" aria-pressed="false">Preferite ♡</button><label>Entro <select id="webcamRadius"><option value="50">50 km</option><option value="200" selected>200 km</option><option value="500">500 km</option><option value="1000">1.000 km</option><option value="2000">2.000 km</option></select></label><a id="webcamMap" target="_blank" rel="noopener">Cerca sulla mappa ↗</a></div><p id="webcamStatus" class="cap"></p><div id="webcamGrid" class="camera-grid"><div class="camera-empty">Caricamento delle camere disponibili…</div></div><button id="webcamMore" class="btn" hidden>Mostra altre webcam</button><p class="camera-credit">Catalogo di camere aurora e ricerca OpenStreetMap: copertura parziale, non tutte le webcam esistenti. Le camere possono fermarsi di giorno o essere offline. Controlla l’orario impresso nell’immagine; una camera lontana non descrive il cielo sopra di te.</p></section><div class="secondary-drawers"><details id="observationExtras" class="secondary-drawer"><summary>Cielo e altri dati <small>Meteo, webcam, vento solare e indici</small></summary><section id="windSection">
+<p class="ground-credit">Dati terrestri: <a href="https://space.fmi.fi/image/realtime/UT/" target="_blank" rel="noopener">FMI · rete IMAGE</a>, CC BY 4.0. Le stazioni disponibili coprono soprattutto la Fennoscandia.</p></div><details class="ground-method"><summary>Cosa indica il confronto automatico</summary><p>Confrontiamo X terrestre con la mediana nei 10 minuti che terminano 20 minuti prima dell’inizio centrale stimato. Cerchiamo la massima variazione della mediana di cinque campioni al minuto, dalla prima ora della finestra fino a 30 minuti dopo il passaggio previsto, con un limite di 90 minuti dal fronte. Una variazione di almeno 100 nT è segnalata come marcata: è una regola esplorativa, non un test di arrivo calibrato né un rilevatore di substorm.</p><p>Servono dati di riferimento sufficienti, senza interruzioni lunghe, e un ultimo campione entro 10 minuti. Un segnale è solo temporalmente compatibile; con più fronti sovrapposti non possiamo attribuirlo al singolo fronte. La posizione e l’ora locale magnetica della stazione influenzano la risposta.</p><p>Il file HTML aperto da solo offre il confronto visivo. Per leggere automaticamente i dati numerici, avvia aurora-server.py nella stessa cartella dell’HTML e usa la pagina locale che si apre.</p></details></div></section>  <section id="skySection"><div class="section-heading"><h2><span class="section-no">04</span> Cielo e webcam vicine</h2><a id="cloudMap" class="sky-map" target="_blank" rel="noopener">Mappa nuvole ↗</a></div><div class="sky-panel"><div class="sky-now"><span>Condizioni nella posizione scelta</span><div class="sky-current"><strong id="skyState">In attesa</strong><b id="skyCloud">—</b></div><small id="skyLocation">Nella posizione scelta in alto</small><div id="skyCurrentMeta" class="sky-current-meta">Temperatura e probabilità di pioggia compariranno qui.</div><div id="cloudLayers" class="cloud-layers" aria-label="Copertura nuvolosa per quota"></div><small class="cloud-layer-note">Gli strati nuvolosi non si sommano.</small></div><div class="sky-hourly"><span>Prossime 6 ore · ora locale della posizione</span><div id="skyHours" class="sky-hours">In attesa del meteo</div></div><p id="skySource">Previsioni da modello · Open-Meteo</p></div><div class="webcam-toolbar"><div><h3>Uno sguardo al cielo</h3><p>Webcam di zona e camere dedicate all’aurora</p></div><button class="btn" id="webcamRefreshBtn">Aggiorna webcam</button></div><div class="webcam-filters"><button class="btn active" data-cam-filter="near" aria-pressed="true">Vicino a me</button><button class="btn" data-cam-filter="aurora" aria-pressed="false">Camere aurora</button><button class="btn" data-cam-filter="favorites" aria-pressed="false">Preferite ♡</button><label>Entro <select id="webcamRadius"><option value="50">50 km</option><option value="200" selected>200 km</option><option value="500">500 km</option><option value="1000">1.000 km</option><option value="2000">2.000 km</option></select></label><a id="webcamMap" target="_blank" rel="noopener">Cerca sulla mappa ↗</a></div><p id="webcamStatus" class="cap"></p><div id="webcamGrid" class="camera-grid"><div class="camera-empty">Caricamento delle camere disponibili…</div></div><button id="webcamMore" class="btn" hidden>Mostra altre webcam</button><p class="camera-credit">Catalogo di camere aurora e ricerca OpenStreetMap: copertura parziale, non tutte le webcam esistenti. Le camere possono fermarsi di giorno o essere offline. Controlla l’orario impresso nell’immagine; una camera lontana non descrive il cielo sopra di te.</p></section><div class="secondary-drawers"><details id="observationExtras" class="secondary-drawer"><summary>Cielo e altri dati <small>Meteo, webcam, vento solare e indici</small></summary><section id="windSection">
     <h2>💨 Vento solare — velocità e densità</h2>
     <div class="panel">
       <div class="loc-row" style="justify-content:space-between;">
@@ -364,18 +462,23 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
       <div class="cap" style="margin-top:2px;">Stessi satelliti e stessa fascia oraria/selezione scelti sopra nel grafico del campo magnetico.</div>
     </div>
   </section><section>
-    <h2>📍 Probabilità aurora nella posizione scelta <span class="tag">modello OVATION, aggiornato ogni ~30 min</span></h2>
+    <h2>📍 Attività aurorale regionale <span class="tag">modello OVATION, aggiornato ogni ~30 min</span></h2>
     <div class="panel">
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
         <div class="card">
-          <div class="label">Probabilità stimata</div>
-          <div class="value" id="ovationVal">–<span class="unit">/ 7</span></div>
+          <div class="label">Indice OVATION nella zona</div>
+          <div class="value" id="ovationVal">–<span class="unit">/ 100</span></div>
           <div class="sub" id="ovationLabel">in attesa dei dati...</div>
         </div>
         <div class="card">
           <div class="label">Osservazione modello</div>
           <div class="value" style="font-size:1.05rem;" id="ovationTime">–</div>
-          <div class="sub">orario UTC dell'ultima elaborazione OVATION</div>
+          <div class="sub">Observation Time · ultima misura del modello · UTC</div>
+        </div>
+        <div class="card">
+          <div class="label">Orizzonte del modello</div>
+          <div class="value" style="font-size:1.05rem;" id="ovationForecastTime">–</div>
+          <div class="sub">Forecast Time · previsione OVATION · UTC</div>
         </div>
         <div class="card">
           <div class="label">Zona geomagnetica (stima)</div>
@@ -385,7 +488,7 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
       </div>
     </div>
   </section><section>
-    <h2>⚡ Potenza dell’ovale aurorale <span class="tag">quanta energia sta entrando nell’atmosfera adesso</span></h2>
+    <h2>⚡ Potenza dell’ovale aurorale <span class="tag">attività regionale modellata</span></h2>
     <div class="panel">
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin-bottom:14px;">
         <div class="card">
@@ -396,7 +499,7 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
         <div class="card">
           <div class="label">Tendenza ultime 3 ore</div>
           <div class="value" id="hpTrend" style="font-size:1.1rem;">–</div>
-          <div class="sub">se sale, l’aurora si sta rinforzando proprio ora</div>
+          <div class="sub">se sale, l’attività modellata è in aumento</div>
         </div>
         <div class="card">
           <div class="label">Validità del dato</div>
@@ -406,11 +509,9 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
       </div>
       <canvas id="hpChart" height="110"></canvas>
       <div class="cap" style="margin-top:10px;">
-        <strong>Cosa significa.</strong> È la potenza totale, in gigawatt, che le particelle solari stanno depositando nell’ovale aurorale dell’emisfero nord.
-        A differenza del Kp (media globale su 3 ore) questo valore si aggiorna ogni 5 minuti, quindi dice davvero <em>cosa sta succedendo adesso</em>.
-        Riferimenti pratici: <strong>sotto 20 GW</strong> aurora debole, spesso solo in fotografia · <strong>20–50 GW</strong> aurora visibile a occhio nudo alle alte latitudini ·
-        <strong>50–100 GW</strong> aurora forte e dinamica · <strong>oltre 100 GW</strong> evento eccezionale, visibile molto più a sud.
-        Fonte: modello OVATION di NOAA SWPC.
+        <strong>Cosa significa.</strong> È un indicatore della potenza complessiva stimata nell’ovale aurorale dell’emisfero nord.
+        Descrive l’attività regionale del modello OVATION e non garantisce la visibilità a occhio nudo nella tua posizione.
+        Si aggiorna ogni 5 minuti. Fonte: modello OVATION di NOAA SWPC.
       </div>
     </div>
   </section><section>
@@ -619,9 +720,9 @@ body{background:#15161b;color:var(--text)}header{background:#15161bf5;border-col
           <div style="flex:1 1 260px; min-width:240px; font-size:.82rem; line-height:1.55;">
             <p style="margin:0 0 10px;"><strong>Sono la stessa misura.</strong> Il magnetometro a bordo del satellite, a L1, legge il campo magnetico come una <em>freccia</em> nello spazio, una volta al minuto. Da quella singola freccia si ricavano tutti i numeri che vedi:</p>
             <ul style="margin:0 0 10px 18px; padding:0;">
-              <li><strong>Bt</strong> = quanto è lunga la freccia, cioè quanta energia c’è nel campo magnetico. Non ha segno: è sempre positivo.</li>
+              <li><strong>Bt</strong> = intensità totale del campo magnetico interplanetario. Non indica da solo quanta energia entrerà nella magnetosfera e non ha segno: è sempre positivo.</li>
               <li><strong>Bz</strong> = quanto quella freccia punta verso il basso (sud) o verso l’alto (nord). È una <em>componente</em> di Bt, non una misura separata.</li>
-              <li><strong>Bx e By</strong> = le altre due componenti, poco rilevanti per l’aurora.</li>
+              <li><strong>Bx e By</strong> = le altre due componenti. In particolare By, insieme a Bz, serve a descrivere l’orientamento del campo e può entrare nelle funzioni di accoppiamento.</li>
             </ul>
             <p style="margin:0 0 10px;">Per questo Bz non può mai essere più grande di Bt in valore assoluto: è un pezzo di Bt.</p>
             <p style="margin:0; color:var(--muted);">Nessuno dei due viene misurato vicino alla Terra: vengono <strong>entrambi</strong> dal punto L1, nello stesso istante, dallo stesso strumento. Quello che leggi adesso colpirà la Terra tra circa <strong id="explainPropTime">–</strong>.</p>
@@ -717,7 +818,7 @@ Ricorda: cielo sereno e buio (poco inquinamento luminoso, lontano dalla luna pie
           <div class="card">
             <label style="display:flex; align-items:center; gap:6px; font-size:.78rem; cursor:pointer;"><input type="checkbox" id="alertOvationEnabled" checked> OVATION sale sopra</label>
             <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap;">
-              <input type="number" id="alertOvationThreshold" value="4" step="1" style="width:80px;"><span class="unit">/7</span>
+              <input type="number" id="alertOvationThreshold" value="30" min="0" max="100" step="1" style="width:80px;"><span class="unit">/100</span>
             </div>
             <div class="sub" style="margin-top:8px;">poi ripeti ogni <input type="number" id="alertOvationStep" value="1" step="1" style="width:55px;"> in più</div>
           </div>
@@ -861,7 +962,13 @@ async function getTEXT(url, label){
 }
 
 function fmtTime(d){
-  try{ return new Date(d).toLocaleString('it-IT', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}); }
+  if(d==null || isNaN(new Date(d).getTime())) return '–';
+  try{ return new Date(d).toLocaleString('it-IT', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',timeZone:observationZone()}); }
+  catch(e){ return d || '–'; }
+}
+function fmtUTC(d){
+  if(d==null || isNaN(new Date(d).getTime())) return '–';
+  try{ return new Date(d).toLocaleString('it-IT', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',timeZone:'UTC'})+' UTC'; }
   catch(e){ return d || '–'; }
 }
 
@@ -876,14 +983,27 @@ function card(label, value, unit, sub, pillHtml){
   </div>`;
 }
 
+function ensureSimpleOverview(){
+  if($('overviewVerdict') || !$('top')) return;
+  $('top').insertAdjacentHTML('afterend', `<section id="simpleOverview" class="panel" aria-label="Riepilogo semplice" style="margin:18px 0 22px;padding:16px 18px;">
+    <div class="overview-kicker">IN BREVE · AGGIORNAMENTO LIVE</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px;">
+      <div class="overview-item"><div class="label">Attività aurorale</div><strong id="overviewVerdict" style="display:block;margin-top:6px;font-size:19px;">Non valutabile</strong><div id="overviewActivityNote" class="sub">In attesa dei dati</div></div>
+      <div class="overview-item"><div class="label">Cielo sopra di te</div><strong id="overviewSky" style="display:block;margin-top:6px;font-size:19px;">Non valutabile</strong><div id="overviewSkyNote" class="sub">In attesa del meteo</div></div>
+      <div class="overview-item"><div class="label">Affidabilità dei dati</div><strong id="overviewData" style="display:block;margin-top:6px;font-size:19px;">Non valutabile</strong><div id="overviewDataNote" class="sub">Nessun dato recente</div></div>
+    </div><div id="overviewTrend" class="overview-trend">Possibile evoluzione nelle prossime ore: in attesa dei dati.</div>
+    <div id="overviewChips" style="margin-top:10px;"></div>
+  </section>`);
+}
+
 // ---- vista d'insieme: sintesi di tutti i segnali in un unico verdetto ----
 const OVERVIEW = {};
 
 // NOAA usa -9999 (e talvolta -99999) come valore sentinella per "dato mancante":
 // va trattato come null, altrimenti sfonda gli assi dei grafici e falsa i confronti.
 function num(v){
-  if(v === null || v === undefined) return null;
-  const x = typeof v === 'number' ? v : parseFloat(v);
+  if(v === null || v === undefined || typeof v === 'boolean' || (typeof v === 'string' && !v.trim())) return null;
+  const x = Number(v);
   if(!isFinite(x)) return null;
   if(x <= -9990) return null;
   return x;
@@ -897,78 +1017,41 @@ function scoreToVerdict(score){
 }
 
 function updateOverview(){
-  if(!$('overviewVerdict')) return;
-
-  // blocco assoluto: se non fa mai buio abbastanza, il resto non conta
-  if(OVERVIEW.hasDarkness === false){
-    $('overviewEmoji').textContent = '☀️';
-    $('overviewVerdict').textContent = 'Non diventa mai buio a sufficienza in questo periodo/posizione';
-    $('overviewChips').innerHTML = pill('nessuna finestra di buio astronomico', 'bad');
-    return;
-  }
-
-  const chips = [];
-  let score = 0, counted = 0;
-
-  if(OVERVIEW.nightCloud != null){
-    counted++;
-    if(OVERVIEW.nightCloud <= 30){ score += 2; chips.push({t:'cielo sereno stanotte', k:'good'}); }
-    else if(OVERVIEW.nightCloud <= 70){ chips.push({t:'cielo variabile stanotte', k:'warn'}); }
-    else { score -= 3; chips.push({t:'cielo molto coperto stanotte', k:'bad'}); }
-  }
-  if(OVERVIEW.hasDarkness === true){
-    counted++;
-    score += 1;
-    chips.push({t:'buio sufficiente disponibile', k:'good'});
-  }
-  if(OVERVIEW.bz != null){
-    counted++;
-    if(OVERVIEW.bz <= -5){ score += 2; chips.push({t:'Bz molto favorevole', k:'good'}); }
-    else if(OVERVIEW.bz < 0){ score += 1; chips.push({t:'Bz favorevole', k:'good'}); }
-    else { chips.push({t:'Bz sfavorevole (nord)', k:'warn'}); }
-  }
-  if(OVERVIEW.bt != null){
-    counted++;
-    if(OVERVIEW.bt >= 10){ score += 1; chips.push({t:'Bt alto', k:'good'}); }
-  }
-  if(OVERVIEW.speed != null){
-    counted++;
-    if(OVERVIEW.speed >= 500){ score += 2; chips.push({t:'vento solare veloce', k:'good'}); }
-    else if(OVERVIEW.speed >= 400){ score += 1; chips.push({t:'vento solare sostenuto', k:'warn'}); }
-  }
-  if(OVERVIEW.kp != null){
-    counted++;
-    if(OVERVIEW.kp >= 5){ score += 2; chips.push({t:'tempesta geomagnetica in corso', k:'good'}); }
-    else if(OVERVIEW.kp >= 4){ score += 1; }
-  }
-  if(OVERVIEW.ovation != null){
-    counted++;
-    if(OVERVIEW.ovation >= 5){ score += 2; chips.push({t:'OVATION alto nella tua zona', k:'good'}); }
-    else if(OVERVIEW.ovation >= 3){ score += 1; }
-  }
-  if(OVERVIEW.hemiPower != null){
-    counted++;
-    if(OVERVIEW.hemiPower >= 50){ score += 2; chips.push({t:'ovale aurorale molto energetico', k:'good'}); }
-    else if(OVERVIEW.hemiPower >= 20){ score += 1; chips.push({t:'ovale aurorale attivo', k:'good'}); }
-    else { chips.push({t:'ovale aurorale debole', k:'warn'}); }
-  }
-  if(OVERVIEW.moonIllum != null){
-    counted++;
-    if(OVERVIEW.moonIllum >= 80){ score -= 1; chips.push({t:'luna quasi piena', k:'warn'}); }
-  }
-
-  if(counted < 3){
-    $('overviewVerdict').textContent = 'In attesa dei dati...';
-    $('overviewChips').innerHTML = '';
-    return;
-  }
-
-  const v = scoreToVerdict(score);
-  $('overviewEmoji').textContent = v.emoji;
-  $('overviewVerdict').textContent = v.text;
-  $('overviewChips').innerHTML = chips.map(c=>pill(c.t, c.k)).join(' ');
-
   checkAlerts();
+  if(!$('overviewVerdict')) return;
+  const fresh = [OVERVIEW.bz,OVERVIEW.bt,OVERVIEW.speed].filter(v=>v!=null).length;
+  const dataLabel = fresh===3 && OVERVIEW.sourceQuality!=='fallback' ? 'Aggiornati' : fresh>0 ? 'Parziali' : 'Non disponibili';
+  const dataKind = fresh===3 ? 'var(--favorable)' : fresh>0 ? '#d9b77e' : 'var(--unfavorable)';
+  $('overviewData').textContent=dataLabel;$('overviewData').style.color=dataKind;
+  $('overviewDataNote').textContent=fresh===3 && OVERVIEW.sourceQuality!=='fallback'?'Valori recenti e coerenti':fresh>0?'Dati presenti, ma incompleti':'Nessun dato recente';
+
+  const chips=[];
+  if(OVERVIEW.bz==null || OVERVIEW.speed==null){
+    $('overviewVerdict').textContent='Non valutabile';$('overviewActivityNote').textContent='Mancano dati recenti';
+  }else{
+    const bz=OVERVIEW.bz,v=OVERVIEW.speed,ov=OVERVIEW.ovation;
+    const elevated=(bz<=-5&&v>=450)||(bz<=-3&&v>=550)||(ov!=null&&ov>=60&&bz<0);
+    const moderate=(bz<0&&v>=350)||(ov!=null&&ov>=30&&bz<0);
+    const level=elevated?'elevata':moderate?'moderata':'debole';
+    $('overviewVerdict').textContent=level.charAt(0).toUpperCase()+level.slice(1);
+    $('overviewVerdict').style.color=elevated?'var(--favorable)':moderate?'#d9b77e':'var(--muted)';
+    $('overviewActivityNote').textContent=elevated?'Segnale favorevole sostenuto':moderate?'Segnale favorevole moderato':'Nessun segnale favorevole forte';
+    chips.push({t:bz<0?'Bz sud · favorevole':'Bz nord · poco favorevole',k:bz<0?'good':'warn'});
+    if(ov!=null)chips.push({t:'OVATION '+Math.round(ov)+'/100 · attività regionale',k:ov>=50?'good':'warn'});
+  }
+  if(OVERVIEW.lightLevel==='day' || OVERVIEW.hasDarkness===false){
+    $('overviewSky').textContent='Giorno';$('overviewSkyNote').textContent='Controllo utile dopo il tramonto';$('overviewSky').style.color='var(--muted)';
+  }else if(OVERVIEW.lightLevel==='twilight'){
+    $('overviewSky').textContent='Crepuscolo';$('overviewSkyNote').textContent='Visibilità ridotta, non nulla';$('overviewSky').style.color='#d9b77e';
+  }else if(OVERVIEW.nightCloud==null){
+    $('overviewSky').textContent='Non valutabile';$('overviewSkyNote').textContent='Meteo non disponibile';
+  }else{
+    const c=OVERVIEW.nightCloud,sky=c<=30?'Sereno':c<=70?'Variabile':'Coperto';
+    $('overviewSky').textContent=sky;$('overviewSky').style.color=c<=30?'var(--favorable)':c>70?'var(--unfavorable)':'#d9b77e';$('overviewSkyNote').textContent='Nuvolosità media prevista: ~'+Math.round(c)+'%';
+    chips.push({t:'cielo '+sky.toLowerCase(),k:c<=30?'good':c>70?'bad':'warn'});
+  }
+  if($('overviewTrend')) $('overviewTrend').textContent='Possibile evoluzione nelle prossime ore: '+(OVERVIEW.bz!=null&&OVERVIEW.speed!=null?(OVERVIEW.bz<0?'condizioni potenzialmente favorevoli da seguire':'nessun fronte favorevole evidente in questo momento'):'non valutabile con i dati disponibili')+'.';
+  $('overviewChips').innerHTML=chips.map(c=>pill(c.t,c.k)).join(' ');
 }
 
 // ---- allerte personalizzate: notifica alla soglia, poi di nuovo ogni "step" oltre la soglia ----
@@ -976,7 +1059,7 @@ const ALERT_DEFAULTS = {
   bzEnabled:false, bzThreshold:-5, bzStep:2,
   kpEnabled:false, kpThreshold:5, kpStep:1,
   speedEnabled:false, speedThreshold:500, speedStep:50,
-  ovationEnabled:false, ovationThreshold:4, ovationStep:1,
+  ovationEnabled:false, ovationThreshold:30, ovationStep:10,
   skyEnabled:false, skyThreshold:7, skyStep:1,
 };
 let alertSettings = {...ALERT_DEFAULTS};
@@ -1102,6 +1185,7 @@ function stepLevel(value, threshold, step, direction){
 }
 
 function checkAlerts(){
+  if(!$('watchEnabled')) return;
   if(!$('watchEnabled').checked)return;
   if(alertSettings.bzEnabled && OVERVIEW.bz != null){
     const level = stepLevel(OVERVIEW.bz, alertSettings.bzThreshold, alertSettings.bzStep, 'below');
@@ -1120,7 +1204,7 @@ function checkAlerts(){
   }
   if(alertSettings.ovationEnabled && OVERVIEW.ovation != null){
     const level = stepLevel(OVERVIEW.ovation, alertSettings.ovationThreshold, alertSettings.ovationStep, 'above');
-    if(level > alertState.ovation) fireAlert('Probabilità aurora alta', `OVATION a ${OVERVIEW.ovation}/7 nella tua zona (soglia ${alertSettings.ovationThreshold})`);
+    if(level > alertState.ovation) fireAlert('Indice OVATION elevato', `OVATION a ${Math.round(OVERVIEW.ovation)}/100 nella zona scelta (soglia ${alertSettings.ovationThreshold})`);
     alertState.ovation = level;
   }
   if(alertSettings.skyEnabled && OVERVIEW.skyScore != null){
@@ -1164,9 +1248,11 @@ async function loadAll(){
 
   window.__lastOvation = ovation;
 
-  // se la sintesi non risponde, si ripiega sui dati grezzi RTSW gia' scaricati per i grafici
-  const magFb = (mag && num(mag.bz_gsm) !== null) ? mag : latestValid(lastMagRaw, ['bt','bz_gsm']);
-  const speedFb = (speed && num(speed.proton_speed) !== null) ? speed : latestValid(lastWindRaw, ['proton_speed']);
+  // I numeri principali devono restare sulla stessa sorgente selezionata.
+  // Il riepilogo NOAA viene usato solo se il feed RTSW non è ancora disponibile.
+  const magFb = latestSelected(lastMagRaw, ['bt','bz_gsm']) || ((mag && num(mag.bz_gsm) !== null) ? mag : null);
+  const speedFb = latestSelected(lastWindRaw, ['proton_speed']) || ((speed && num(speed.proton_speed) !== null) ? speed : null);
+  OVERVIEW.sourceQuality = (latestSelected(lastMagRaw,['bt','bz_gsm'])&&latestSelected(lastWindRaw,['proton_speed'])) ? 'same' : 'fallback';
 
   OVERVIEW.bz = num(magFb && magFb.bz_gsm);
   OVERVIEW.bt = num(magFb && magFb.bt);
@@ -1295,6 +1381,13 @@ function latestValid(raw, keys){
   return latestActive(raw);
 }
 
+function latestSelected(raw, keys){
+  const src=$('satSource')?.value;
+  if(src && src!=='ALL') return latestValid((raw||[]).filter(r=>r?.source===src),keys);
+  const active=activeSourceOf(raw||[]);
+  return active ? latestValid((raw||[]).filter(r=>r?.source===active),keys) : latestValid(raw,keys);
+}
+
 // popola il menu "satellite" con le sorgenti trovate nel feed (mantenendo la scelta già fatta dall'utente)
 // unisce (non sovrascrive) i satelliti visti: il feed campo magnetico e quello vento solare
 // possono avere set di satelliti leggermente diversi (es. un satellite manda solo uno dei due tipi di dato)
@@ -1365,8 +1458,8 @@ function sourceLegendHTML(sources, activeSrc){
 // il satellite che NOAA marca come 'active': è quello su cui si decide
 function activeSourceOf(raw){
   if(!raw || !Array.isArray(raw)) return null;
-  for(let i=0;i<raw.length;i++){ if(raw[i] && raw[i].active === true && raw[i].source) return raw[i].source; }
-  return null;
+  return raw.filter(r=>r?.active===true&&r.source&&Number.isFinite(toLocalTime(r.time_tag).getTime()))
+    .sort((a,b)=>toLocalTime(b.time_tag)-toLocalTime(a.time_tag))[0]?.source||null;
 }
 
 // trasforma un colore #rrggbb in rgba con l'alfa richiesta
@@ -1508,7 +1601,7 @@ async function loadIMFChart(preRaw){
 
   refreshBzEpisodes();
 
-  const last = latestValid(raw, ['bt','bz_gsm']);
+  const last = latestSelected(raw, ['bt','bz_gsm']);
   if(!last){
     $('imfStatus').innerHTML = '<span class="err">dati non disponibili ora</span>' + LINK_DIAG;
       return;
@@ -1594,7 +1687,7 @@ async function loadPlasmaChart(preRaw){
 
   refreshBzEpisodes();
 
-  const last = latestValid(raw, ['proton_speed','proton_density']);
+  const last = latestSelected(raw, ['proton_speed','proton_density']);
   if(!last){
     $('plasmaStatus').innerHTML = '<span class="err">dati non disponibili ora</span>' + LINK_DIAG;
     $('plasmaSpeed').textContent = '–';
@@ -1675,10 +1768,10 @@ document.querySelectorAll('.plasma-toggle').forEach(btn=>{
 let hpChartInstance = null;
 
 function hpLabelFor(gw){
-  if(gw < 20) return {text:'aurora debole — spesso visibile solo in fotografia', kind:'neutral'};
-  if(gw < 50) return {text:'aurora visibile a occhio nudo alle alte latitudini', kind:'good'};
-  if(gw < 100) return {text:'aurora forte e dinamica', kind:'good'};
-  return {text:'evento eccezionale — visibile molto più a sud', kind:'good'};
+  if(gw < 20) return {text:'attività regionale bassa', kind:'neutral'};
+  if(gw < 50) return {text:'attività regionale moderata', kind:'warn'};
+  if(gw < 100) return {text:'attività regionale elevata', kind:'good'};
+  return {text:'attività regionale molto elevata', kind:'good'};
 }
 
 async function loadHemiPower(){
@@ -1763,7 +1856,8 @@ const BZ_CFG = {
   gapTolMin: 4,       // minuti di risalita sopra soglia tollerati senza chiudere l'episodio
   minDurMin: 4,       // episodi più brevi di così non sono rilevanti
   windowHours: 12,    // finestra di ricerca
-  substormMin: 30     // minuti di Bz sud continuativo oltre i quali la substorm diventa probabile
+  maxGapMin: 2,       // missing data beyond this limit breaks continuity
+  speedToleranceMin: 2 // velocità associata al Bz solo entro ±2 minuti
 };
 const L1_KM = 1500000;
 
@@ -1783,22 +1877,25 @@ function seriesFor(raw, src, key, cutoff){
     if(src && r.source !== src) return;
     const v = num(r[key]); if(v === null) return;
     const t = toLocalTime(r.time_tag).getTime();
-    if(isNaN(t) || (cutoff && t < cutoff)) return;
+    if(isNaN(t) || t > Date.now()+120000 || (cutoff && t < cutoff)) return;
+    if(key==='proton_speed' && v<=0) return;
+    if(key==='proton_density' && v<0) return;
     out.push({t, v});
   });
   out.sort((a,b)=>a.t-b.t);
-  return out;
+  return out.filter((p,i)=>!i||p.t!==out[i-1].t);
 }
 
 // campione più vicino nel tempo (ricerca binaria: le serie hanno migliaia di punti)
 function valueNear(series, t){
   if(!series.length) return null;
-  if(t <= series[0].t) return series[0].v;
+  const valid=p=>Math.abs(p.t-t)<=BZ_CFG.speedToleranceMin*60000?p.v:null;
+  if(t <= series[0].t) return valid(series[0]);
   const last = series.length-1;
-  if(t >= series[last].t) return series[last].v;
+  if(t >= series[last].t) return valid(series[last]);
   let lo = 0, hi = last;
   while(lo < hi-1){ const mid = (lo+hi) >> 1; if(series[mid].t <= t) lo = mid; else hi = mid; }
-  return (t - series[lo].t <= series[hi].t - t) ? series[lo].v : series[hi].v;
+  return valid(t-series[lo].t<=series[hi].t-t?series[lo]:series[hi]);
 }
 
 function fmtDur(min){
@@ -1806,9 +1903,19 @@ function fmtDur(min){
   if(m < 60) return m + ' min';
   return Math.floor(m/60) + 'h ' + String(m%60).padStart(2,'0') + 'm';
 }
-function fmtClock(ms){
-  return new Date(ms).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+function fmtCharge(e){
+  if(!e || e.charge==null) return 'non calcolabile';
+  return Math.round(e.charge)+' <small>mV/m·min · '+Math.round((e.coverage||0)*100)+'% coperto</small>';
 }
+function fmtClock(ms){
+  if(ms==null||!Number.isFinite(new Date(ms).getTime()))return '—';
+  return new Date(ms).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit',timeZone:observationZone()});
+}
+
+function observationZone(){
+  return SKY.data?.timezone && SKY.lat===Number($('latInput').value) && SKY.lon===Number($('lonInput').value) ? SKY.data.timezone : 'UTC';
+}
+function selectedSource(){return $('satSource')?.value && $('satSource').value!=='ALL' ? $('satSource').value : activeSourceOf(lastMagRaw);}
 
 function computeBzEpisodes(magRaw, windRaw){
   bzEpisodes = [];
@@ -1822,59 +1929,67 @@ function computeBzEpisodes(magRaw, windRaw){
   const cutoff = Date.now() - BZ_CFG.windowHours*3600*1000;
   const bz = seriesFor(magRaw, src, 'bz_gsm', cutoff);
   if(!bz.length) return;
-  let sp = seriesFor(windRaw, src, 'proton_speed', cutoff);
-  if(!sp.length) sp = seriesFor(windRaw, null, 'proton_speed', cutoff); // ripiego: qualunque satellite
+  const sp = seriesFor(windRaw, src, 'proton_speed', cutoff);
 
   const raw = [];
-  let cur = null, lastIn = null;
+  let cur = null, lastIn = null, previous=null;
+  const close=(reason)=>{if(cur){cur.end=lastIn;cur.reason=reason;raw.push(cur);cur=null;}};
   bz.forEach(p=>{
+    if(previous && p.t-previous.t>BZ_CFG.maxGapMin*60000)close('gap');
+    if(cur && p.t-lastIn>BZ_CFG.gapTolMin*60000)close('north');
     if(p.v <= BZ_CFG.threshold){
-      if(!cur) cur = { start: p.t, samples: [] };
-      cur.samples.push(p);
+      if(!cur) cur = { start: p.t, samples: [], south:[] };
+      cur.south.push(p);
       lastIn = p.t;
-    } else if(cur && (p.t - lastIn) > BZ_CFG.gapTolMin*60000){
-      cur.end = lastIn; raw.push(cur); cur = null;
     }
+    if(cur)cur.samples.push(p);
+    previous=p;
   });
-  if(cur){ cur.end = lastIn; raw.push(cur); }
+  if(cur){cur.end=lastIn;cur.reason=Date.now()-previous.t>120000?'gap':'open';raw.push(cur);}
 
   const now = Date.now();
   raw.forEach(e=>{
     const durMin = (e.end - e.start)/60000;
     if(durMin < BZ_CFG.minDurMin) return;
 
-    let bzMin = 0, sum = 0, charge = 0;
-    for(let i=0;i<e.samples.length;i++){
-      const p = e.samples[i];
-      if(p.v < bzMin) bzMin = p.v;
-      sum += p.v;
-      if(i > 0){
-        const dtMin = Math.min((p.t - e.samples[i-1].t)/60000, 5); // un buco lungo non vale come carica
-        const v = valueNear(sp, p.t);
-        // campo elettrico dawn-dusk Ey = v * |Bz| (mV/m), integrato nel tempo
-        if(v) charge += dtMin * (v * Math.abs(Math.min(p.v,0)) * 1e-3);
+    const samples=e.samples.filter(p=>p.t<=e.end);
+    const bzMin=Math.min(...e.south.map(p=>p.v));
+    const bzMean=e.south.reduce((s,p)=>s+p.v,0)/e.south.length;
+    let charge=0,coveredMin=0;
+    for(let i=1;i<samples.length;i++){
+      const a=samples[i-1],b=samples[i],dt=(b.t-a.t)/60000;
+      const va=valueNear(sp,a.t),vb=valueNear(sp,b.t);
+      // Integrate adjacent observed samples only; tolerated northward values contribute zero.
+      if(dt>0&&dt<=1.5&&va>0&&vb>0){
+        charge+=dt*(va*Math.max(0,-a.v)+vb*Math.max(0,-b.v))*0.0005;
+        coveredMin+=dt;
       }
     }
-    const bzMean = sum / e.samples.length;
 
     const vStart = valueNear(sp, e.start), vEnd = valueNear(sp, e.end);
     const lagStart = lagMinutes(vStart), lagEnd = lagMinutes(vEnd);
     const arrStart = lagStart != null ? e.start + lagStart*60000 : null;
-    const arrEnd   = lagEnd   != null ? e.end   + lagEnd*60000   : null;
+    const candidateEnd=lagEnd!=null?e.end+lagEnd*60000:null;
+    const propagationUnresolved=candidateEnd!=null&&arrStart!=null&&candidateEnd<arrStart;
 
     // "in corso" se l'ultimo campione sotto soglia è recente
-    const ongoing = e === cur && (now - e.end) < 8*60000;
+    const ongoing = e===cur && e.reason==='open' && now-e.end<=BZ_CFG.gapTolMin*60000;
+    const continuityUnknown=e.reason==='gap';
+    const arrEnd=!ongoing&&!continuityUnknown&&!propagationUnresolved?candidateEnd:null;
 
     let stato;
-    if(arrStart == null) stato = {txt:'velocità non disponibile', kind:'neutral'};
+    if(continuityUnknown) stato = {txt:'continuità non verificata', kind:'neutral'};
+    else if(propagationUnresolved) stato = {txt:'durata non risolta', kind:'neutral'};
+    else if(arrStart == null) stato = {txt:'velocità non disponibile', kind:'neutral'};
     else if(now < arrStart) stato = {txt:'in viaggio — arriva alle ' + fmtClock(arrStart), kind:'good'};
     else if(ongoing || (arrEnd != null && now <= arrEnd)) stato = {txt:'sta colpendo la Terra ora', kind:'good'};
     else stato = {txt:'arrivato, esaurito alle ' + fmtClock(arrEnd), kind:'neutral'};
 
     bzEpisodes.push({
-      start: e.start, end: e.end, durMin, bzMin, bzMean, charge,
-      vStart, arrStart, arrEnd, ongoing, stato,
-      substorm: durMin >= BZ_CFG.substormMin && bzMean <= -3
+      start:e.start,end:e.end,durMin,bzMin,bzMean,charge:coveredMin?charge:null,
+      coverage:durMin?coveredMin/durMin:0,source:src,continuityUnknown,propagationUnresolved,
+      speedToleranceMin:BZ_CFG.speedToleranceMin,speedQuality:(vStart!=null&&vEnd!=null)?'stessa sorgente · ±'+BZ_CFG.speedToleranceMin+' min':'non disponibile',
+      vStart,arrStart,arrEnd,ongoing,stato
     });
   });
 
@@ -1895,10 +2010,12 @@ function nextArrival(){
 }
 
 function designFresh(raw, keys){
-  const r = latestValid(raw, keys);
+  const src=selectedSource();
+  if(!src)return null;
+  const r = latestValid(raw?.filter(r=>r.source===src), keys);
   if(!r || keys.some(k=>num(r[k])===null)) return null;
   const age = (Date.now()-toLocalTime(r.time_tag).getTime())/60000;
-  return Number.isFinite(age) && age>=-2 && age<=10 ? r : null;
+  return Number.isFinite(age) && age>=-2 && age<=10 && (!keys.includes('proton_speed')||num(r.proton_speed)>0) ? r : null;
 }
 function updateDesignMetrics(){
   const m=designFresh(lastMagRaw,['bt','bz_gsm']),w=designFresh(lastWindRaw,['proton_speed']);
@@ -1937,7 +2054,7 @@ function pickGroundStation(){
   const nearest=Object.keys(GROUND_STATIONS).sort((a,b)=>earthDistance(lat,lon,a)-earthDistance(lat,lon,b))[0];
   $('magStation').value=nearest;updateMagFrame();loadGroundResponse();
 }
-function arrivalQueue(now){return bzEpisodes.filter(e=>e.arrStart!=null&&(e.ongoing||e.arrEnd==null||now<=Math.max(e.arrStart,e.arrEnd)+ARRIVAL_MARGIN_MS)).sort((a,b)=>a.arrStart-b.arrStart);}
+function arrivalQueue(now){return bzEpisodes.filter(e=>e.arrStart!=null&&(e.ongoing||now<=(e.arrEnd??e.arrStart+90*60000)+ARRIVAL_MARGIN_MS)).sort((a,b)=>a.arrStart-b.arrStart);}
 function pickArrivalEvent(now){
   const chosen=bzEpisodes.find(e=>e.start===selectedArrivalStart);
   if(chosen)return chosen;
@@ -1964,7 +2081,7 @@ function selectArrivalFront(ev){const btn=ev.target.closest('button[data-arrival
 function groundMedian(values){const sorted=values.slice().sort((a,b)=>a-b),n=sorted.length;return n%2?sorted[(n-1)/2]:(sorted[n/2-1]+sorted[n/2])/2;}
 function groundAnalysis(e,samples,now){
   const result={state:'unknown',label:'Confronto non disponibile',detail:'Servono misure numeriche recenti del magnetometro.',delta:null};
-  if(!e)return {...result,label:'Seleziona un fronte',detail:'Il confronto segue il fronte mostrato nella card.'};
+  if(!e||e.arrStart==null)return {...result,label:'Arrivo non disponibile',detail:'Serve una stima valida per il confronto temporale.'};
   if(now<e.arrStart-ARRIVAL_MARGIN_MS)return {...result,state:'waiting',label:'In attesa della finestra',detail:'Il confronto inizia dalla prima ora di arrivo stimata.'};
   if(!samples.length)return result;
   const last=samples[samples.length-1];
@@ -1976,16 +2093,17 @@ function groundAnalysis(e,samples,now){
   const stop=Math.min(now,(e.ongoing?now:(e.arrEnd??e.arrStart)+30*60000),e.arrStart+90*60000);
   const post=samples.filter(p=>p[0]>=e.arrStart-ARRIVAL_MARGIN_MS&&p[0]<=stop);
   if(post.length<5)return {...result,state:'waiting',label:'Raccolta misure terrestri',detail:'Servono almeno cinque medie al minuto nella finestra.'};
-  const ref=groundMedian(baseline.map(p=>p[1]));let peak=null,peakTime=null;
+  const ref=groundMedian(baseline.map(p=>p[1]));let peak=null,peakTime=null,onset=null;
   for(let i=4;i<post.length;i++){
     const block=post.slice(i-4,i+1);
     if(block.some((p,j)=>j>0&&p[0]-block[j-1][0]>2*60000))continue;
     const change=groundMedian(block.map(p=>p[1]))-ref;
+    if(onset===null&&Math.abs(change)>=100)onset=post[i][0];
     if(peak===null||Math.abs(change)>Math.abs(peak)){peak=change;peakTime=post[i][0];}
   }
   if(peak===null)return {...result,label:'Misure discontinue',detail:'Non ci sono cinque campioni sufficientemente ravvicinati.'};
   const changed=Math.abs(peak)>=100;
-  return {state:changed?'signal':'monitoring',label:changed?'Variazione terrestre rilevata':'Nessuna variazione marcata',detail:'ΔX '+(peak>0?'+':'')+Math.round(peak)+' nT · '+fmtClock(peakTime)+' · rispetto al campo precedente.',delta:peak};
+  return {state:changed?'signal':'monitoring',label:changed?'Variazione terrestre rilevata':'Nessuna variazione marcata',detail:'ΔX '+(peak>0?'+':'')+Math.round(peak)+' nT · picco filtrato '+fmtClock(peakTime)+(onset!==null?' · prima soglia '+fmtClock(onset):'')+' · riferimento precedente.',delta:peak,onset,peakTime};
 }
 function renderGroundResponse(e){
   const st=$('magStation').value,lat=Number($('latInput').value),lon=Number($('lonInput').value);
@@ -2000,7 +2118,7 @@ function renderGroundResponse(e){
   const groundRows=GROUND.station===st?GROUND.samples:[],latest=groundRows.length?groundRows[groundRows.length-1]:null;
   $('groundDelta').innerHTML=analysis.delta!=null?(analysis.delta>0?'+':'')+Math.round(analysis.delta)+' <small>nT</small>':'— <small>nT</small>';
   $('groundLatest').textContent=latest?fmtClock(latest[0]):'Non disponibile';
-  $('groundDetail').textContent=analysis.delta!=null?'Variazione misurata rispetto al campo precedente al fronte.':analysis.detail;
+  $('groundDetail').textContent=analysis.detail;
   const overlaps=e?bzEpisodes.filter(q=>q!==e&&q.arrStart!=null&&q.arrStart-ARRIVAL_MARGIN_MS<=e.arrStart+ARRIVAL_MARGIN_MS&&(q.ongoing||(q.arrEnd??q.arrStart)+30*60000>=e.arrStart-ARRIVAL_MARGIN_MS)).length:0;
   $('groundAttribution').hidden=analysis.state!=='signal';
   $('groundAttribution').textContent=analysis.state==='signal'?(overlaps?'Finestre sovrapposte: segnale non attribuibile al singolo fronte.':'Segnale temporalmente compatibile; non è una prova dell’arrivo né di aurora visibile.'):'Un magnetometro tranquillo non esclude un arrivo o attività aurorale altrove.';
@@ -2073,6 +2191,8 @@ async function loadGroundResponse(){
 }
 
 function designEventState(e,now){
+  if(e.continuityUnknown)return{label:'Continuità non verificata',kind:''};
+  if(e.propagationUnresolved)return{label:'Durata non risolta',kind:''};
   if(e.arrStart==null)return{label:'Arrivo non disponibile',kind:''};
   if(now<e.arrStart-ARRIVAL_MARGIN_MS)return{label:'In viaggio',kind:'travel'};
   if(now<=e.arrStart+ARRIVAL_MARGIN_MS)return{label:'Finestra di arrivo',kind:'window'};
@@ -2102,11 +2222,11 @@ function updateArrivalDesign(){
   $('arrivalBadge').className='status-badge '+state.kind;$('arrivalBadge').textContent=state.label;
   $('arrivalTitle').textContent='Struttura di Bz sud';
   $('arrivalCopy').textContent='Rilevata a L1 alle '+fmtClock(e.start)+(e.ongoing?' · episodio ancora aperto.':' · episodio terminato alle '+fmtClock(e.end)+'.');
-  $('bzCountdown').innerHTML=state.kind==='travel'?designTimer(e.arrStart-now):now<=e.arrStart+ARRIVAL_MARGIN_MS?'Arrivo possibile in questi minuti':state.kind?'Passaggio stimato in corso':'Finestra trascorsa';
+  $('bzCountdown').innerHTML=state.label==='Continuità non verificata'||state.label==='Durata non risolta'?'Stima non risolta':state.kind==='travel'?designTimer(e.arrStart-now):now<=e.arrStart+ARRIVAL_MARGIN_MS?'Arrivo possibile in questi minuti':state.kind?'Passaggio stimato in corso':'Finestra trascorsa';
   $('timerCaption').textContent=state.kind==='travel'?'STIMA INDICATIVA · VEDI LA FINESTRA QUI SOTTO':'ORARIO STIMATO · RISPOSTA TERRESTRE QUI SOTTO';
   $('arrivalRange').textContent=fmtClock(e.arrStart-ARRIVAL_MARGIN_MS)+' — '+fmtClock(e.arrStart+ARRIVAL_MARGIN_MS);
   $('arrivalEarly').textContent=fmtClock(e.arrStart-ARRIVAL_MARGIN_MS);$('arrivalCenter').textContent='~'+fmtClock(e.arrStart);$('arrivalLate').textContent=fmtClock(e.arrStart+ARRIVAL_MARGIN_MS);
-  $('arrivalFacts').innerHTML='<div><span>Durata Bz sud a L1</span><strong>'+fmtDur(e.durMin)+'</strong></div><div><span>Bz medio</span><strong>'+e.bzMean.toFixed(1)+' nT</strong></div><div><span>Bz minimo</span><strong>'+e.bzMin.toFixed(1)+' nT</strong></div><div><span>Vento al fronte</span><strong>'+Math.round(e.vStart)+' km/s</strong></div><div><span>Impulso ∫Ey+ dt</span><strong>'+Math.round(e.charge)+' <small>mV/m·min</small></strong></div><div><span>Episodio L1</span><strong>'+(e.ongoing?'Ancora aperto':'Concluso')+'</strong></div>';
+  $('arrivalFacts').innerHTML='<div><span>Durata Bz sud a L1</span><strong>'+fmtDur(e.durMin)+'</strong></div><div><span>Bz medio</span><strong>'+e.bzMean.toFixed(1)+' nT</strong></div><div><span>Bz minimo</span><strong>'+e.bzMin.toFixed(1)+' nT</strong></div><div><span>Vento al fronte</span><strong>'+(e.vStart!=null?Math.round(e.vStart)+' km/s':'—')+'</strong></div><div><span>Impulso ∫Ey+ dt</span><strong>'+fmtCharge(e)+'</strong></div><div><span>Episodio L1</span><strong>'+(e.ongoing?'Ancora aperto':'Concluso')+'</strong></div>';
   const passageMin=e.arrEnd!=null?(e.arrEnd-e.arrStart)/60000:null;
   $('packetPassage').textContent='~'+fmtClock(e.arrStart)+' → '+(e.ongoing?'fine non nota':e.arrEnd!=null?'~'+fmtClock(e.arrEnd):'fine non stimabile');
   $('packetDuration').textContent=e.ongoing?'Durata ancora aperta'+(passageMin>0?' · tratto osservato ~'+fmtDur(passageMin):''):passageMin>0?'Durata prevista del passaggio: ~'+fmtDur(passageMin):'Durata del passaggio non stimabile';
@@ -2121,10 +2241,10 @@ function renderDesignHistory(){
   }).join('');
   const ong=ongoingEpisode(),m=designFresh(lastMagRaw,['bz_gsm']);
   $('bzNowState').textContent=ong?'Bz sud · '+fmtDur(ong.durMin):m?'Bz '+(num(m.bz_gsm)<0?'sud · nessun episodio consolidato':'nord · nessun episodio aperto'):'In attesa di dati recenti';
-  $('bzNowSub').textContent=ong?'Impulso accumulato '+Math.round(ong.charge)+' mV/m·min · episodio a L1':'Rilevazione episodi: Bz ≤ −1 nT · almeno 4 min';
+  $('bzNowSub').innerHTML=ong?'Impulso accumulato '+fmtCharge(ong)+' · episodio a L1':'Rilevazione episodi: Bz ≤ −1 nT · almeno 4 min';
   const detail=bzEpisodes.find(x=>x.start===selectedEpisodeStart);
   $('episodeDetail').hidden=!detail;
-  if(detail)$('episodeDetail').textContent='L1 '+fmtClock(detail.start)+' → '+(detail.ongoing?'ancora aperto':fmtClock(detail.end))+' · Bz minimo '+detail.bzMin.toFixed(1)+' nT · impulso ∫Ey+ dt '+Math.round(detail.charge)+' mV/m·min · fine passaggio '+(detail.ongoing?'non determinabile':detail.arrEnd!=null?'stimata ~'+fmtClock(detail.arrEnd):'non disponibile')+'.';
+  if(detail)$('episodeDetail').innerHTML='L1 '+fmtClock(detail.start)+' → '+(detail.ongoing?'ancora aperto':fmtClock(detail.end))+' · Bz minimo '+detail.bzMin.toFixed(1)+' nT · impulso ∫Ey+ dt '+fmtCharge(detail)+' · velocità '+detail.speedQuality+' · fine passaggio '+(detail.ongoing?'non determinabile':detail.arrEnd!=null?'stimata ~'+fmtClock(detail.arrEnd):'non disponibile')+'.';
 }
 function selectDesignEpisode(ev){
   const row=ev.target.closest('button[data-start]');if(!row)return;
@@ -2200,13 +2320,18 @@ function updateSatAgreement(){
   };
   const magPer = vals(lastMagRaw, ['bz_gsm']);
   const spdPer = vals(lastWindRaw, ['proton_speed']);
-  const bzs = Object.keys(magPer).map(k=>num(magPer[k].bz_gsm)).filter(v=>v!==null);
-  const sps = Object.keys(spdPer).map(k=>num(spdPer[k].proton_speed)).filter(v=>v!==null);
-  if(bzs.length < 2 && sps.length < 2){
-    $('satAgreeVal').textContent = '–';
-    $('satAgreeSub').textContent = 'serve più di un satellite per confrontare';
+  const freshSources = per => Object.values(per).filter(r=>{
+    const age=(Date.now()-toLocalTime(r.time_tag).getTime())/60000; return age>=-2&&age<=10;
+  });
+  const freshMag=freshSources(magPer), freshSpd=freshSources(spdPer);
+  const syncOk = arr => arr.length>1 && Math.max(...arr.map(r=>toLocalTime(r.time_tag).getTime()))-Math.min(...arr.map(r=>toLocalTime(r.time_tag).getTime()))<=2*60000;
+  if(freshMag.length<2 || freshSpd.length<2 || !syncOk(freshMag) || !syncOk(freshSpd)){
+    $('satAgreeVal').textContent = 'Confronto non disponibile';
+    $('satAgreeSub').textContent = 'servono almeno 2 satelliti freschi e sincronizzati (±2 min)';
     return;
   }
+  const bzs = freshMag.map(r=>num(r.bz_gsm)).filter(v=>v!==null);
+  const sps = freshSpd.map(r=>num(r.proton_speed)).filter(v=>v!==null);
   const spread = a => a.length > 1 ? Math.max.apply(null,a) - Math.min.apply(null,a) : 0;
   const dBz = spread(bzs), dSp = spread(sps);
   let lvl = 0; // 0 ottimo, 1 discreto, 2 divergono
@@ -2235,15 +2360,15 @@ function nearestOvation(lat, lon){
     if(dist < bestDist){ bestDist = dist; best = val; }
     if(bestDist === 0) break;
   }
-  return {val: best, obsTime: data['Observation Time']};
+  return {val: best, obsTime: data['Observation Time'], forecastTime: data['Forecast Time']};
 }
 
 function ovationLabelFor(v){
   if(v === null || v === undefined) return {text:'dato non disponibile', kind:'neutral'};
-  if(v <= 0) return {text:'improbabile', kind:'neutral'};
-  if(v <= 2) return {text:'molto bassa', kind:'neutral'};
-  if(v <= 4) return {text:'possibile con buone condizioni locali', kind:'warn'};
-  return {text:'buona probabilità', kind:'good'};
+  if(v < 20) return {text:'attività regionale bassa', kind:'neutral'};
+  if(v < 50) return {text:'attività regionale moderata', kind:'warn'};
+  if(v < 75) return {text:'attività regionale elevata', kind:'good'};
+  return {text:'attività regionale molto elevata', kind:'good'};
 }
 
 function auroraZoneLabel(lat){
@@ -2260,13 +2385,14 @@ function updateOvationCard(){
   if(isNaN(lat) || isNaN(lon)) return;
   const r = nearestOvation(lat, lon);
   if(!r || r.val===null){
-    $('ovationVal').innerHTML = '–<span class="unit">/ 7</span>';
+    $('ovationVal').innerHTML = '–<span class="unit">/ 100</span>';
     $('ovationLabel').textContent = 'dato non disponibile ora';
   } else {
-    $('ovationVal').innerHTML = r.val + '<span class="unit">/ 7</span>';
+    $('ovationVal').innerHTML = Math.round(r.val) + '<span class="unit">/ 100</span>';
     const lbl = ovationLabelFor(r.val);
     $('ovationLabel').innerHTML = pill(lbl.text, lbl.kind);
-    $('ovationTime').textContent = fmtTime(r.obsTime);
+    $('ovationTime').textContent = fmtUTC(r.obsTime);
+    if($('ovationForecastTime')) $('ovationForecastTime').textContent = fmtUTC(r.forecastTime);
   }
   $('zoneVal').textContent = auroraZoneLabel(lat);
   OVERVIEW.ovation = (r && r.val !== null && r.val !== undefined) ? r.val : null;
@@ -2286,19 +2412,34 @@ function skyWindow(e){
 function renderSky(e){
   const lat=Number($('latInput').value),lon=Number($('lonInput').value),data=SKY.lat===lat&&SKY.lon===lon?SKY.data:null;
   $('cloudMap').href='https://www.windy.com/?clouds,'+lat+','+lon+',8';$('webcamMap').href='https://www.windy.com/?webcams,'+lat+','+lon+',8';
+  if(!$('cloudMapMenu') && $('cloudMap')){ const old=$('cloudMap'); old.insertAdjacentHTML('beforebegin','<details id="cloudMapMenu" style="margin-top:10px"><summary class="sub" style="cursor:pointer">Mappe nuvole e webcam</summary><div class="sub" style="padding-top:8px;display:flex;gap:10px;flex-wrap:wrap"><a id="cloudMap" target="_blank" rel="noopener">Windy · nuvole</a><a id="eumetMap" href="https://view.eumetsat.int/" target="_blank" rel="noopener">EUMETView · satellite</a><a id="webcamMapExternal" target="_blank" rel="noopener">Windy · webcam</a><small id="cloudMapMeta" style="width:100%">Visualizzatori esterni · fonte e orario mostrati qui</small></div></details>'); old.remove(); }
+  if($('cloudMap')) $('cloudMap').href='https://www.windy.com/?clouds,'+lat+','+lon+',8';
+  if($('webcamMapExternal')) $('webcamMapExternal').href='https://www.windy.com/?webcams,'+lat+','+lon+',8';
   const now=Date.now(),valid=data&&now-SKY.fetchedAt<3600000;
-  $('skyCloud').textContent=valid&&Number.isFinite(data.current?.cloud_cover)?Math.round(data.current.cloud_cover)+'%':'—';
-  $('skyCloud').style.color=valid&&Number.isFinite(data.current.cloud_cover)&&data.current.cloud_cover<=30?'var(--favorable)':valid&&data.current.cloud_cover>70?'var(--unfavorable)':'var(--text)';
+  const current=valid?(data.current||{}):{},cc=Number.isFinite(current.cloud_cover)?Math.round(current.cloud_cover):null;
+  const skyMood=cc==null?{label:'Non disponibile',icon:'◌',kind:'unknown'}:cc<=30?{label:'Sereno o poco nuvoloso',icon:'✦',kind:'good'}:cc<=70?{label:'Variabile',icon:'◐',kind:'mixed'}:{label:'Coperto',icon:'☁',kind:'bad'};
+  $('skyCloud').textContent=cc==null?'—':cc+'%';
+  $('skyCloud').style.color=skyMood.kind==='good'?'var(--favorable)':skyMood.kind==='bad'?'var(--unfavorable)':'var(--text)';
+  $('skyState').textContent=skyMood.label;
+  $('quickWeatherState').textContent=skyMood.label;
+  $('quickWeatherIcon').textContent=skyMood.icon;
+  $('quickWeather').dataset.state=skyMood.kind;
   $('skyLocation').textContent=lat.toFixed(2)+'°, '+lon.toFixed(2)+'° · '+(valid?data.timezone:'meteo non disponibile');
+  const hourlyRows=valid?data.hourly.time.map((t,i)=>({t:t*1000,v:data.hourly.cloud_cover[i],rain:data.hourly.precipitation_probability?.[i]})).filter(p=>p.t+3600000>now):[];
+  const rain=hourlyRows.length&&Number.isFinite(hourlyRows[0].rain)?Math.round(hourlyRows[0].rain):null;
+  const temp=Number.isFinite(current.temperature_2m)?Math.round(current.temperature_2m):null;
+  $('quickWeatherMeta').textContent=valid?[(cc==null?'Nuvole —':cc+'% nuvole'),(temp==null?null:temp+'°C')].filter(Boolean).join(' · '):'Dati meteo non disponibili';
+  $('skyCurrentMeta').textContent=valid?[(temp==null?'Temperatura —':temp+'°C'),(rain==null?'Pioggia —':'Pioggia '+rain+'%'),Number.isFinite(current.wind_speed_10m)?'Vento '+Math.round(current.wind_speed_10m)+' km/h':null].filter(Boolean).join(' · '):'Temperatura, pioggia e vento non disponibili.';
+  if($('cloudLayers')){ const keys=['cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high']; $('cloudLayers').innerHTML=['Totali','Basse','Medie','Alte'].map((label,i)=>{const raw=current[keys[i]],value=Number.isFinite(raw)?Math.round(raw):null,color=value==null?'#596273':value<=30?'var(--favorable)':value>70?'var(--unfavorable)':'#d9b77e';return '<div class="cloud-layer"><span>'+label+'</span><i><b style="width:'+(value==null?0:value)+'%;background:'+color+'"></b></i><strong>'+(value==null?'—':value+'%')+'</strong></div>';}).join(''); }
+  if($('cloudMapMeta')) $('cloudMapMeta').textContent='Mappe esterne · '+(valid?'aggiornate '+fmtTime(SKY.fetchedAt):'orario non disponibile')+' · gli strati nuvolosi non si sommano.';
   const fmt=t=>new Date(t).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',timeZone:data.timezone});
-  const rows=valid?data.hourly.time.map((t,i)=>({t:t*1000,v:data.hourly.cloud_cover[i]})).filter(p=>p.t+3600000>now).slice(0,6):[];
+  const rows=hourlyRows.slice(0,6);
   $('skyHours').innerHTML=rows.length?rows.map(p=>'<div><span>'+fmt(p.t)+'</span><strong>'+ (Number.isFinite(p.v)?Math.round(p.v)+'%':'—')+'</strong><i style="height:'+Math.max(2,Number.isFinite(p.v)?p.v*.4:2)+'px;background:'+(p.v<=30?'var(--favorable)':p.v>70?'var(--unfavorable)':'#d9b77e')+'"></i></div>').join(''):'Previsione non disponibile';
   $('skySource').textContent=valid?'Stime da modello · Open-Meteo · recuperate '+fmt(SKY.fetchedAt)+'. Le schiarite locali possono differire.':'Previsioni da modello · Open-Meteo · dati non disponibili';
   const range=valid?skyWindow(e):null;
   $('frontCloud').textContent=range?(range[0]===range[1]?Math.round(range[0])+'% di nuvole':Math.round(range[0])+'–'+Math.round(range[1])+'% di nuvole'):e?'Previsione non disponibile per questa finestra':'Seleziona un fronte';
   $('frontCloud').style.color=range&&range[1]<=30?'var(--favorable)':range&&range[0]>70?'var(--unfavorable)':'var(--text)';
 }
-
 
 async function loadWeather(){
   const lat = parseFloat($('latInput').value);
@@ -2307,8 +2448,8 @@ async function loadWeather(){
 
   const requestId=++SKY.requestId;if(SKY.lat!==lat||SKY.lon!==lon){SKY.data=null;SKY.lat=lat;SKY.lon=lon;}renderSky(pickArrivalEvent(Date.now()));
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&hourly=cloud_cover,temperature_2m,precipitation_probability` +
-    `&current=cloud_cover,temperature_2m,wind_speed_10m` +
+    `&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_2m,precipitation_probability` +
+    `&current=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_2m,wind_speed_10m` +
     `&forecast_days=2&past_hours=1&timezone=auto&timeformat=unixtime`;
 
   const data = await getJSON(url);
@@ -2474,7 +2615,7 @@ function moonPhaseInfo(date){
     illum = Math.round((1 - Math.cos(2*Math.PI*phase)) / 2 * 100);
   }
   const stage = stages.find(s => phase <= s.max) || stages[stages.length-1];
-  return {icon:stage.icon, name:stage.name, illum};
+  return {icon:stage.icon, name:stage.name, illum, phase};
 }
 
 function updateMoon(){
@@ -2487,26 +2628,78 @@ function updateMoon(){
 
 function fmtHM(d){
   if(!d || isNaN(d.getTime())) return '–';
-  return d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+  return fmtClock(d);
+}
+
+function ensureAstronomyUI(){
+  if($('astronomyDetails')) return;
+  const toolbar=document.querySelector('#skySection .webcam-toolbar');
+  if(!toolbar) return;
+  toolbar.insertAdjacentHTML('beforebegin',`<details id="astronomyDetails" class="astronomy-details">
+    <summary><span class="astronomy-summary-icon">☾</span><span><strong>Sole, buio e Luna</strong><small id="astroQuickSummary">Calcolo degli orari…</small></span><b>Apri ↓</b></summary>
+    <div class="astronomy-content">
+      <div class="astronomy-hero"><span>QUESTA NOTTE</span><strong id="astroHero">—</strong><small id="astroHeroSub">Finestra di buio astronomico</small></div>
+      <div class="night-timeline" aria-label="Sequenza dal tramonto all’alba"><div class="night-line"></div>
+        <div class="night-stop"><i></i><b id="astroSunset">—</b><small>Tramonto</small></div>
+        <div class="night-stop"><i></i><b id="astroDusk">—</b><small>Fine civile</small></div>
+        <div class="night-stop is-dark"><i></i><b id="astroNightStart">—</b><small>Buio totale</small></div>
+        <div class="night-stop is-dark"><i></i><b id="astroNightEnd">—</b><small>Fine buio</small></div>
+        <div class="night-stop"><i></i><b id="astroSunrise">—</b><small>Alba</small></div>
+      </div>
+      <div class="moon-strip"><span id="astroMoonIcon">☾</span><div><strong id="astroMoonHeadline">Luna —</strong><small id="astroMoonTimes">Orari non disponibili</small></div><div class="moon-now"><b id="astroMoonNow">—</b><small>adesso</small></div></div>
+      <details class="astronomy-technical"><summary>Dettagli astronomici</summary><dl>
+        <div><dt>Sole e durata del giorno</dt><dd id="astroDayDetails">—</dd></div>
+        <div><dt>Crepuscolo civile</dt><dd id="astroCivil">—</dd></div>
+        <div><dt>Crepuscolo nautico</dt><dd id="astroNautical">—</dd></div>
+        <div><dt>Posizione Luna</dt><dd id="astroMoonPosDetails">—</dd></div>
+        <div><dt>Fuso orario</dt><dd id="astroTimezone">—</dd></div>
+      </dl></details>
+      <p class="astronomy-note">Calcolo SunCalc per la posizione scelta. Vicino ai circoli polari alcuni passaggi possono non verificarsi nello stesso giorno.</p>
+    </div>
+  </details>`);
+}
+
+function spanHM(start,end){
+  return fmtHM(start)+' → '+fmtHM(end);
+}
+
+function hoursBetween(start,end){
+  if(!start||!end||isNaN(start)||isNaN(end)) return null;
+  let ms=end-start;
+  if(ms<0) ms+=86400000;
+  return ms/3600000;
+}
+
+function compassFromAzimuth(rad){
+  if(!Number.isFinite(rad)) return '—';
+  const deg=(rad*180/Math.PI+180+360)%360;
+  const points=['N','NE','E','SE','S','SO','O','NO'];
+  return points[Math.round(deg/45)%8]+' · '+Math.round(deg)+'°';
 }
 
 // ---- sun/moon times for the chosen location (SunCalc, 100% locale, nessuna chiamata di rete) ----
 function updateSunMoonTimes(){
+  ensureAstronomyUI();
   const lat = parseFloat($('latInput').value);
   const lon = parseFloat($('lonInput').value);
   if(isNaN(lat) || isNaN(lon) || !window.SunCalc){ return; }
   const now = new Date();
   const t = SunCalc.getTimes(now, lat, lon);
+  const tomorrow = new Date(now.getTime() + 24*3600*1000);
+  const tTom = SunCalc.getTimes(tomorrow, lat, lon);
+  const sunPos=SunCalc.getPosition(now,lat,lon);
+  const moonPos=SunCalc.getMoonPosition(now,lat,lon);
+  OVERVIEW.moonAbove=Number.isFinite(moonPos.altitude)&&moonPos.altitude>0;
+  const sunAlt=Number.isFinite(sunPos.altitude)?sunPos.altitude*180/Math.PI:null;
+  OVERVIEW.lightLevel=sunAlt!=null&&sunAlt<=-18?'dark':sunAlt!=null&&sunAlt<0?'twilight':'day';
+  const validDate=d=>d instanceof Date&&!isNaN(d.getTime());
+  const period=(a,b)=>validDate(a)&&validDate(b)?spanHM(a,b):'non disponibile oggi';
   if(!t.night || isNaN(t.night.getTime())){
     $('darkVal').textContent = 'niente buio astronomico in questo periodo';
     OVERVIEW.hasDarkness = false;
-    updateOverview();
   } else {
-    const tomorrow = new Date(now.getTime() + 24*3600*1000);
-    const tTom = SunCalc.getTimes(tomorrow, lat, lon);
     $('darkVal').textContent = fmtHM(t.night) + ' → ' + fmtHM(tTom.nightEnd);
     OVERVIEW.hasDarkness = true;
-    updateOverview();
   }
   const mt = SunCalc.getMoonTimes(now, lat, lon);
   let parts = [];
@@ -2517,12 +2710,37 @@ function updateSunMoonTimes(){
     if(mt.set) parts.push('tramonta ' + fmtHM(mt.set));
   }
   $('moonTimesVal').textContent = parts.length ? parts.join(' · ') : '–';
+  const dayHours=hoursBetween(t.sunrise,t.sunset);
+  const darkHours=hoursBetween(t.night,tTom.nightEnd);
+  const darkLabel=validDate(t.night)&&validDate(tTom.nightEnd)?spanHM(t.night,tTom.nightEnd):'Nessun buio astronomico completo';
+  const darkDuration=darkHours==null?'Sole mai sotto −18°':Math.floor(darkHours)+'h '+String(Math.round(darkHours%1*60)).padStart(2,'0')+'m di buio completo';
+  $('astroHero').textContent=darkLabel;
+  $('astroHeroSub').textContent=darkDuration;
+  $('astroSunset').textContent=fmtHM(t.sunset);
+  $('astroDusk').textContent=fmtHM(t.dusk);
+  $('astroNightStart').textContent=fmtHM(t.night);
+  $('astroNightEnd').textContent=fmtHM(tTom.nightEnd);
+  $('astroSunrise').textContent=fmtHM(tTom.sunrise);
+  $('astroDayDetails').textContent=validDate(t.sunrise)&&validDate(t.sunset)?'Alba '+fmtHM(t.sunrise)+' · tramonto '+fmtHM(t.sunset)+(dayHours==null?'':' · '+Math.floor(dayHours)+'h '+String(Math.round(dayHours%1*60)).padStart(2,'0')+'m'):'Eventi solari non disponibili oggi';
+  $('astroCivil').textContent='Mattino '+period(t.dawn,t.sunrise)+' · sera '+period(t.sunset,t.dusk);
+  $('astroNautical').textContent='Mattino '+period(t.nauticalDawn,t.dawn)+' · sera '+period(t.dusk,t.nauticalDusk);
+  const moonAlt=Number.isFinite(moonPos.altitude)?moonPos.altitude*180/Math.PI:null;
+  const phase=moonPhaseInfo(now),age=phase.phase*29.53058867;
+  $('astroMoonIcon').textContent=phase.icon;
+  $('astroMoonHeadline').textContent=phase.name+' · '+phase.illum+'% illuminata';
+  $('astroMoonTimes').textContent=parts.length?parts.join(' · '):'Eventi lunari non risolti oggi';
+  $('astroMoonNow').textContent=moonAlt==null?'—':(OVERVIEW.moonAbove?'sopra '+Math.round(moonAlt)+'°':'sotto '+Math.abs(Math.round(moonAlt))+'°');
+  $('astroMoonPosDetails').textContent=(moonAlt==null?'Quota non disponibile':'Quota '+Math.round(moonAlt)+'°')+' · '+compassFromAzimuth(moonPos.azimuth)+(Number.isFinite(moonPos.distance)?' · '+Math.round(moonPos.distance).toLocaleString('it-IT')+' km':'')+' · età '+age.toFixed(1).replace('.',',')+' giorni';
+  $('astroTimezone').textContent=observationZone();
+  $('astroQuickSummary').textContent=(darkHours==null?'Nessun buio totale':'Buio '+fmtHM(t.night)+'–'+fmtHM(tTom.nightEnd))+' · Luna '+phase.illum+'%';
+  updateOverview();
 }
 
 // ---- location controls ----
 function setPlaceLabel(lat, lon, label){
   const coordTxt = Number(lat).toFixed(2) + '°, ' + Number(lon).toFixed(2) + '°';
   $('placeLabel').innerHTML = label ? `📍 <strong>${label}</strong> (${coordTxt})` : `📍 <strong>${coordTxt}</strong>`;
+  if($('quickWeatherPlace')) $('quickWeatherPlace').textContent=label||coordTxt;
 }
 
 async function reverseGeocode(lat, lon){
@@ -2812,5 +3030,17 @@ setInterval(loadForecastText, 15*60*1000);
 setInterval(()=>{ updateMoon(); updateSunMoonTimes(); }, 60*60*1000);
 </script>
 
+<style>
+.overview-kicker{font-size:9px;letter-spacing:1.6px;color:var(--muted);font-weight:600}
+.overview-item{padding:11px 12px;border:1px solid var(--border);border-radius:9px;background:#ffffff03}
+.overview-item .label{font-size:10px;color:var(--muted)}
+.overview-item .sub{font-size:10px;line-height:1.45;margin-top:5px}
+.overview-trend{margin-top:12px;padding:10px 12px;border-left:2px solid var(--purple);background:#b397fb08;color:#d8d2e8;font-size:11px;line-height:1.5}
+.mag-live-note{font-size:10px;color:var(--muted);line-height:1.5;margin:10px 0}.mag-open-row{display:flex;justify-content:flex-end;margin-top:8px}.mag-open-row .btn{font-size:10px;min-height:30px}
+.weather-quick{display:grid;grid-template-columns:38px auto minmax(130px,1fr) auto;align-items:center;gap:12px;min-height:60px;margin:10px 0 18px;padding:10px 14px;border:1px solid #3a424f;border-radius:9px;background:#171d26;color:var(--text);text-decoration:none}.weather-quick:hover{border-color:#596577;background:#1a222d}.weather-quick-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#242c37;color:#c8cfdb;font-size:19px}.weather-quick[data-state="good"] .weather-quick-icon{background:#63e6ba12;color:var(--favorable)}.weather-quick[data-state="bad"] .weather-quick-icon{background:#f4979312;color:var(--unfavorable)}.weather-quick-main{display:flex;flex-direction:column;gap:3px}.weather-quick-main small{font-size:8px;letter-spacing:1.3px;color:var(--muted)}.weather-quick-main strong{font-size:13px;font-weight:550;white-space:nowrap}.weather-quick-meta{font-size:11px;color:#b8c0cf;border-left:1px solid #343c49;padding-left:14px}.weather-quick-place{display:flex;align-items:flex-end;flex-direction:column;gap:3px;min-width:120px}.weather-quick-place span{font-size:9px;color:var(--muted);max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.weather-quick-place b{font-size:9px;color:#cdd5e5;font-weight:500}.sky-panel{grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr)}.sky-current{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:10px}.sky-current>strong{font-size:20px;font-weight:550;line-height:1.25}.sky-current>b{font-size:31px;font-weight:500}.sky-current-meta{font-size:10px;color:#c5cbd6;line-height:1.6;margin-top:13px}.cloud-layers{display:grid;gap:8px;margin-top:16px}.cloud-layer{display:grid;grid-template-columns:43px 1fr 34px;align-items:center;gap:8px;font-size:9px}.cloud-layer>span{color:var(--muted)}.cloud-layer>i{height:5px;background:#303744;border-radius:6px;overflow:hidden}.cloud-layer>i>b{display:block;height:100%;border-radius:6px}.cloud-layer>strong{text-align:right;font-size:9px;font-weight:500}.cloud-layer-note{margin-top:10px!important;color:#858f9f!important}
+.astronomy-details{margin:12px 0 20px;border:1px solid #3d4653;border-radius:9px;background:#171c24;overflow:hidden}.astronomy-details>summary{display:flex;align-items:center;gap:12px;min-height:62px;padding:10px 14px;cursor:pointer;list-style:none}.astronomy-details>summary::-webkit-details-marker{display:none}.astronomy-details>summary:hover{background:#ffffff04}.astronomy-summary-icon{display:grid;place-items:center;width:34px;height:34px;border:1px solid #4b5665;border-radius:50%;background:#222936;color:#d5c9ff;font-size:18px}.astronomy-details>summary>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:3px}.astronomy-details>summary strong{font-size:13px;font-weight:550}.astronomy-details>summary small{font-size:10px;color:#b6bfcc}.astronomy-details>summary>b{font-size:9px;color:#c8d0de;font-weight:500}.astronomy-details[open]>summary>b{font-size:0}.astronomy-details[open]>summary>b:after{content:'Chiudi ↑';font-size:9px}.astronomy-content{padding:3px 13px 14px}.astronomy-hero{padding:14px 15px;border:1px solid #474158;border-radius:8px;background:linear-gradient(135deg,#222036,#151a25)}.astronomy-hero>span{display:block;color:#afa2dd;font-size:8px;letter-spacing:1.5px}.astronomy-hero>strong{display:block;margin-top:5px;color:#f0edf8;font-size:20px;font-weight:550;letter-spacing:-.25px}.astronomy-hero>small{display:block;margin-top:4px;color:#9ca6b5;font-size:9px}.night-timeline{position:relative;display:grid;grid-template-columns:repeat(5,1fr);margin:20px 2px 17px}.night-line{position:absolute;top:5px;left:9%;right:9%;height:2px;background:linear-gradient(90deg,#ad8d69,#606477 22%,#58507c 42%,#58507c 62%,#8892a3 82%,#b69b78)}.night-stop{position:relative;z-index:1;display:flex;align-items:center;flex-direction:column;text-align:center;min-width:0}.night-stop i{width:11px;height:11px;border:2px solid #171c24;border-radius:50%;background:#8d94a2;box-shadow:0 0 0 1px #697180}.night-stop.is-dark i{background:#a992ef;box-shadow:0 0 0 1px #a992ef55,0 0 10px #9277e844}.night-stop b{margin-top:7px;color:#e4e8f0;font-size:10px;font-weight:600;font-variant-numeric:tabular-nums}.night-stop small{margin-top:2px;color:#858f9f;font-size:7px;line-height:1.2}.moon-strip{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:10px;padding:11px 13px;border:1px solid #353d49;border-radius:8px;background:#111720}.moon-strip>span{font-size:25px;text-align:center}.moon-strip>div{display:flex;flex-direction:column;gap:3px}.moon-strip strong{font-size:11px;font-weight:550}.moon-strip small{color:#8f99a8;font-size:8px;line-height:1.4}.moon-now{align-items:flex-end}.moon-now b{color:#d9d2ee;font-size:10px;white-space:nowrap}.astronomy-technical{margin-top:9px;border-top:1px solid #303844}.astronomy-technical>summary{padding:11px 2px 7px;cursor:pointer;color:#aeb7c5;font-size:9px;list-style-position:inside}.astronomy-technical dl{display:grid;gap:0;margin:4px 0 0}.astronomy-technical dl>div{display:grid;grid-template-columns:minmax(115px,.42fr) 1fr;gap:14px;padding:8px 2px;border-top:1px solid #292f39}.astronomy-technical dt{color:#828c9b;font-size:8px}.astronomy-technical dd{margin:0;color:#cbd1db;font-size:9px;line-height:1.45}.astronomy-note{margin:9px 2px 0;color:#737d8c;font-size:8px;line-height:1.5}
+@media(max-width:760px){#simpleOverview>div:nth-child(2){grid-template-columns:1fr!important;gap:8px!important}.overview-item{padding:10px 11px}.overview-trend{font-size:10px}.weather-quick{grid-template-columns:34px auto 1fr;margin:8px 0 14px;padding:9px 11px;gap:9px;min-height:56px}.weather-quick-icon{width:31px;height:31px;font-size:17px}.weather-quick-main strong{font-size:12px}.weather-quick-meta{text-align:right;border-left:0;padding-left:0;font-size:10px}.weather-quick-place{display:none}.sky-panel{grid-template-columns:1fr}.sky-current>strong{font-size:18px}.sky-current>b{font-size:28px}.astronomy-details>summary{padding:9px 11px}.astronomy-content{padding:2px 9px 10px}.astronomy-hero>strong{font-size:17px}.night-stop b{font-size:9px}.night-stop small{font-size:6px}.moon-strip{grid-template-columns:34px 1fr auto;padding:10px 9px}.moon-strip>span{font-size:22px}.astronomy-technical dl>div{grid-template-columns:1fr;gap:4px}}
+@media(max-width:390px){.weather-quick{grid-template-columns:30px 1fr auto}.weather-quick-icon{width:28px;height:28px}.weather-quick-main small{font-size:7px;letter-spacing:1px}.weather-quick-main strong{font-size:11px}.weather-quick-meta{font-size:9px}}
+</style>
 </body>
 </html>
