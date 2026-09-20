@@ -218,3 +218,62 @@ function renderFlareDetail() {
   box.dataset.key = key;
   box.innerHTML = e ? flareDetailHTML(e, list) : '<p class="t-body-sm ab-fhint">Tocca un punto del grafico per leggere classe e ora e vedere una foto del Sole in quel momento.</p>';
 }
+
+// ============================ velocità del vento solare a L1 ============================
+// Stesse sonde e stesso intervallo del grafico del campo. La linea con il globo («now») segna il vento che sta raggiungendo la Terra ora.
+function windCard() {
+  const c = l1Now(), v = c && c.v != null ? Math.round(c.v) : null;
+  const word = v == null ? '' : v < 400 ? 'lento' : v < 500 ? 'nella norma' : v < 700 ? 'veloce' : 'molto veloce';
+  return card('Vento solare a L1',
+    '<div class="ab-bigvalue"><span class="t-num-lg">' + (v == null ? '—' : v) + '</span><span class="t-body-sm ab-unit">km/s</span>' + (word ? '<span class="t-body" style="margin-left:var(--space-3)">' + word + '</span>' : '') + '</div>' +
+    '<div class="ab-chart" id="windChart" style="margin-top:var(--space-3)"></div><div class="ab-ro" id="windReadout" aria-live="off" style="min-height:24px"></div>' +
+    '<p class="t-caption ab-card__note">Velocità dei protoni misurata dalle sonde a L1. Più è alta, prima arriva sulla Terra (1.500.000 km ÷ velocità). Sonde e intervallo sono quelli scelti nel grafico del campo. Dati: NOAA SWPC.</p>',
+    { right: tag('measured', 'Misurato') });
+}
+
+function drawWind() {
+  const el = $('windChart'); if (!el) return;
+  const out = $('windReadout'), c = S.chart, now = Date.now(), xmin = now - c.hours * 3600e3, ref = selectedSource();
+  const series = chartSats().filter((s) => !c.hiddenSats[s]).map((s, i) => ({ src: s, isRef: s === ref, dash: s === ref ? '' : satDash(s, i),
+    pts: seriesFor(S.windRaw, s, 'proton_speed', xmin - 60000).filter((p) => p.t >= xmin).map((p) => ({ x: p.t, v: p.v })) })).filter((s) => s.pts.length);
+  if (!series.length) { el.innerHTML = empty('Nessun dato di velocità in questo intervallo.'); out.textContent = ''; return; }
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 220 : 260, L = 48, R = W - 8, T = 22, B = H - 30;
+  let lo = Infinity, hi = -Infinity;
+  series.forEach((s) => s.pts.forEach((p) => { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }));
+  const pad = Math.max((hi - lo) * 0.12, 15); lo = Math.max(0, lo - pad); hi += pad;
+  const stp = niceStep(hi - lo), ylo = Math.floor(lo / stp) * stp, yhi = Math.ceil(hi / stp) * stp;
+  const X = (t) => L + (t - xmin) / (now - xmin) * (R - L), Y = (v) => B - (v - ylo) / (yhi - ylo) * (B - T);
+  const g = [];
+  for (let v = ylo; v <= yhi + stp * 0.01; v += stp) { const vv = Math.round(v * 1e6) / 1e6; g.push('<line class="grid" x1="' + L + '" x2="' + R + '" y1="' + Y(vv).toFixed(1) + '" y2="' + Y(vv).toFixed(1) + '"/><text class="tick" x="' + (L - 6) + '" y="' + (Y(vv) + 4).toFixed(1) + '" text-anchor="end">' + Math.round(vv) + '</text>'); }
+  timeTicks(xmin, now, X, L, R, B, W, g);
+  let marks = '';
+  [[400, 'lento sotto'], [600, 'veloce sopra']].forEach(([v, lab]) => {
+    if (v > ylo + (yhi - ylo) * 0.08 && v < yhi - (yhi - ylo) * 0.08) marks += '<line class="now" x1="' + L + '" x2="' + R + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/><text class="tag zlabel" x="' + (R - 4) + '" y="' + (Y(v) - 6).toFixed(1) + '" text-anchor="end">' + v + ' · ' + lab + '</text>';
+  });
+  // il vento che sta raggiungendo la Terra ora: misurato a L1 «tempo di viaggio» fa
+  const cn = l1Now(), lag = cn && cn.v ? lagMin(cn.v) : null, xe = lag != null ? now - lag * 60000 : null;
+  let travel = '';
+  if (xe != null && xe > xmin + 60000) {
+    const ex = X(xe), room = ex - L, gx = ex.toFixed(1), gy = T - 10, left = room >= 52;
+    travel = '<rect x="' + gx + '" y="' + T + '" width="' + Math.max(0, R - ex).toFixed(1) + '" height="' + (B - T) + '" fill="var(--surface-2)" fill-opacity=".7"/>';
+    marks += '<line class="now" x1="' + gx + '" x2="' + gx + '" y1="' + (gy + 8) + '" y2="' + B + '"/>' +
+      '<g transform="translate(' + gx + ' ' + gy + ')"><title>Sulla Terra adesso: il vento misurato a L1 circa ' + Math.round(lag) + ' minuti fa</title><circle r="8" fill="var(--surface-1)" stroke="var(--ink)" stroke-width="1.6"/><ellipse rx="3.4" ry="8" fill="none" stroke="var(--ink)" stroke-width="1.2"/><line x1="-8" x2="8" y1="0" y2="0" stroke="var(--ink)" stroke-width="1.2"/></g>' +
+      '<text class="tag" x="' + (left ? (ex - 13).toFixed(1) : (ex + 13).toFixed(1)) + '" y="' + (gy + 4) + '" text-anchor="' + (left ? 'end' : 'start') + '">now</text>' +
+      (R - ex >= (left ? 74 : 110) ? '<text class="tag" x="' + (ex + 13).toFixed(1) + '" y="' + (gy + (left ? 4 : 20)) + '">in viaggio</text>' : '');
+  }
+  const lines = series.slice().sort((a, b) => a.isRef - b.isRef).map((s) => {
+    const p = pathOf(s.pts, X, Y);
+    return (s.isRef ? '<path class="line" d="' + p + '" style="stroke:var(--surface-1);stroke-width:5;opacity:.85"/>' : '') +
+      '<path class="line" d="' + p + '" style="stroke:var(--level-1);stroke-width:' + (s.isRef ? 2.2 : 1.2) + ';opacity:' + (s.isRef ? 1 : 0.8) + '"' + (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/>';
+  }).join('');
+  el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Velocità del vento solare a L1, ultime ' + c.hours + ' ore">' +
+    travel + g.join('') + lines + marks + '<text class="tick" x="4" y="12">km/s</text><line class="ab-cursor" id="windCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
+  const hint = '<span class="t-caption" style="color:var(--ink-3)">Tocca o passa sul grafico per leggere i valori.</span>';
+  out.innerHTML = hint;
+  const near = (pts, t) => { let best = null, bd = 3 * 60000; for (const p of pts) { const dd = Math.abs(p.x - t); if (dd < bd) { bd = dd; best = p; } } return best; };
+  attachReadout(el.firstChild, $('windCursor'), out, hint, L, R, (x) => {
+    const t = xmin + (x - L) / (R - L) * (now - xmin);
+    const vals = series.map((s) => { const p = near(s.pts, t); return p ? (s.isRef ? '<b>' : '<span>') + esc(s.src) + ' ' + Math.round(p.v) + (s.isRef ? '</b>' : '</span>') : ''; }).filter(Boolean);
+    return '<span class="t-caption" style="color:var(--ink-2)">' + fmtClock(t) + ' · orario di misura a L1 · km/s</span>' + (vals.length ? '<div>' + vals.join('') + '</div>' : '');
+  });
+}

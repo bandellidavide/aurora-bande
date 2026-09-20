@@ -258,8 +258,8 @@ h1,h2,h3,p{margin:0}
 .ab-factors small{display:block;color:var(--ink-3);font:400 12px/16px var(--font-sans)}
 .ab-factors .ab-tag{margin-top:2px}
 /* pagina a due colonne: scheda dell'ipotesi a sinistra, grafico e misure a destra */
-@media (min-width:768px){.ab-page[data-cols="two"]{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);align-items:start}}
-@media (min-width:1100px){.ab-page[data-cols="two"]{grid-template-columns:400px minmax(0,1fr)}}
+@media (min-width:768px){.ab-page[data-cols="two"]{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start}}
+@media (min-width:1100px){.ab-page[data-cols="two"]{grid-template-columns:minmax(0,1fr) 400px}}
 
 /* ======================================================================
    Aggiunte dell'applicazione (non fanno parte del bundle del design system)
@@ -537,6 +537,7 @@ a{color:var(--ink-2)}
 @media (max-width:767px){
   .ab-page[data-cols="two"] .ab-stack{display:contents}
   .ab-page[data-cols="two"] .ab-metrics{order:-1}
+  .ab-page[data-cols="two"] .ab-geohint{order:-2}
 }
 
 /* cinque sezioni nella barra in basso */
@@ -602,4 +603,8 @@ a{color:var(--ink-2)}
 @media (min-width:768px){.ab-media-row[data-stack]{grid-template-columns:1fr}}
 .ab-place{max-width:38vw}
 .ab-place span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ab-geo[data-on="true"]{color:var(--aurora-green)}
+.ab-geohint .ab-row{flex-wrap:wrap;gap:var(--space-1) var(--space-3)}
+@media (max-width:420px){.ab-appbar{padding-inline:var(--space-2);gap:var(--space-1)}.ab-brand{font-size:15px}.ab-appbar .ab-btn[data-size="icon"]{width:40px;min-width:40px;padding:0}.ab-place{max-width:28vw;padding:0 var(--space-2)}.ab-place .ab-icon:last-child{display:none}}
+@media (max-width:359px){.ab-brand{font-size:14px}.ab-place{max-width:23vw}}
 @media (max-width:359px){.ab-brand{font-size:17px}.ab-appbar{padding-inline:var(--space-2);gap:var(--space-1)}}

@@ -39,7 +39,31 @@ function renderNav() {
   const mk = () => VIEWS.map((v) => '<a class="ab-tab" href="#' + v.id + '"' + (S.view === v.id ? ' aria-current="page"' : '') + '>' + icon(v.icon) + '<span>' + v.label + '</span></a>').join('');
   $('navTop').innerHTML = mk(); $('navBottom').innerHTML = mk();
 }
+function flashToast(text) {
+  const t = $('toast'); if (!t) return;
+  t.textContent = text; t.hidden = false; clearTimeout(flashToast.timer); flashToast.timer = setTimeout(() => { t.hidden = true; }, 5000);
+}
+// Geolocalizzazione: con il consenso del browser. msgEl: dove scrivere i messaggi (nel foglio del luogo); altrimenti un avviso in basso.
+let geoBusy = false;
+function useMyLocation(msgEl) {
+  const say = (text) => { if (msgEl) msgEl.innerHTML = '<p class="ab-notice">' + esc(text) + '</p>'; else flashToast(text); };
+  if (!navigator.geolocation) { say('Questo browser non supporta la geolocalizzazione: cerca un luogo o scrivi le coordinate.'); return; }
+  if (geoBusy) return;
+  geoBusy = true; say('Individuazione della posizione…');
+  navigator.geolocation.getCurrentPosition((pos) => {
+    geoBusy = false;
+    const dlg = $('sheetPlace'); if (dlg && dlg.open) dlg.close();
+    changePlace(Number(pos.coords.latitude.toFixed(3)), Number(pos.coords.longitude.toFixed(3)), null, true);
+    flashToast('Posizione aggiornata.');
+  }, (err) => {
+    geoBusy = false;
+    say(err && err.code === 1 ? 'Permesso negato. Consenti la posizione per questo sito (icona accanto all’indirizzo del browser) e riprova.' : err && err.code === 3 ? 'La posizione non è arrivata in tempo: riprova.' : 'Posizione non disponibile ora: cerca un luogo o scrivi le coordinate.');
+  }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+}
+
 function renderHeader() {
+  $('geoHeaderBtn').innerHTML = icon('locate'); $('geoHeaderBtn').dataset.on = String(!!S.fromDevice);
+  $('geoHeaderBtn').setAttribute('aria-label', 'Usa la mia posizione'); $('geoHeaderBtn').title = 'Usa la mia posizione';
   $('placeBtn').innerHTML = icon('pin') + '<span>' + esc(shortPlace()) + '</span>' + icon('chev');
   $('placeBtn').setAttribute('aria-label', 'Luogo: ' + placeLabel() + '. Cambia luogo');
   $('alertBtn').innerHTML = icon('bell'); $('alertBtn').dataset.on = String(!!alertFlags.watch);
@@ -78,7 +102,8 @@ function viewAdesso() {
     title: H.title, why: H.why, window: win, body: factorOverview(F), caveat: CAVEAT,
     foot: '<button type="button" class="ab-btn-text" data-open="info">Come è calcolato ' + icon('info') + '</button>' + (sig.c.fallback ? '<span class="t-caption" style="color:var(--ink-3)">Campo da riepilogo NOAA</span>' : ''),
   });
-  return '<div class="ab-page" data-cols="two"><div class="ab-stack">' + sit + '</div><div class="ab-stack">' + fieldCard() + metricsBlock(sig.c) + groundCard(e) + '</div></div>';
+  // colonna principale: grafico e sotto il quadro d'insieme; colonna a lato: le quattro misure e il riscontro a terra (su telefono le misure vanno in cima)
+  return '<div class="ab-page" data-cols="two"><div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
 }
 
 // L'arrivo in un colpo d'occhio: misura a L1 → viaggio → finestra d'arrivo (sfumata, perché la stima è indicativa) e «adesso».
@@ -96,6 +121,12 @@ function arrivalBar(e, now) {
     '<i class="ab-arrbar__l1" style="left:' + f(P(e.start)) + '%"></i>' +
     '<i class="ab-arrbar__now" style="left:' + f(pn) + '%"><span' + (pn > 80 ? ' data-end' : pn < 12 ? ' data-start' : '') + '>adesso</span></i></div>' +
     '<ul class="ab-arrbar__legend" aria-hidden="true"><li data-k="l1">misurato a L1 ' + fmtClock(e.start) + '</li><li data-k="travel">in viaggio</li><li data-k="win">finestra d’arrivo</li></ul></div>';
+}
+
+// Alla prima visita si vede il luogo di partenza: un invito, una volta sola, a usare la propria posizione.
+function geoHint() {
+  if (store.get('aurora_loc', null) || store.get('aurora_geo_hint', 0) || !navigator.geolocation) return '';
+  return '<div class="ab-notice ab-geohint"><b>Stai vedendo ' + esc(shortPlace()) + '.</b> Per cielo, meteo e webcam vicino a te usa la tua posizione.<div class="ab-row" style="margin-top:var(--space-2)"><button type="button" class="ab-btn" data-variant="primary" data-geo>' + icon('locate') + 'Usa la mia posizione</button><button type="button" class="ab-btn-text" data-geo-dismiss>Non ora</button></div></div>';
 }
 
 function metricsBlock(c) {
@@ -416,9 +447,9 @@ function renderPlaceSheet() {
   const cur = (p) => Math.abs(p.lat - S.lat) < 0.02 && Math.abs(p.lon - S.lon) < 0.02;
   $('sheetPlace').innerHTML = sheetHead('sheetPlaceTitle', 'Luogo') + '<div class="ab-sheet__body">' +
     '<p style="margin-bottom:var(--space-3)">Ora: <b style="color:var(--ink)">' + esc(placeLabel()) + '</b></p>' +
+    '<button type="button" class="ab-btn" data-variant="primary" id="geoBtn" style="width:100%;margin-bottom:var(--space-2)">' + icon('locate') + 'Usa la mia posizione</button><div id="geoMsg" aria-live="polite"></div><p class="t-caption" style="margin:0 0 var(--space-4);color:var(--ink-3)">Il browser chiede il permesso. La posizione resta sul tuo dispositivo: serve solo per meteo, cielo e webcam del luogo.</p>' +
     '<div class="ab-field"><label for="placeQ">Cerca una località</label><div class="ab-row"><input class="ab-input" id="placeQ" type="search" placeholder="Per esempio Tromso" autocomplete="off" enterkeyhint="search"><button type="button" class="ab-btn" data-size="icon" id="placeGo" aria-label="Cerca">' + icon('search') + '</button></div></div>' +
     '<div id="placeResults" aria-live="polite"></div>' +
-    '<button type="button" class="ab-btn" id="geoBtn" style="width:100%;margin:var(--space-2) 0 var(--space-4)">' + icon('locate') + 'Usa la mia posizione</button>' +
     '<h3>Preferiti</h3><ul class="ab-list">' + PLACES.map((p, i) => '<li><button type="button" data-place="' + i + '"' + (cur(p) ? ' aria-current="true"' : '') + '>' + esc(p.name) + '<small>' + esc(p.sub) + '</small></button></li>').join('') + '</ul>' +
     '<h3>Coordinate</h3><div class="ab-thresh"><div class="ab-field"><label for="latIn">Latitudine</label><input class="ab-input" id="latIn" type="number" step="0.01" min="-90" max="90" value="' + S.lat + '"></div><div class="ab-field"><label for="lonIn">Longitudine</label><input class="ab-input" id="lonIn" type="number" step="0.01" min="-180" max="180" value="' + S.lon + '"></div></div><button type="button" class="ab-btn" id="coordGo">Applica le coordinate</button></div>';
 }
@@ -473,7 +504,7 @@ function renderView(name) {
   stopAnims();
   el.innerHTML = { adesso: viewAdesso, fronti: viewFronti, cielo: viewCielo, webcam: viewWebcam, giorni: viewGiorni }[name]().replace(/<\/div>\s*$/, footLinks() + '</div>');
   if (S.back && S.back.view !== name) el.innerHTML = el.innerHTML.replace(/(<div class="ab-page"[^>]*>)/, '$1' + backChip());
-  if (name === 'adesso') { drawField(); drawGround(); }
+  if (name === 'adesso') { drawField(); drawGround(); drawWind(); }
   if (name === 'giorni') drawFlares();
   if (name === 'fronti') drawFront(pickEvent(Date.now()) || S.episodes[S.episodes.length - 1] || null);
 }
@@ -526,12 +557,9 @@ function bindUI() {
     const pr = t.closest('[data-result]'); if (pr) { const r = window.__results[Number(pr.dataset.result)]; $('sheetPlace').close(); changePlace(r.latitude, r.longitude, [r.name, r.admin1, r.country].filter(Boolean).join(', ')); return; }
     if (t.closest('#placeGo')) { runSearch(); return; }
     if (t.closest('#coordGo')) { const la = parseFloat($('latIn').value), lo = parseFloat($('lonIn').value); if (isFinite(la) && isFinite(lo) && Math.abs(la) <= 90 && Math.abs(lo) <= 180) { $('sheetPlace').close(); changePlace(la, lo, null); } else $('latIn').setCustomValidity('Coordinate non valide'); return; }
-    if (t.closest('#geoBtn')) {
-      if (!navigator.geolocation) { $('placeResults').innerHTML = '<p class="ab-notice">Geolocalizzazione non supportata da questo browser.</p>'; return; }
-      $('placeResults').innerHTML = '<p class="ab-notice">Individuazione della posizione…</p>';
-      navigator.geolocation.getCurrentPosition((pos) => { $('sheetPlace').close(); changePlace(Number(pos.coords.latitude.toFixed(3)), Number(pos.coords.longitude.toFixed(3)), null, true); }, () => { $('placeResults').innerHTML = '<p class="ab-notice">Non è stato possibile ottenere la posizione (permesso negato o non disponibile).</p>'; });
-      return;
-    }
+    if (t.closest('#geoBtn')) { useMyLocation($('geoMsg')); return; }
+    if (t.closest('#geoHeaderBtn') || t.closest('[data-geo]')) { useMyLocation(null); return; }
+    if (t.closest('[data-geo-dismiss]')) { store.set('aurora_geo_hint', 1); renderView('adesso'); return; }
     if (t.closest('#notifBtn')) { $('notifMsg').textContent = await enableNotifications(); return; }
     if (t.closest('#diagCopy')) { const txt = diagReport(); try { await navigator.clipboard.writeText(txt); $('diagMsg').textContent = 'Copiato.'; } catch (e) { $('diagMsg').textContent = 'Copia non riuscita: seleziona e copia a mano.'; } return; }
     if (t.tagName === 'DIALOG') t.close(); // clic sullo sfondo
@@ -550,7 +578,7 @@ function bindUI() {
   });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'placeQ') { ev.preventDefault(); runSearch(); } });
   window.addEventListener('hashchange', () => goto(location.hash.replace('#', '')));
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.view === 'adesso') { drawField(); drawGround(); } if (S.view === 'fronti' || S.view === 'giorni') renderView(S.view); }, 150); });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.view === 'adesso') { drawField(); drawGround(); drawWind(); } if (S.view === 'fronti' || S.view === 'giorni') renderView(S.view); }, 150); });
 }
 
 async function runSearch() {
