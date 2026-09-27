@@ -18,7 +18,7 @@ function factors(e) {
   const sig = signal(), c = sig.c, A = S.astro = astro();
   const space = [], obs = [];
   // campo a L1
-  if (sig.level == null) space.push({ label: 'Campo a L1', state: 'unk', short: 'non recente', value: 'Dati non recenti', note: 'In attesa di nuove misure', kind: 'measured' });
+  if (sig.level == null) { const age = l1LastKnownAge(); space.push({ label: 'Campo a L1', state: 'unk', short: 'non recente', value: 'Dati non recenti', note: age != null && age >= 20 ? 'Ultimo dato NOAA di ' + fmtDur(age) + ' fa' : 'In attesa di nuove misure', kind: 'measured' }); }
   else space.push({
     label: 'Campo a L1', state: sig.level >= 2 ? 'good' : sig.level === 1 ? 'mid' : 'bad', kind: 'measured',
     short: sig.level === 0 && c.bz > 0 ? 'Bz a nord' : ['calmo', 'debole', 'moderato', 'marcato'][sig.level],
@@ -47,7 +47,7 @@ function hypothesis(F) {
   const worst = [ob.state, dk.state].includes('bad') ? 'bad' : [ob.state, dk.state, F.obs.find((x) => x.label === 'Luna').state].includes('mid') ? 'mid' : 'good';
   const title = F.sig.level == null ? 'Indizi non valutabili ora' : g === 0 ? 'Per ora pochi indizi' : g === 1 ? 'Qualche indizio a favore' : 'Diversi indizi a favore';
   let why;
-  if (F.sig.level == null) why = 'Mancano dati recenti a L1: non si può dire nulla di sensato.';
+  if (F.sig.level == null) { const age = l1LastKnownAge(); why = age != null && age >= 20 ? 'Mancano dati recenti a L1: l’ultimo dato NOAA disponibile risale a ' + fmtDur(age) + ' fa. È un ritardo della fonte, non un problema di questa pagina.' : 'Mancano dati recenti a L1: non si può dire nulla di sensato.'; }
   else if (g >= 1 && worst === 'bad') why = 'Lo spazio dà qualche segnale, ma cielo o buio non aiutano: un’aurora potrebbe esserci senza potersi vedere.';
   else if (g >= 1 && worst === 'good') why = 'Cielo e buio permetterebbero di vederla, se ci fosse. È un’ipotesi, non una previsione.';
   else if (g >= 1) why = 'Lo spazio dà qualche segnale, ma cielo, buio o luna sono incerti.';

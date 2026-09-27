@@ -4,9 +4,9 @@
 const VIEWS = [
   { id: 'adesso', label: 'Adesso', icon: 'activity' },
   { id: 'fronti', label: 'Fronti', icon: 'clock' },
-  { id: 'cielo', label: 'Cielo', icon: 'cloud' },
   { id: 'webcam', label: 'Webcam', icon: 'camera' },
   { id: 'giorni', label: 'Giorni', icon: 'calendar' },
+  { id: 'cielo', label: 'Cielo', icon: 'cloud' },
 ];
 const CAVEAT = 'Sono ipotesi che mettono insieme più fattori, non una previsione: l’aurora dipende da molti elementi e nessuno basta da solo.';
 const dayShort = (ms) => new Date(ms).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).replace('.', '');

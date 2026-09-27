@@ -113,8 +113,8 @@ function drawField() {
   const lines = d.series.slice().sort((a, b) => a.isRef - b.isRef).map((s) => {
     let p = '', prev = null;
     s.pts.forEach((q) => { const x = X(q.x).toFixed(1), y = Y(q.v).toFixed(1); p += (!prev || q.x - prev.x > 3 * 60000 ? 'M' : 'L') + x + ',' + y; prev = q; });
-    const halo = s.isRef ? '<path class="line" d="' + p + '" style="stroke:var(--surface-1);stroke-width:5;opacity:.85"/>' : '';
-    return halo + '<path class="line" d="' + p + '" style="stroke:' + s.comp.color + ';stroke-width:' + (s.isRef ? 2.2 : 1.2) + ';opacity:' + (s.isRef ? 1 : 0.8) + '"' + (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/>';
+    const halo = s.isRef ? '<path class="line" d="' + p + '" style="stroke:var(--surface-1);stroke-width:3;opacity:.85"/>' : '';
+    return halo + '<path class="line" d="' + p + '" style="stroke:' + s.comp.color + ';stroke-width:' + (s.isRef ? 1.5 : 0.9) + ';opacity:' + (s.isRef ? 1 : 0.75) + '"' + (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/>';
   }).join('');
   let marks = '', travel = '';
   const cn = l1Now(), lag = cn && cn.v ? lagMin(cn.v) : null, xe = lag != null ? d.now - lag * 60000 : null;

@@ -42,6 +42,17 @@ async function loadL1() {
   S.sources = Array.from(set).sort();
   S.loadedAt = Date.now();
   recomputeL1();
+  const age = l1LastKnownAge();
+  diagSet('Dati L1 (NOAA) — età', age == null ? 'err' : age <= 10 ? 'ok' : 'err', age == null ? 'nessun dato' : fmtDur(age) + ' fa' + (age > 60 ? ' — probabile ritardo della fonte NOAA, non della pagina' : ''));
+}
+
+// quanto è vecchio l'ultimo dato disponibile (anche se troppo vecchio per essere usato): aiuta a distinguere
+// «NOAA è in ritardo» da un guasto di questa pagina, quando bz/v risultano non recenti.
+function l1LastKnownAge() {
+  let latest = -Infinity;
+  (S.magRaw || []).forEach((r) => { const t = toMs(r && r.time_tag); if (isFinite(t) && t > latest) latest = t; });
+  if (S.sum && S.sum.mag && S.sum.mag.time_tag) { const t = toMs(S.sum.mag.time_tag); if (isFinite(t) && t > latest) latest = t; }
+  return isFinite(latest) ? (Date.now() - latest) / 60000 : null;
 }
 
 function recomputeL1() {
@@ -99,7 +110,11 @@ function l1Now() {
 // ---------- livello del segnale ----------
 function signal() {
   const c = l1Now();
-  if (c.bz == null || c.v == null) return { level: null, title: 'Dati non disponibili', why: 'Mancano dati recenti a L1.', c };
+  if (c.bz == null || c.v == null) {
+    const age = l1LastKnownAge();
+    const why = age != null && age >= 20 ? 'L’ultimo dato NOAA disponibile risale a ' + fmtDur(age) + ' fa: è un ritardo della fonte, non un guasto di questa pagina.' : 'Mancano dati recenti a L1.';
+    return { level: null, title: 'Dati non disponibili', why, c };
+  }
   const ov = S.ovation && S.ovation.val != null ? S.ovation.val : null;
   const level = SIGNAL_RULES.elevated(c.bz, c.v, ov) ? 3 : SIGNAL_RULES.moderate(c.bz, c.v, ov) ? 2 : isSouth(c.bz) ? 1 : 0;
   const ong = ongoingEpisode();

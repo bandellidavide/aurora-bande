@@ -72,7 +72,7 @@ function drawGround() {
   }
   if (hasRef) [100, -100].forEach((v) => { marks += '<line class="now" x1="' + L + '" x2="' + R + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/>'; });
   if (hasRef && Y(100) > T + 12) marks += '<text class="tag zlabel" x="' + (R - 4) + '" y="' + (Y(100) - 6).toFixed(1) + '" text-anchor="end">soglia ±100 nT</text>';
-  const line = '<path class="line" d="' + pathOf(pts, X, Y) + '" style="stroke:var(--ink);stroke-width:1.4"/>';
+  const line = '<path class="line" d="' + pathOf(pts, X, Y) + '" style="stroke:var(--ink);stroke-width:1.1"/>';
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Magnetometro ' + esc(GROUND_NAMES[st]) + ', componente X, variazione rispetto al riferimento, ultime ' + S.groundHours + ' ore">' +
     g.join('') + marks + line + '<text class="tick" x="4" y="12">ΔX nT</text><line class="ab-cursor" id="groundCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
   const hint = '<span class="t-caption" style="color:var(--ink-3)">' + (hasRef ? 'Zero = mediana di riferimento prima dell’arrivo stimato. ' : 'Zero = mediana dell’intervallo mostrato. ') + 'Tocca il grafico per i valori.</span>';
@@ -118,7 +118,7 @@ function drawFront(sel) {
     const mx = X(minP.x), my = Y(minP.v), left = mx > W * 0.6;
     mk += '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="4.5" fill="var(--series-bz)" stroke="var(--surface-1)" stroke-width="2"/><text class="tag zlabel" x="' + (left ? mx - 9 : mx + 9).toFixed(1) + '" y="' + (my + 4).toFixed(1) + '" text-anchor="' + (left ? 'end' : 'start') + '">min ' + signed(minP.v, 1) + ' nT</text>';
   }
-  const line = '<path class="line" d="' + pathOf(pts, X, Y) + '" style="stroke:var(--series-bz);stroke-width:1.8"/>';
+  const line = '<path class="line" d="' + pathOf(pts, X, Y) + '" style="stroke:var(--series-bz);stroke-width:1.4"/>';
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bz del fronte scelto, con minimo di ' + (minP ? signed(minP.v, 1) : '—') + ' nT">' +
     '<rect class="ep sel" x="' + ea.toFixed(1) + '" y="' + T + '" width="' + Math.max(2, eb - ea).toFixed(1) + '" height="' + (B - T) + '"/>' + g.join('') + fill + line + mk + '<text class="tick" x="4" y="12">Bz nT</text><line class="ab-cursor" id="frontCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
   const hint = '<span class="t-caption" style="color:var(--ink-3)">Bz misurato a L1 (' + esc(selectedSource() || '—') + '). Fascia = durata dell’episodio; tratteggio = soglia −1 nT. Tocca per i valori.</span>';
@@ -263,8 +263,8 @@ function drawWind() {
   }
   const lines = series.slice().sort((a, b) => a.isRef - b.isRef).map((s) => {
     const p = pathOf(s.pts, X, Y);
-    return (s.isRef ? '<path class="line" d="' + p + '" style="stroke:var(--surface-1);stroke-width:5;opacity:.85"/>' : '') +
-      '<path class="line" d="' + p + '" style="stroke:var(--level-1);stroke-width:' + (s.isRef ? 2.2 : 1.2) + ';opacity:' + (s.isRef ? 1 : 0.8) + '"' + (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/>';
+    return (s.isRef ? '<path class="line" d="' + p + '" style="stroke:var(--surface-1);stroke-width:3;opacity:.85"/>' : '') +
+      '<path class="line" d="' + p + '" style="stroke:var(--level-1);stroke-width:' + (s.isRef ? 1.5 : 0.9) + ';opacity:' + (s.isRef ? 1 : 0.75) + '"' + (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/>';
   }).join('');
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Velocità del vento solare a L1, ultime ' + c.hours + ' ore">' +
     travel + g.join('') + lines + marks + '<text class="tick" x="4" y="12">km/s</text><line class="ab-cursor" id="windCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
