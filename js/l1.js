@@ -107,6 +107,29 @@ function l1Now() {
   return { bz, bt, v, ey, src, ts, age: ts ? Math.max(0, Math.round((Date.now() - ts) / 60000)) : null, fresh: bz != null && v != null, fallback };
 }
 
+// carico recente: quanto Bz è stato a sud nella finestra, anche se spezzato in più episodi brevi da una risalita
+// passeggera. Serve perché la magnetosfera «carica» energia nel tempo e non si azzera a ogni breve risalita di Bz:
+// un tratto ballerino ma per lo più a sud può aver caricato quanto un fronte lungo unico, anche se qui non appare
+// come un solo episodio. Stessa formula di carica (∫Ey+ dt) usata per i singoli episodi in computeEpisodes().
+function l1RecentLoad(hours) {
+  const src = selectedSource();
+  if (!src) return null;
+  const cutoff = Date.now() - hours * 3600000;
+  const bz = seriesFor(S.magRaw, src, 'bz_gsm', cutoff), sp = seriesFor(S.windRaw, src, 'proton_speed', cutoff);
+  if (bz.length < 2) return null;
+  let charge = 0, southMin = 0, totalMin = 0;
+  for (let i = 1; i < bz.length; i++) {
+    const a = bz[i - 1], b = bz[i], dt = (b.t - a.t) / 60000;
+    if (dt <= 0 || dt > 5) continue; // buco nei dati: non si integra su quel tratto
+    totalMin += dt;
+    if (b.v <= BZ_CFG.threshold) southMin += dt;
+    const va = valueNear(sp, a.t), vb = valueNear(sp, b.t);
+    if (va > 0 && vb > 0) charge += dt * (va * Math.max(0, -a.v) + vb * Math.max(0, -b.v)) * 0.0005;
+  }
+  if (totalMin < hours * 60 * 0.5) return null; // troppi buchi nella finestra per fidarsi del totale
+  return { hours, chargeMvmin: charge, southShare: southMin / totalMin };
+}
+
 // ---------- livello del segnale ----------
 function signal() {
   const c = l1Now();

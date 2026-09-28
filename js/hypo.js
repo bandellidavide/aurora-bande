@@ -18,12 +18,16 @@ function factors(e) {
   const sig = signal(), c = sig.c, A = S.astro = astro();
   const space = [], obs = [];
   // campo a L1
-  if (sig.level == null) { const age = l1LastKnownAge(); space.push({ label: 'Campo a L1', state: 'unk', short: 'non recente', value: 'Dati non recenti', note: age != null && age >= 20 ? 'Ultimo dato NOAA di ' + fmtDur(age) + ' fa' : 'In attesa di nuove misure', kind: 'measured' }); }
+  // carico delle ultime 3 ore: un tratto a sud ballerino (tanti episodi corti) può aver caricato la magnetosfera
+  // quanto uno lungo unico. Si aggiunge solo quando è davvero rilevante, non ad ogni misura.
+  const load = l1RecentLoad(3);
+  const loadNote = load && load.southShare >= 0.25 ? '. Ultime 3 ore: Bz a sud per il ' + Math.round(load.southShare * 100) + '% del tempo' + (load.southShare < 0.85 ? ', a tratti — la carica però si accumula' : '') + '.' : '';
+  if (sig.level == null) { const age = l1LastKnownAge(); space.push({ label: 'Campo a L1', state: 'unk', short: 'non recente', value: 'Dati non recenti', note: (age != null && age >= 20 ? 'Ultimo dato NOAA di ' + fmtDur(age) + ' fa' : 'In attesa di nuove misure') + loadNote, kind: 'measured' }); }
   else space.push({
     label: 'Campo a L1', state: sig.level >= 2 ? 'good' : sig.level === 1 ? 'mid' : 'bad', kind: 'measured',
     short: sig.level === 0 && c.bz > 0 ? 'Bz a nord' : ['calmo', 'debole', 'moderato', 'marcato'][sig.level],
     value: 'Bz ' + signed(c.bz, 1) + ' nT · vento ' + Math.round(c.v) + ' km/s',
-    note: [c.bz > 0 ? 'Bz a nord' : 'Bz vicino allo zero', 'Bz a sud, con vento lento', 'Bz a sud, andamento moderato', 'Bz a sud, andamento marcato'][sig.level],
+    note: [c.bz > 0 ? 'Bz a nord' : 'Bz vicino allo zero', 'Bz a sud, con vento lento', 'Bz a sud, andamento moderato', 'Bz a sud, andamento marcato'][sig.level] + loadNote,
   });
   // ovale aurorale
   const ov = S.ovation && S.ovation.val != null ? S.ovation.val : null;
