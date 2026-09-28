@@ -301,11 +301,15 @@ function regionMapSvg(regions) {
   const W = 280, H = 160, cx = W / 2, cy = H / 2, R = 62;
   const tier = (mag) => /DELTA/i.test(mag || '') ? 2 : /GAMMA/i.test(mag || '') ? 1 : 0;
   const COL = ['var(--ink-3)', 'var(--warning)', 'var(--aurora-magenta)'];
+  const placed = []; // etichette già messe: quando due regioni sono vicine (spesso verso il bordo) le si scala una sull'altra
   const dots = pts.map(({ r, loc }) => {
     const x = cx + R * Math.sin(loc.lonSigned * Math.PI / 180), y = cy - R * Math.sin(loc.lat * Math.PI / 180) * Math.cos(loc.lonSigned * Math.PI / 180);
     const t = tier(r.mag), rad = Math.max(3, Math.min(9, 3 + Math.sqrt(Number(r.spots) || 1)));
+    let ly = y - rad - 3, tries = 0;
+    while (placed.some((p) => Math.abs(p.x - x) < 22 && Math.abs(p.y - ly) < 11) && tries < 6) { ly -= 11; tries++; }
+    placed.push({ x, y: ly });
     return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + rad.toFixed(1) + '" fill="' + COL[t] + '" fill-opacity="' + (t ? 0.92 : 0.65) + '" stroke="var(--surface-1)" stroke-width="1"><title>' + esc(r.num + ' · ' + loc.txt + ' · ' + r.spots + ' macchie · ' + r.mag) + '</title></circle>' +
-      '<text x="' + x.toFixed(1) + '" y="' + (y - rad - 3).toFixed(1) + '" text-anchor="middle" class="tick">' + esc(r.num) + '</text>';
+      '<text x="' + x.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="middle" class="tick">' + esc(r.num) + '</text>';
   }).join('');
   return '<div class="ab-chart"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Regioni numerate sul disco solare, schema semplificato">' +
     '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="var(--surface-2)" stroke="var(--line-strong)"/>' +
