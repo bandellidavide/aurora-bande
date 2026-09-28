@@ -99,7 +99,9 @@ function parseAlert(a) {
   const title = msg.split('\n').map((s) => s.trim()).find((s) => /^(EXTENDED )?(ALERT|WARNING|WATCH|SUMMARY|CONTINUED ALERT)\b/i.test(s)) || (msg.split('\n').find((s) => s.trim() && !/^Space Weather|^Serial|^Issue/i.test(s.trim())) || '').trim();
   const kp = /K-index of (\d)/i.exec(title);
   const isAlert = /^ALERT|^CONTINUED ALERT/i.test(title), isSummary = /^SUMMARY/i.test(title);
-  return { id: a.product_id, ms: toMs(a.issue_datetime), title, kp: kp ? +kp[1] : null, kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto' };
+  // NOAA manda anche allerte per protoni/elettroni/radio (utili per satelliti, non per l'aurora): si tengono solo quelle geomagnetiche.
+  const geo = /Geomagnetic|K-index/i.test(title);
+  return { id: a.product_id, ms: toMs(a.issue_datetime), title, kp: kp ? +kp[1] : null, kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto', geo };
 }
 
 function frameTime(url) {
@@ -136,7 +138,7 @@ async function loadNoaa() {
   ]);
   S.noaa = {
     scales, fc: parseForecast(fcTxt), disc: parseDiscussion(discTxt), srs: parseSRS(srsTxt), flares,
-    alerts: Array.isArray(alerts) ? alerts.slice(0, 6).map(parseAlert) : null,
+    alerts: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo).slice(0, 6) : null,
     media: { suvi, ccor, enlil }, donki: Array.isArray(cme) ? { cme, flr: Array.isArray(flr) ? flr : [] } : null, loadedAt: Date.now(),
   };
 }
