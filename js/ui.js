@@ -292,6 +292,28 @@ function viewWebcam() {
 
 // ============================ GIORNI ============================
 const more = (title, sub, inner) => '<details class="ab-more"><summary><span><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></span>' + icon('chev') + '</summary><div class="ab-more__body">' + inner + '</div></details>';
+
+// mappa delle regioni sul disco solare: dove sono le macchie numerate, invece della sola tabella. Proiezione semplificata
+// (non ortografica), a partire dalla stessa colonna «Location» del bollettino SRS di NOAA/USAF. Colore = complessità magnetica.
+function regionMapSvg(regions) {
+  const pts = regions.map((r) => ({ r, loc: parseSolarLoc(r.loc) })).filter((x) => x.loc);
+  if (!pts.length) return '';
+  const W = 280, H = 160, cx = W / 2, cy = H / 2, R = 62;
+  const tier = (mag) => /DELTA/i.test(mag || '') ? 2 : /GAMMA/i.test(mag || '') ? 1 : 0;
+  const COL = ['var(--ink-3)', 'var(--warning)', 'var(--aurora-magenta)'];
+  const dots = pts.map(({ r, loc }) => {
+    const x = cx + R * Math.sin(loc.lonSigned * Math.PI / 180), y = cy - R * Math.sin(loc.lat * Math.PI / 180) * Math.cos(loc.lonSigned * Math.PI / 180);
+    const t = tier(r.mag), rad = Math.max(3, Math.min(9, 3 + Math.sqrt(Number(r.spots) || 1)));
+    return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + rad.toFixed(1) + '" fill="' + COL[t] + '" fill-opacity="' + (t ? 0.92 : 0.65) + '" stroke="var(--surface-1)" stroke-width="1"><title>' + esc(r.num + ' · ' + loc.txt + ' · ' + r.spots + ' macchie · ' + r.mag) + '</title></circle>' +
+      '<text x="' + x.toFixed(1) + '" y="' + (y - rad - 3).toFixed(1) + '" text-anchor="middle" class="tick">' + esc(r.num) + '</text>';
+  }).join('');
+  return '<div class="ab-chart"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Regioni numerate sul disco solare, schema semplificato">' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="var(--surface-2)" stroke="var(--line-strong)"/>' +
+    '<line class="grid" x1="' + (cx - R) + '" x2="' + (cx + R) + '" y1="' + cy + '" y2="' + cy + '"/><line class="grid" x1="' + cx + '" x2="' + cx + '" y1="' + (cy - R) + '" y2="' + (cy + R) + '"/>' +
+    '<text class="tick" x="' + (cx - R - 6) + '" y="' + (cy + 4) + '" text-anchor="end">E</text><text class="tick" x="' + (cx + R + 6) + '" y="' + (cy + 4) + '">W</text>' +
+    dots + '</svg></div>' +
+    '<p class="t-caption ab-card__note">Ogni punto è una regione numerata: dimensione = numero di macchie, colore = complessità magnetica (grigio semplice, ambra «gamma», magenta «delta» — le più propense a brillamenti forti). Schema semplificato dalla posizione del bollettino, non un’immagine reale del Sole.</p>';
+}
 const OUT_WORD = { incoming: 'Verso la Terra', glancing: 'Di striscio', arrived: 'Arrivata', passed: 'Da verificare', no: 'Non diretta', unk: 'Da valutare', nocme: 'Senza CME' };
 const speedWord = (v) => (v < 500 ? 'lenta' : v < 1000 ? 'media' : 'veloce');
 const kpText = (kp) => (kp ? ' · Kp stimato ' + (kp[0] === kp[1] ? kp[0] : kp[0] + '–' + kp[1]) : '');
@@ -408,12 +430,12 @@ function viewGiorni() {
       '</div><div class="ab-media__foot"><span class="t-caption" id="time-' + key + '">' + (t ? 'Immagine delle ' + fmtClock(t) + ' · ' + new Date(t).toISOString().slice(11, 16) + ' UTC' : '—') + '</span>' + (fr ? '<button type="button" class="ab-btn" data-size="icon" data-anim="' + key + '" aria-label="Riproduci l’animazione: ' + title + '">' + icon('play') + '</button>' : '') + '</div></article>';
   };
   const sun = '<h2 class="t-title" style="margin:0 0 var(--space-3)">Il Sole adesso</h2><div class="ab-media-row" data-stack>' + mediaItem('suvi', 'Disco solare', 'SUVI 195 Å · GOES', suvi, false, tag('measured', 'Osservato')) + mediaItem('ccor', 'Corona solare', 'Coronografo CCOR1 · GOES-19', ccor, false, tag('measured', 'Osservato')) + mediaItem('enlil', 'Verso la Terra', 'Modello WSA-ENLIL · vento solare e CME', enl, true, tag('forecast', 'Previsto')) + '</div>' +
-    '<p class="t-caption ab-credit" style="margin-top:var(--space-2)">Immagini: NOAA SWPC (satelliti GOES, SUVI e CCOR-1) e modello WSA-ENLIL.</p><div class="ab-linkrow" style="margin-top:var(--space-2)">' + extLink('https://www.swpc.noaa.gov/products/goes-solar-ultraviolet-imager-suvi', 'SUVI su NOAA') + extLink('https://www.swpc.noaa.gov/products/wsa-enlil-solar-wind-prediction', 'WSA-ENLIL su NOAA') + '</div>';
+    '<p class="t-caption ab-credit" style="margin-top:var(--space-2)">Immagini: NOAA SWPC (satelliti GOES, SUVI e CCOR-1) e modello WSA-ENLIL. Nel disco solare (SUVI 195 Å) i buchi coronali si vedono come zone scure: da lì esce il vento solare veloce.</p><div class="ab-linkrow" style="margin-top:var(--space-2)">' + extLink('https://www.swpc.noaa.gov/products/goes-solar-ultraviolet-imager-suvi', 'SUVI su NOAA') + extLink('https://www.swpc.noaa.gov/products/wsa-enlil-solar-wind-prediction', 'WSA-ENLIL su NOAA') + extLink(SWPC + '/images/synoptic-map.jpg', 'Mappa sinottica del Sole (immagine 7 MB)') + '</div>';
   // regioni
   const sr = n.srs;
   let reg;
   if (!sr) reg = empty('Bollettino delle regioni non disponibile ora.');
-  else if (sr.regions.length) reg = '<div>' + sr.regions.map((r) => '<div class="ab-region"><b>' + esc(r.num) + '</b><span>' + esc(r.loc) + ' · area ' + esc(r.area) + '</span><span class="v">' + esc(r.spots) + ' macchie · ' + esc(r.mag) + '</span></div>').join('') + '</div>';
+  else if (sr.regions.length) reg = regionMapSvg(sr.regions) + '<div>' + sr.regions.map((r) => '<div class="ab-region"><b>' + esc(r.num) + '</b><span>' + esc(r.loc) + ' · area ' + esc(r.area) + '</span><span class="v">' + esc(r.spots) + ' macchie · ' + esc(r.mag) + '</span></div>').join('') + '</div>';
   else reg = '<p class="t-body ab-empty">Nessuna macchia solare numerata nel bollettino di oggi.</p>' + (sr.plages.length ? '<p class="t-body-sm" style="color:var(--ink-3);margin-top:var(--space-2)">NOAA elenca solo ' + (sr.plages.length === 1 ? 'una regione senza macchie (plaga)' : sr.plages.length + ' regioni senza macchie (plaghe)') + ': ' + sr.plages.map((p) => esc(p.num)).join(' e ') + '.</p>' : '');
   const regCard = more('Macchie solari', !sr ? 'non disponibile ora' : sr.regions.length ? sr.regions.length + (sr.regions.length === 1 ? ' regione con macchie' : ' regioni con macchie') : 'nessuna regione con macchie oggi', reg + (sr && sr.issued ? '<p class="t-caption ab-card__note">Bollettino NOAA/USAF del ' + fmtDayClock(sr.issued) + '.</p>' : ''));
   const flCard = flareCard(n), cmCard = cmeCard(n);

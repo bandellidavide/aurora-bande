@@ -6,7 +6,7 @@
 const CREDITS = [
   {
     name: 'NOAA · Space Weather Prediction Center (SWPC)',
-    uses: 'Campo magnetico e vento solare a L1, ovale aurorale (OVATION) e potenza emisferica, previsione a 3 giorni, scale G/S/R, commento dei previsori, regioni solari, brillamenti (satelliti GOES), immagini SUVI e CCOR-1, modello WSA-ENLIL, allerte.',
+    uses: 'Campo magnetico e vento solare a L1, ovale aurorale (OVATION) e potenza emisferica, previsione a 3 giorni, scale G/S/R, commento dei previsori, regioni solari, brillamenti (satelliti GOES), immagini SUVI e CCOR-1, mappa sinottica del Sole, modello WSA-ENLIL, allerte.',
     license: 'Dati del governo statunitense, senza copyright. NOAA chiede di citare la fonte e vieta di far credere che approvi questo servizio; se i dati vengono elaborati, non vanno presentati come originali.',
     credit: 'Dati: NOAA Space Weather Prediction Center.',
     link: ['https://www.swpc.noaa.gov/', 'swpc.noaa.gov'],

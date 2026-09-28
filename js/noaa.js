@@ -192,7 +192,11 @@ function parseSolarLoc(str) {
   const m = /^([NS])(\d{1,2})([EW])(\d{1,3})$/.exec(String(str || '').trim());
   if (!m) return null;
   const lon = +m[4];
-  return { txt: m[1] + m[2] + ' ' + m[3] + m[4], lon, face: lon <= 40 ? 'front' : lon <= 70 ? 'side' : 'limb' };
+  // lat/lonSigned: coordinate con segno per posizionare il punto su un disco (N e W positivi), usate dalla mappa delle regioni.
+  return {
+    txt: m[1] + m[2] + ' ' + m[3] + m[4], lon, face: lon <= 40 ? 'front' : lon <= 70 ? 'side' : 'limb',
+    lat: (m[1] === 'S' ? -1 : 1) * (+m[2]), lonSigned: (m[3] === 'W' ? 1 : -1) * lon,
+  };
 }
 const idTime = (id) => Date.parse(String(id).slice(0, 19) + 'Z');
 
