@@ -16,6 +16,14 @@ const ARRIVAL_MARGIN_MS = 15 * 60000; // margine grafico prudenziale, NON un int
 // Modifica qui le soglie: la scheda «Situazione» le legge da questo oggetto.
 // «Bz a sud» = Bz ≤ BZ_CFG.threshold (−1 nT), la stessa soglia degli episodi: tra −1 e 0 nT è rumore e non conta come segnale.
 const isSouth = (bz) => bz != null && bz <= BZ_CFG.threshold;
+// campo elettrico di separazione (merging electric field, Kan & Lee 1979): v × (Bt⊥ − Bz) / 2, con Bt⊥ = √(By²+Bz²)
+// il campo trasverso nel piano Y-Z. Include anche By, non solo Bz: a parità di Bz un By marcato aumenta l'accoppiamento.
+// Se By non è disponibile equivale esattamente alla vecchia formula v×max(0,−Bz): con by=0, Bt⊥=|Bz| e il risultato collima.
+function emSouth(bz, by) { return bz == null ? null : Math.max(0, Math.sqrt((by || 0) ** 2 + bz * bz) - bz) / 2; }
+// Nota: OVATION (SWPC) è già derivato da una funzione di accoppiamento che include Bz (e By, che qui non usiamo):
+// richiedere «OVATION alto» e «Bz a sud» insieme non è una doppia conferma indipendente, Bz ne fa già parte.
+// Qui «Bz a sud» funziona da controllo di freschezza: OVATION riassume alcune ore di storia e può restare alto
+// per un po' anche se il vento è appena tornato a nord; richiederlo filtra quel ritardo, non rafforza il segnale.
 const SIGNAL_RULES = {
   elevated: (bz, v, ov) => (bz <= -5 && v >= 450) || (bz <= -3 && v >= 550) || (ov != null && ov >= 60 && isSouth(bz)),
   moderate: (bz, v, ov) => (isSouth(bz) && v >= 350) || (ov != null && ov >= 30 && isSouth(bz)),
@@ -97,14 +105,14 @@ function freshRow(raw, keys) {
 function l1Now() {
   const m = freshRow(S.magRaw, ['bt', 'bz_gsm']);
   const w = freshRow(S.windRaw, ['proton_speed']);
-  let bz = m ? num(m.bz_gsm) : null, bt = m ? num(m.bt) : null, v = w ? num(w.proton_speed) : null;
+  let bz = m ? num(m.bz_gsm) : null, by = m ? num(m.by_gsm) : null, bt = m ? num(m.bt) : null, v = w ? num(w.proton_speed) : null;
   let src = m ? m.source : null, ts = m ? toMs(m.time_tag) : null, fallback = false;
   const recent = (o) => o && isFinite(toMs(o.time_tag)) && (Date.now() - toMs(o.time_tag)) / 60000 <= 10;
-  if (bz == null && recent(S.sum.mag) && num(S.sum.mag.bz_gsm) != null) { bz = num(S.sum.mag.bz_gsm); bt = num(S.sum.mag.bt); src = 'sintesi NOAA'; ts = toMs(S.sum.mag.time_tag); fallback = true; }
+  if (bz == null && recent(S.sum.mag) && num(S.sum.mag.bz_gsm) != null) { bz = num(S.sum.mag.bz_gsm); by = num(S.sum.mag.by_gsm); bt = num(S.sum.mag.bt); src = 'sintesi NOAA'; ts = toMs(S.sum.mag.time_tag); fallback = true; }
   if (v == null && recent(S.sum.speed) && num(S.sum.speed.proton_speed) > 0) { v = num(S.sum.speed.proton_speed); fallback = true; }
   const dt = m && w ? Math.abs(toMs(m.time_tag) - toMs(w.time_tag)) : Infinity;
-  const ey = bz != null && v != null && (dt <= 120000 || fallback) ? v * Math.max(0, -bz) * 1e-3 : null;
-  return { bz, bt, v, ey, src, ts, age: ts ? Math.max(0, Math.round((Date.now() - ts) / 60000)) : null, fresh: bz != null && v != null, fallback };
+  const ey = bz != null && v != null && (dt <= 120000 || fallback) ? v * emSouth(bz, by) * 1e-3 : null;
+  return { bz, by, bt, v, ey, src, ts, age: ts ? Math.max(0, Math.round((Date.now() - ts) / 60000)) : null, fresh: bz != null && v != null, fallback };
 }
 
 // carico recente: quanto Bz è stato a sud nella finestra, anche se spezzato in più episodi brevi da una risalita
@@ -115,7 +123,7 @@ function l1RecentLoad(hours) {
   const src = selectedSource();
   if (!src) return null;
   const cutoff = Date.now() - hours * 3600000;
-  const bz = seriesFor(S.magRaw, src, 'bz_gsm', cutoff), sp = seriesFor(S.windRaw, src, 'proton_speed', cutoff);
+  const bz = seriesFor(S.magRaw, src, 'bz_gsm', cutoff), sp = seriesFor(S.windRaw, src, 'proton_speed', cutoff), by = seriesFor(S.magRaw, src, 'by_gsm', cutoff);
   if (bz.length < 2) return null;
   let charge = 0, southMin = 0, totalMin = 0;
   for (let i = 1; i < bz.length; i++) {
@@ -124,7 +132,7 @@ function l1RecentLoad(hours) {
     totalMin += dt;
     if (b.v <= BZ_CFG.threshold) southMin += dt;
     const va = valueNear(sp, a.t), vb = valueNear(sp, b.t);
-    if (va > 0 && vb > 0) charge += dt * (va * Math.max(0, -a.v) + vb * Math.max(0, -b.v)) * 0.0005;
+    if (va > 0 && vb > 0) charge += dt * (va * emSouth(a.v, valueNear(by, a.t)) + vb * emSouth(b.v, valueNear(by, b.t))) * 0.0005;
   }
   if (totalMin < hours * 60 * 0.5) return null; // troppi buchi nella finestra per fidarsi del totale
   return { hours, chargeMvmin: charge, southShare: southMin / totalMin };
@@ -190,6 +198,7 @@ function computeEpisodes() {
   const bz = seriesFor(magRaw, src, 'bz_gsm', cutoff);
   if (!bz.length) return;
   const sp = seriesFor(windRaw, src, 'proton_speed', cutoff);
+  const by = seriesFor(magRaw, src, 'by_gsm', cutoff);
 
   const raw = [];
   let cur = null, lastIn = null, previous = null;
@@ -220,7 +229,7 @@ function computeEpisodes() {
       const va = valueNear(sp, a.t), vb = valueNear(sp, b.t);
       // integra solo campioni adiacenti osservati: i valori a nord tollerati contano zero
       if (dt > 0 && dt <= 1.5 && va > 0 && vb > 0) {
-        charge += dt * (va * Math.max(0, -a.v) + vb * Math.max(0, -b.v)) * 0.0005;
+        charge += dt * (va * emSouth(a.v, valueNear(by, a.t)) + vb * emSouth(b.v, valueNear(by, b.t))) * 0.0005;
         coveredMin += dt;
       }
     }

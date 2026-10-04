@@ -1,6 +1,8 @@
 'use strict';
 // Aurora Bande · new version — riscontro a terra con i magnetometri IMAGE (FMI).
-// Regola esplorativa: |ΔX| ≥ 100 nT rispetto alla mediana di riferimento (30–20 min prima dell'arrivo stimato).
+// Regola esplorativa: |ΔX| ≥ 100 nT rispetto alla mediana di riferimento (30–20 min prima dell'arrivo stimato),
+// oppure una velocità di variazione ≥15 nT/min sostenuta per 3 minuti (soglia usata in letteratura per il riconoscimento
+// di un sub-storm su indici di rete, qui applicata come euristica a una singola stazione — vedi groundAnalysis).
 // Il risultato è «variazione temporalmente compatibile», mai una conferma dell'arrivo o dell'aurora.
 
 const GROUND_STATIONS = { KEV: [69.76, 27.01], MAS: [69.46, 23.70], KIL: [69.02, 20.79], IVA: [68.56, 27.29], MUO: [68.02, 23.53], PEL: [66.90, 24.08], RAN: [65.54, 26.25], OUJ: [64.52, 27.23], HAN: [62.25, 26.60], NUR: [60.50, 24.65] };
@@ -52,12 +54,26 @@ function groundAnalysis(e, samples, now) {
     if (peak === null || Math.abs(change) > Math.abs(peak)) { peak = change; peakTime = post[i][0]; }
   }
   if (peak === null) return { ...res, label: 'Misure discontinue', detail: 'Non ci sono cinque campioni sufficientemente ravvicinati.' };
-  const changed = Math.abs(peak) >= 100;
+  // velocità di variazione (nT/min su ~3 minuti): si affianca alla soglia di ampiezza, non la sostituisce. In letteratura
+  // (Newell & Gjerloev 2011, indice di rete SML) un sub-storm si riconosce da una variazione ≥15 nT/min sostenuta per
+  // ≥3 minuti più che da una soglia di ampiezza fissa: qui lo applichiamo, come euristica, alla sola stazione più vicina.
+  let maxRate = null, rateTime = null;
+  for (let i = 3; i < post.length; i++) {
+    const span = post[i][0] - post[i - 3][0];
+    if (span < 2.5 * 60000 || span > 3.5 * 60000) continue; // serve un passo di ~3 minuti, non un buco
+    const rate = (post[i][1] - post[i - 3][1]) / (span / 60000);
+    if (maxRate === null || Math.abs(rate) > Math.abs(maxRate)) { maxRate = rate; rateTime = post[i][0]; }
+  }
+  const changedAmp = Math.abs(peak) >= 100, changedRate = maxRate != null && Math.abs(maxRate) >= 15;
+  const changed = changedAmp || changedRate;
+  const label = changedAmp && changedRate ? 'Variazione marcata e rapida, compatibile nel tempo con il fronte'
+    : changedRate ? 'Variazione rapida, compatibile nel tempo con il fronte'
+    : changedAmp ? 'Variazione marcata, compatibile nel tempo con il fronte' : 'Nessuna variazione marcata';
   return {
-    state: changed ? 'signal' : 'monitoring',
-    label: changed ? 'Variazione marcata, compatibile nel tempo con il fronte' : 'Nessuna variazione marcata',
-    detail: 'Picco filtrato alle ' + fmtClock(peakTime) + (onset !== null ? ' · prima soglia alle ' + fmtClock(onset) : '') + ' · rispetto al riferimento precedente.',
-    delta: peak, onset, peakTime,
+    state: changed ? 'signal' : 'monitoring', label,
+    detail: 'Picco filtrato alle ' + fmtClock(peakTime) + (onset !== null ? ' · prima soglia alle ' + fmtClock(onset) : '') +
+      (changedRate ? ' · variazione più rapida alle ' + fmtClock(rateTime) + ' (' + Math.round(maxRate) + ' nT/min)' : '') + ' · rispetto al riferimento precedente.',
+    delta: peak, onset, peakTime, rate: maxRate,
   };
 }
 
