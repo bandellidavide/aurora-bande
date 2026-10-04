@@ -19,7 +19,7 @@ function changePlace(lat, lon, label, fromDevice) {
   if (!label && fromDevice) reverseGeocode();
 }
 
-let busy = false, last = { slow: 0, weather: 0, noaa: 0 };
+let busy = false, last = { slow: 0, weather: 0, noaa: 0, alerts: 0 };
 async function refreshNow(manual) {
   if (busy) return;
   busy = true; $('refreshBtn').disabled = true;
@@ -27,6 +27,8 @@ async function refreshNow(manual) {
   if (manual || now - last.slow > 5 * 60000) { last.slow = now; jobs.push(loadOvation().then(renderSoon), loadHemi().then(renderSoon)); }
   if (manual || now - last.weather > 10 * 60000) { last.weather = now; jobs.push(loadWeather().then(renderSoon)); }
   if (manual || (S.view === 'giorni' && now - last.noaa > 15 * 60000)) { last.noaa = now; jobs.push(loadNoaa().then(renderSoon)); }
+  // allerte NOAA: indipendenti dalla tab, servono al banner di Adesso. Cadenza propria, più stretta di loadNoaa.
+  if (manual || now - last.alerts > 5 * 60000) { last.alerts = now; jobs.push(loadAlertsOnly().then(renderSoon)); }
   try { await Promise.allSettled(jobs); } finally { busy = false; $('refreshBtn').disabled = false; }
   checkAlerts(); checkFrontAlerts(Date.now());
 }
@@ -47,10 +49,11 @@ function boot() {
   S.view = VIEWS.some((v) => v.id === h) ? h : 'adesso';
   renderAll();
   diagSet('Libreria sole/luna (SunCalc)', window.SunCalc ? 'ok' : 'wait', window.SunCalc ? 'ok' : 'in caricamento');
-  last = { slow: Date.now(), weather: Date.now(), noaa: S.view === 'giorni' ? Date.now() : 0 };
+  last = { slow: Date.now(), weather: Date.now(), noaa: S.view === 'giorni' ? Date.now() : 0, alerts: Date.now() };
   Promise.allSettled([
     loadL1().then(renderSoon), loadWeather().then(renderSoon), loadOvation().then(renderSoon), loadHemi().then(renderSoon),
     loadGround().then(renderSoon), loadWebcams().then(renderSoon), (S.view === 'giorni' ? loadNoaa().then(renderSoon) : Promise.resolve()),
+    loadAlertsOnly().then(renderSoon),
   ]).then(renderSoon);
   if (!S.label && S.fromDevice) reverseGeocode();
   setInterval(() => refreshNow(false), 60 * 1000);

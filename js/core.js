@@ -16,7 +16,7 @@ const S = {
   ovationRaw: null, ovation: null, hemi: null,
   sky: { data: null, lat: null, lon: null, fetchedAt: 0 },
   ground: { station: null, byStation: {}, errors: {}, pending: false, requestId: 0 },
-  noaa: null, webcams: [], camFilter: 'near', camRadius: 200, camLimit: 4,
+  noaa: null, noaaAlerts: null, webcams: [], camFilter: 'near', camRadius: 200, camLimit: 4,
   loadedAt: null, view: 'adesso',
 };
 

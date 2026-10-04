@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Niente accesso diretto dal browser: solo le Cloud Functions (Admin SDK, che non passa da qui)
+    // leggono e scrivono pushSubscriptions/ e state/.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

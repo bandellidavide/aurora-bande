@@ -103,7 +103,8 @@ function viewAdesso() {
     foot: '<button type="button" class="ab-btn-text" data-open="info">Come è calcolato ' + icon('info') + '</button>' + (sig.c.fallback ? '<span class="t-caption" style="color:var(--ink-3)">Campo da riepilogo NOAA</span>' : ''),
   });
   // colonna principale: grafico e sotto il quadro d'insieme; colonna a lato: le quattro misure e il riscontro a terra (su telefono le misure vanno in cima)
-  return '<div class="ab-page" data-cols="two"><div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
+  // il banner NOAA, se c'è, va sopra a tutto: è un dato confermato, non la nostra stima su Bz a L1 più sotto.
+  return '<div class="ab-page" data-cols="two">' + noaaAlertBanner() + '<div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
 }
 
 // L'arrivo in un colpo d'occhio: misura a L1 → viaggio → finestra d'arrivo (sfumata, perché la stima è indicativa) e «adesso».
@@ -377,12 +378,40 @@ function flareCard(n) {
     '<p class="t-caption ab-card__note">Dati: NOAA SWPC (satelliti GOES). Le «esplosioni» del Sole, misurate in raggi X: ogni punto è un brillamento, più in alto è più forte; l’anello segna quelli a cui NASA ha collegato una CME (può comparire con ore di ritardo). Ore locali, picco di ogni brillamento. Un brillamento forte non basta per un’aurora: serve una CME (una nube di plasma) diretta verso la Terra; qui sotto vedi se c’è stata.</p>', { right });
 }
 const G_WORDS = ['nessuna', 'minore', 'moderata', 'forte', 'severa', 'estrema'];
+// le allerte danno un Kp intero (G1 = Kp 5): sotto G1 non è ancora una «tempesta». Condivisa fra Giorni e il banner di Adesso.
+const alertHead = (a) => { if (a.kp == null) return 'Allerta geomagnetica'; const g = Math.max(0, a.kp - 4); return g > 0 ? 'Tempesta geomagnetica G' + g + ' · ' + G_WORDS[g] + ' (Kp ' + a.kp + ')' : 'Attività geomagnetica elevata · Kp ' + a.kp; };
+
+// banner in cima a Adesso: solo quando NOAA conferma una tempesta G1+ in corso (dato ufficiale, non il nostro calcolo su Bz a L1).
+// Si nasconde da sola quando l'allerta scade o quando non c'è nulla da mostrare.
+function noaaAlertBanner() {
+  const list = S.noaaAlerts && S.noaaAlerts.list; if (!list) return '';
+  const now = Date.now();
+  // solo le allerte con una finestra di validità dichiarata da NOAA (WARNING/EXTENDED WARNING): un ALERT puntuale
+  // ("soglia raggiunta", senza scadenza) non va trattato come valido per sempre.
+  const active = list.filter((a) => a.kp != null && a.kp >= 5 && a.until != null && a.until > now);
+  if (!active.length) return '';
+  const top = active.reduce((m, a) => (a.kp > m.kp ? a : m), active[0]);
+  return '<a class="ab-noaaband ab-golink ab-span" href="#giorni" data-go="giorni">' +
+    '<span class="t-label">Allerta NOAA attiva</span><b>' + esc(alertHead(top)) + '</b>' +
+    '<span class="t-body-sm">' + (top.until != null ? 'Valida fino alle ' + fmtClock(top.until) + ' · ' : '') + 'dato ufficiale NOAA, non la nostra stima</span>' +
+    '<span class="ab-golink__cta">Tutte le allerte' + icon('chev') + '</span></a>';
+}
 let MEDIA = { timers: {}, frames: {} };
 function viewGiorni() {
   const n = S.noaa;
   if (!n) return '<div class="ab-page"><div class="ab-span"><h1 class="ab-h1">Giorni</h1></div><div class="ab-skel"></div><div class="ab-skel"></div></div>';
   const sum = noaaSummary();
   const summary = sum ? situationMarkup({ id: 'sum', level: sum.level, meter: false, eyebrow: 'NOAA · 3 giorni', tag: tag('forecast', TAGS.forecast), title: sum.title, why: sum.why, caveat: 'Il Kp è una media planetaria: il clima generale, non l’aurora sopra di te.' }).replace('<h1 ', '<h2 ').replace('</h1>', '</h2>') : card('Previsione NOAA', empty('Bollettino non disponibile ora.'));
+  // «adesso» vs «previsto»: le due domande che contano appena si apre Giorni, una sopra l'altra, stesso stile della card di previsione.
+  const nowActive = (n.alerts || []).filter((a) => a.kp != null && a.kp >= 5 && a.until != null && a.until > Date.now());
+  const nowTop = nowActive.length ? nowActive.reduce((m, a) => (a.kp > m.kp ? a : m), nowActive[0]) : null;
+  const nowCard = situationMarkup({
+    id: 'now', level: nowTop ? Math.max(1, Math.min(3, nowTop.kp - 4)) : 0, meter: false,
+    eyebrow: 'NOAA · adesso', tag: tag('measured', TAGS.measured),
+    title: nowTop ? alertHead(nowTop) : 'Nessuna tempesta in corso',
+    why: nowTop ? ('NOAA conferma questa allerta in questo momento' + (nowTop.until != null ? ', valida fino alle ' + fmtClock(nowTop.until) : '') + '.') : 'NOAA non segnala in questo momento nessuna allerta geomagnetica attiva (G1 o superiore): il campo può comunque muoversi nelle prossime ore, guarda Adesso e Fronti.',
+    caveat: 'Dato ufficiale NOAA: cosa sta succedendo adesso, non una previsione.',
+  }).replace('<h1 ', '<h2 ').replace('</h1>', '</h2>');
   // scale
   let scales = empty('Scale non disponibili ora.');
   if (n.scales) {
@@ -444,15 +473,15 @@ function viewGiorni() {
   const regCard = more('Macchie solari', !sr ? 'non disponibile ora' : sr.regions.length ? sr.regions.length + (sr.regions.length === 1 ? ' regione con macchie' : ' regioni con macchie') : 'nessuna regione con macchie oggi', reg + (sr && sr.issued ? '<p class="t-caption ab-card__note">Bollettino NOAA/USAF del ' + fmtDayClock(sr.issued) + '.</p>' : ''));
   const flCard = flareCard(n), cmCard = cmeCard(n);
   // allerte: solo geomagnetiche (le altre, per protoni/elettroni/radio, riguardano i satelliti, non l'aurora), con un titolo in
-  // italiano invece della sola sigla NOAA in inglese.
-  // le allerte danno un Kp intero (G1 = Kp 5, come da didascalia della scala sotto): sotto G1 non è ancora una «tempesta».
-  const alertHead = (a) => { if (a.kp == null) return 'Allerta geomagnetica'; const g = Math.max(0, a.kp - 4); return g > 0 ? 'Tempesta geomagnetica G' + g + ' · ' + G_WORDS[g] + ' (Kp ' + a.kp + ')' : 'Attività geomagnetica elevata · Kp ' + a.kp; };
+  // italiano invece della sola sigla NOAA in inglese. alertHead() è condivisa con il banner di Adesso (sopra, vicino a G_WORDS).
   let al = empty('Allerte non disponibili ora.');
   if (n.alerts && n.alerts.length) al = '<ul class="ab-alerts">' + n.alerts.slice(0, 4).map((a) => '<li class="ab-alert"><b>' + esc(alertHead(a)) + '</b>' + tag(a.kind, a.word) + '<span class="when">' + esc(fmtDayClock(a.ms)) + '</span><span class="ab-alert__orig" lang="en">' + esc(a.title) + '</span></li>').join('') + '</ul><p class="t-caption ab-card__note">«Raggiunto» è un ALERT: la soglia è già stata superata. «Previsto» è un avviso prima che accada. Sotto ogni riga il titolo originale NOAA.</p>';
   else if (n.alerts) al = empty('Nessuna allerta geomagnetica nelle ultime ore.');
   const alCard = more('Allerte NOAA', n.alerts && n.alerts.length ? 'ultima: ' + alertHead(n.alerts[0]) + ', ' + fmtDayClock(n.alerts[0].ms) : n.alerts ? 'nessuna geomagnetica di recente' : 'non disponibili ora', al);
   const moreCard = '<section class="ab-card ab-morelist"><div class="ab-card__head"><h2 class="t-title">Altri dati NOAA</h2></div>' + regCard + alCard + noteCard + kpCard + scalesCard + '</section>';
-  return '<div class="ab-page" data-cols="even"><div class="ab-span"><h1 class="ab-h1">Giorni</h1><p class="ab-lede">Cosa ha fatto il Sole negli ultimi giorni e cosa prevede NOAA.</p></div><div class="ab-span">' + flCard + '</div><div class="ab-span" id="cmeCard">' + cmCard + '</div><div class="ab-stack">' + summary + nightsCard + '</div><div class="ab-stack">' + sun + '</div><div class="ab-stack">' + moreCard + '</div></div>';
+  return '<div class="ab-page" data-cols="even"><div class="ab-span"><h1 class="ab-h1">Giorni</h1><p class="ab-lede">Cosa ha fatto il Sole negli ultimi giorni e cosa prevede NOAA.</p></div>' +
+    '<div class="ab-span ab-stack">' + nowCard + summary + '</div>' +
+    '<div class="ab-span">' + flCard + '</div><div class="ab-span" id="cmeCard">' + cmCard + '</div><div class="ab-stack">' + nightsCard + '</div><div class="ab-stack">' + sun + '</div><div class="ab-stack">' + moreCard + '</div></div>';
 }
 
 function toggleAnim(key) {
@@ -492,11 +521,20 @@ function renderAlertsSheet() {
     sw('f', 'Inizio della finestra d’arrivo', 'Quando la finestra stimata comincia', alertFlags.watchWindow, 'data-flag="watchWindow"') +
     sw('s', 'Suono', 'Un breve segnale acustico', alertFlags.sound, 'data-flag="sound"') +
     '<div style="margin:var(--space-3) 0"><button type="button" class="ab-btn" id="notifBtn">Attiva le notifiche del browser</button><p class="t-caption" id="notifMsg" style="margin-top:var(--space-2);color:var(--ink-3)">' + (window.Notification ? 'Permesso attuale: ' + (Notification.permission === 'granted' ? 'consentite' : Notification.permission === 'denied' ? 'negate' : 'non ancora richieste') + '.' : 'Notifiche non supportate da questo browser.') + '</p></div>' +
+    '<h3>Notifiche push</h3><p class="t-body-sm">Diverse dagli avvisi qui sopra: arrivano anche ad app chiusa, quando NOAA conferma una tempesta geomagnetica G1 o superiore. Una volta attivate restano attive: non si spengono da sole riaprendo l’app.</p>' +
+    sw('push', 'Notifiche push (anche ad app chiusa)', '', false, 'id="pushSw"') +
+    '<p class="t-caption" id="pushMsg" style="margin-top:var(--space-2);color:var(--ink-3)">Verifica in corso…</p>' +
     '<h3>Soglie</h3><p class="t-body-sm">Un avviso scatta alla soglia e si ripete a ogni «passo» oltre la soglia; si riarma da solo quando il valore torna indietro.</p>' +
     ALERT_RULES.map((r) => sw(r.key, r.label, r.help + (r.unit ? ' (' + r.unit + ')' : ''), alertSettings[r.key + 'Enabled'], 'data-setting="' + r.key + 'Enabled"') +
       '<div class="ab-thresh"><div class="ab-field"><label for="' + r.key + 'T">Soglia</label><input class="ab-input" id="' + r.key + 'T" type="number" step="any" data-setting="' + r.key + 'Threshold" value="' + alertSettings[r.key + 'Threshold'] + '"></div><div class="ab-field"><label for="' + r.key + 'S">Ripeti ogni</label><input class="ab-input" id="' + r.key + 'S" type="number" step="any" min="0.1" data-setting="' + r.key + 'Step" value="' + alertSettings[r.key + 'Step'] + '"></div></div>').join('') +
     '<h3>Ultimi avvisi</h3><div class="ab-alertlog" id="alertLog"></div></div>';
   renderAlertLog();
+  // stato reale della sottoscrizione push: non un flag nostro, va chiesto al browser (asincrono)
+  pushStatus().then((st) => {
+    const sw2 = $('pushSw'), msg = $('pushMsg'); if (!sw2 || !msg) return;
+    sw2.checked = st === 'on';
+    msg.textContent = st === 'unsupported' ? 'Non disponibili su questo browser.' : st === 'denied' ? 'Notifiche bloccate nelle impostazioni del browser/telefono: vanno riabilitate da lì.' : st === 'on' ? 'Attive su questo dispositivo.' : 'Non attive su questo dispositivo.';
+  });
 }
 function renderAlertLog() {
   const el = $('alertLog'); if (!el) return;
@@ -594,7 +632,7 @@ function bindUI() {
     if (t.closest('#diagCopy')) { const txt = diagReport(); try { await navigator.clipboard.writeText(txt); $('diagMsg').textContent = 'Copiato.'; } catch (e) { $('diagMsg').textContent = 'Copia non riuscita: seleziona e copia a mano.'; } return; }
     if (t.tagName === 'DIALOG') t.close(); // clic sullo sfondo
   });
-  document.addEventListener('change', (ev) => {
+  document.addEventListener('change', async (ev) => {
     const t = ev.target;
     if (t.dataset && t.dataset.flag) {
       const f = t.dataset.flag;
@@ -603,6 +641,13 @@ function bindUI() {
       saveAlerts(); return;
     }
     if (t.dataset && t.dataset.setting) { const v = t.type === 'checkbox' ? t.checked : parseFloat(t.value); if (t.type === 'checkbox' || isFinite(v)) alertSettings[t.dataset.setting] = v; saveAlerts(); return; }
+    if (t.id === 'pushSw') {
+      t.disabled = true;
+      const msg = t.checked ? await pushSubscribe() : await pushUnsubscribe().then(() => 'Notifiche push disattivate su questo dispositivo.');
+      t.disabled = false; t.checked = (await pushStatus()) === 'on';
+      if ($('pushMsg')) $('pushMsg').textContent = msg;
+      return;
+    }
     if (t.id === 'srcSel') { S.source = t.value; S.selectedStart = null; recomputeL1(); renderAll(); return; }
     if (t.id === 'camRadius') { S.camRadius = Number(t.value); S.camLimit = 4; loadWebcams().then(() => renderView('webcam')); return; }
   });

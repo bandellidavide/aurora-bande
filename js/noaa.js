@@ -94,6 +94,11 @@ function flaresByDay(flares) {
   return by;
 }
 
+// fine validità dell'allerta: NOAA la chiama «Valid To» su un'allerta fresca, «Now Valid Until» quando la estende
+function parseAlertUntil(msg) {
+  const m = /(?:Now Valid Until|Valid To):\s*(\d{4}) (\w{3}) (\d{1,2}) (\d{2})(\d{2}) UTC/.exec(msg);
+  return m ? Date.UTC(+m[1], MONTHS[m[2]], +m[3], +m[4], +m[5]) : null;
+}
 function parseAlert(a) {
   const msg = (a.message || '').replace(/\r/g, '');
   const title = msg.split('\n').map((s) => s.trim()).find((s) => /^(EXTENDED )?(ALERT|WARNING|WATCH|SUMMARY|CONTINUED ALERT)\b/i.test(s)) || (msg.split('\n').find((s) => s.trim() && !/^Space Weather|^Serial|^Issue/i.test(s.trim())) || '').trim();
@@ -101,7 +106,7 @@ function parseAlert(a) {
   const isAlert = /^ALERT|^CONTINUED ALERT/i.test(title), isSummary = /^SUMMARY/i.test(title);
   // NOAA manda anche allerte per protoni/elettroni/radio (utili per satelliti, non per l'aurora): si tengono solo quelle geomagnetiche.
   const geo = /Geomagnetic|K-index/i.test(title);
-  return { id: a.product_id, ms: toMs(a.issue_datetime), title, kp: kp ? +kp[1] : null, kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto', geo };
+  return { id: a.product_id, ms: toMs(a.issue_datetime), title, kp: kp ? +kp[1] : null, until: parseAlertUntil(msg), kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto', geo };
 }
 
 function frameTime(url) {
@@ -141,6 +146,13 @@ async function loadNoaa() {
     alerts: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo).slice(0, 6) : null,
     media: { suvi, ccor, enlil }, donki: Array.isArray(cme) ? { cme, flr: Array.isArray(flr) ? flr : [] } : null, loadedAt: Date.now(),
   };
+}
+
+// solo le allerte NOAA, indipendentemente dalla tab Giorni: serve al banner di Adesso, che deve vedere
+// se c'è una tempesta confermata da NOAA anche se l'utente non ha mai aperto Giorni in questa sessione.
+async function loadAlertsOnly() {
+  const alerts = await getJSON(SWPC + '/products/alerts.json', 'NOAA — allerte ufficiali (Adesso)');
+  S.noaaAlerts = { list: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo) : null, loadedAt: Date.now() };
 }
 
 // sintesi: una frase che parafrasa la motivazione del bollettino («No G1 … storms are expected»)
