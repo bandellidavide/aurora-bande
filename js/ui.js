@@ -104,7 +104,7 @@ function viewAdesso() {
   });
   // colonna principale: grafico e sotto il quadro d'insieme; colonna a lato: le quattro misure e il riscontro a terra (su telefono le misure vanno in cima)
   // il banner NOAA, se c'è, va sopra a tutto: è un dato confermato, non la nostra stima su Bz a L1 più sotto.
-  return '<div class="ab-page" data-cols="two">' + noaaAlertBanner() + '<div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
+  return '<div class="ab-page" data-cols="two">' + noaaAlertBanner() + cmeNotice() +'<div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
 }
 
 // L'arrivo in un colpo d'occhio: misura a L1 → viaggio → finestra d'arrivo (sfumata, perché la stima è indicativa) e «adesso».
@@ -344,7 +344,7 @@ function cmeCard(n) {
   const right = tag('estimated', 'Analisi manuale · NASA');
   const title = 'CME dal Sole: vanno verso la Terra?';
   const rows = donkiRows(n.donki, n.flares);
-  if (!rows) return card(title, empty('Le analisi NASA DONKI non sono raggiungibili ora.') + '<div class="ab-linkrow">' + extLink('https://kauai.ccmc.gsfc.nasa.gov/DONKI/', 'NASA DONKI') + '</div>', { right });
+  if (!rows) return card(title, empty('Le analisi NASA DONKI non sono raggiungibili ora.') + '<div class="ab-linkrow">' + extLink('https://ccmc.gsfc.nasa.gov/DONKI/', 'NASA DONKI') + '</div>', { right });
   const now = Date.now();
   const inc = rows.filter((r) => r.kind === 'cme' && ['incoming', 'glancing'].includes(cmeOutcome(r, now))).sort((a, b) => a.arrival - b.arrival)[0];
   const arr = rows.filter((r) => r.kind === 'cme' && r.shock && r.shock <= now && r.shock > now - 48 * 3600e3).sort((a, b) => b.shock - a.shock)[0];
@@ -359,7 +359,7 @@ function cmeCard(n) {
     : '<p class="t-body-sm ab-flarenone">Nessuna CME rilevante negli ultimi 10 giorni.</p>';
   const manual = '<p class="ab-notice ab-manual">Una <b>CME</b> (espulsione di massa coronale) è una nube di plasma lanciata dal Sole. Sono dati che arrivano da misurazioni e calcoli fatti a mano da ricercatori NASA e NOAA, non da misure automatiche.</p>';
   return card(title, manual + verdict + list +
-    '<p class="t-caption ab-card__note">Fonte: NASA CCMC DONKI. NASA avverte che sono informazioni in tempo reale di qualità prototipale, da usare in contesto di ricerca. Un brillamento da solo non basta: serve una CME lanciata verso la Terra, e poi il campo magnetico giusto (Bz a sud) quando arriva. Le analisi possono comparire con ore di ritardo e l’errore tipico dell’ora d’arrivo è di molte ore. «Posizione»: vicino al centro del disco = rivolta verso la Terra; sul bordo = no.</p><div class="ab-linkrow">' + extLink('https://kauai.ccmc.gsfc.nasa.gov/DONKI/', 'NASA DONKI') + '</div>', { right });
+    '<p class="t-caption ab-card__note">Fonte: NASA CCMC DONKI. NASA avverte che sono informazioni in tempo reale di qualità prototipale, da usare in contesto di ricerca. Un brillamento da solo non basta: serve una CME lanciata verso la Terra, e poi il campo magnetico giusto (Bz a sud) quando arriva. Le analisi possono comparire con ore di ritardo e l’errore tipico dell’ora d’arrivo è di molte ore. «Posizione»: vicino al centro del disco = rivolta verso la Terra; sul bordo = no.</p><div class="ab-linkrow">' + extLink('https://ccmc.gsfc.nasa.gov/DONKI/', 'NASA DONKI') + '</div>', { right });
 }
 const FLARE_WORD = { X: 'forte', M: 'medio', C: 'piccolo', B: 'debole', A: 'debole' };
 function flareCard(n) {
@@ -402,6 +402,16 @@ function noaaAlertBanner() {
     '<span class="t-label">Allerta NOAA attiva</span><b>' + esc(alertHead(top)) + '</b>' +
     '<span class="t-body-sm">' + (top.until != null ? 'Valida fino alle ' + fmtClock(top.until) + ' · ' : '') + 'dato ufficiale NOAA, non la nostra stima</span>' +
     '<span class="ab-golink__cta">Tutte le allerte' + icon('chev') + '</span></a>';
+}
+// CME in viaggio verso la Terra secondo le analisi NASA DONKI (simulazione ENLIL): è un'anticipazione, con ore di incertezza.
+function cmeNotice() {
+  const d = S.noaaAlerts && S.noaaAlerts.donki; if (!d) return '';
+  const now = Date.now();
+  const inc = (donkiRows(d, null) || []).filter((r) => r.kind === 'cme' && r.arrival && ['incoming', 'glancing'].includes(cmeOutcome(r, now))).sort((a, b) => a.arrival - b.arrival)[0];
+  if (!inc) return '';
+  return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>CME in viaggio</b> · ' + (inc.glancing ? 'passaggio di striscio' : 'verso la Terra') + ', arrivo stimato ' + esc(fmtDayClock(inc.arrival)) +
+    (inc.kp ? ', Kp stimato ' + (inc.kp[0] === inc.kp[1] ? inc.kp[0] : inc.kp[0] + '–' + inc.kp[1]) : '') + (inc.speed ? ' · ' + Math.round(inc.speed) + ' km/s' : '') +
+    ' · simulazione NASA, incerta di diverse ore <span class="ab-golink__cta">Dettagli' + icon('chev') + '</span></a>';
 }
 let MEDIA = { timers: {}, frames: {} };
 function viewGiorni() {

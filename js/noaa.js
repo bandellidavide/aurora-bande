@@ -121,7 +121,8 @@ function pickCurrentFrame(frames, forecastRun) {
   return past.length ? past[past.length - 1] : frames[frames.length - 1];
 }
 
-const DONKI = 'https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get/';
+// dal 30 settembre 2026 NASA ha spostato l'API DONKI qui (stessi parametri e stessi dati); il vecchio indirizzo kauai.ccmc risponde con un redirect senza CORS
+const DONKI = 'https://ccmc.gsfc.nasa.gov/DONKI-API/get/';
 
 async function loadNoaa() {
   const [scales, fcTxt, discTxt, srsTxt, flares, alerts, suvi, ccor, enlil] = await Promise.all([
@@ -151,8 +152,13 @@ async function loadNoaa() {
 // solo le allerte NOAA, indipendentemente dalla tab Giorni: serve al banner di Adesso, che deve vedere
 // se c'è una tempesta confermata da NOAA anche se l'utente non ha mai aperto Giorni in questa sessione.
 async function loadAlertsOnly() {
-  const alerts = await getJSON(SWPC + '/products/alerts.json', 'NOAA — allerte ufficiali (Adesso)');
-  S.noaaAlerts = { list: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo) : null, loadedAt: Date.now() };
+  const d0 = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10), d1 = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const [alerts, cme, flr] = await Promise.all([
+    getJSON(SWPC + '/products/alerts.json', 'NOAA — allerte ufficiali (Adesso)'),
+    getJSON(DONKI + 'CME?startDate=' + d0 + '&endDate=' + d1, 'NASA DONKI — CME (Adesso)'),
+    getJSON(DONKI + 'FLR?startDate=' + d0 + '&endDate=' + d1, 'NASA DONKI — brillamenti (Adesso)'),
+  ]);
+  S.noaaAlerts = { list: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo) : null, donki: Array.isArray(cme) ? { cme, flr: Array.isArray(flr) ? flr : [] } : null, loadedAt: Date.now() };
 }
 
 // sintesi: una frase che parafrasa la motivazione del bollettino («No G1 … storms are expected»)
