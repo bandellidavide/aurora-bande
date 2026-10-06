@@ -388,8 +388,15 @@ function noaaAlertBanner() {
   const now = Date.now();
   // solo le allerte con una finestra di validità dichiarata da NOAA (WARNING/EXTENDED WARNING): un ALERT puntuale
   // ("soglia raggiunta", senza scadenza) non va trattato come valido per sempre.
-  const active = list.filter((a) => a.kp != null && a.kp >= 5 && a.until != null && a.until > now);
-  if (!active.length) return '';
+  const valid = list.filter((a) => a.kp != null && a.until != null && a.until > now);
+  const active = valid.filter((a) => a.kp >= 5);
+  if (!active.length) {
+    // niente G1+: si vede comunque lo stato, così «nessun banner» non si confonde con «non ha caricato»
+    const soft = valid.length ? valid.reduce((m, a) => (a.kp > m.kp ? a : m), valid[0]) : null;
+    return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA</b> · ' + (soft
+      ? 'avviso in vigore: ' + esc(alertHead(soft)) + ', fino alle ' + fmtClock(soft.until) + ' · sotto la soglia di tempesta (G1 = Kp 5)'
+      : 'nessuna allerta geomagnetica attiva in questo momento') + ' <span class="ab-golink__cta">Comunicati' + icon('chev') + '</span></a>';
+  }
   const top = active.reduce((m, a) => (a.kp > m.kp ? a : m), active[0]);
   return '<a class="ab-noaaband ab-golink ab-span" href="#giorni" data-go="giorni">' +
     '<span class="t-label">Allerta NOAA attiva</span><b>' + esc(alertHead(top)) + '</b>' +
@@ -474,13 +481,15 @@ function viewGiorni() {
   const flCard = flareCard(n), cmCard = cmeCard(n);
   // allerte: solo geomagnetiche (le altre, per protoni/elettroni/radio, riguardano i satelliti, non l'aurora), con un titolo in
   // italiano invece della sola sigla NOAA in inglese. alertHead() è condivisa con il banner di Adesso (sopra, vicino a G_WORDS).
-  let al = empty('Allerte non disponibili ora.');
-  if (n.alerts && n.alerts.length) al = '<ul class="ab-alerts">' + n.alerts.slice(0, 4).map((a) => '<li class="ab-alert"><b>' + esc(alertHead(a)) + '</b>' + tag(a.kind, a.word) + '<span class="when">' + esc(fmtDayClock(a.ms)) + '</span><span class="ab-alert__orig" lang="en">' + esc(a.title) + '</span></li>').join('') + '</ul><p class="t-caption ab-card__note">«Raggiunto» è un ALERT: la soglia è già stata superata. «Previsto» è un avviso prima che accada. Sotto ogni riga il titolo originale NOAA.</p>';
-  else if (n.alerts) al = empty('Nessuna allerta geomagnetica nelle ultime ore.');
-  const alCard = more('Allerte NOAA', n.alerts && n.alerts.length ? 'ultima: ' + alertHead(n.alerts[0]) + ', ' + fmtDayClock(n.alerts[0].ms) : n.alerts ? 'nessuna geomagnetica di recente' : 'non disponibili ora', al);
-  const moreCard = '<section class="ab-card ab-morelist"><div class="ab-card__head"><h2 class="t-title">Altri dati NOAA</h2></div>' + regCard + alCard + noteCard + kpCard + scalesCard + '</section>';
+  const nowMs = Date.now();
+  const stateOf = (a) => a.until != null ? (a.until > nowMs ? 'In vigore fino alle ' + fmtClock(a.until) : 'Scaduto alle ' + fmtClock(a.until)) : a.kind === 'measured' ? 'Soglia raggiunta' : '';
+  let al = empty('Comunicati NOAA non disponibili ora.');
+  if (n.alerts && n.alerts.length) al = '<ul class="ab-alerts">' + n.alerts.slice(0, 6).map((a) => '<li class="ab-alert"' + (a.until != null && a.until <= nowMs ? ' style="opacity:.55"' : '') + '><b>' + esc(alertHead(a)) + '</b>' + tag(a.kind, a.word) + '<span class="when">' + esc(fmtDayClock(a.ms)) + (stateOf(a) ? ' · ' + esc(stateOf(a)) : '') + '</span><span class="ab-alert__orig" lang="en">' + esc(a.title) + '</span></li>').join('') + '</ul><p class="t-caption ab-card__note">«Raggiunto» è un ALERT: la soglia è già stata superata. «Previsto» è un avviso prima che accada, con la sua finestra di validità. Sotto ogni riga il titolo originale NOAA. Solo comunicati geomagnetici: gli altri (protoni, radio) riguardano i satelliti, non l’aurora.</p>';
+  else if (n.alerts) al = empty('Nessun comunicato geomagnetico NOAA nelle ultime ore.');
+  const alCard = card('Comunicati NOAA', al, { right: tag('measured', 'Ufficiale NOAA') });
+  const moreCard = '<section class="ab-card ab-morelist"><div class="ab-card__head"><h2 class="t-title">Altri dati NOAA</h2></div>' + regCard + noteCard + kpCard + scalesCard + '</section>';
   return '<div class="ab-page" data-cols="even"><div class="ab-span"><h1 class="ab-h1">Giorni</h1><p class="ab-lede">Cosa ha fatto il Sole negli ultimi giorni e cosa prevede NOAA.</p></div>' +
-    '<div class="ab-span ab-stack">' + nowCard + summary + '</div>' +
+    '<div class="ab-span ab-stack">' + nowCard + summary + alCard + '</div>' +
     '<div class="ab-span">' + flCard + '</div><div class="ab-span" id="cmeCard">' + cmCard + '</div><div class="ab-stack">' + nightsCard + '</div><div class="ab-stack">' + sun + '</div><div class="ab-stack">' + moreCard + '</div></div>';
 }
 

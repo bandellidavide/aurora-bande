@@ -543,7 +543,7 @@ a{color:var(--ink-2)}
   .ab-page[data-cols="two"] .ab-stack{display:contents}
   .ab-page[data-cols="two"] .ab-metrics{order:-1}
   .ab-page[data-cols="two"] .ab-geohint{order:-2}
-  .ab-page[data-cols="two"] .ab-noaaband{order:-3}
+  .ab-page[data-cols="two"] .ab-noaaband,.ab-page[data-cols="two"]>.ab-notice.ab-golink{order:-3}
 }
 
 /* cinque sezioni nella barra in basso */
