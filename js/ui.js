@@ -377,6 +377,12 @@ function flareCard(n) {
     '<div class="ab-chart" id="flareChart" style="margin-top:var(--space-3)"></div><div class="ab-fdetail" id="flareDetail" aria-live="polite"></div>' + legend +
     '<p class="t-caption ab-card__note">Dati: NOAA SWPC (satelliti GOES). Le «esplosioni» del Sole, misurate in raggi X: ogni punto è un brillamento, più in alto è più forte; l’anello segna quelli a cui NASA ha collegato una CME (può comparire con ore di ritardo). Ore locali, picco di ogni brillamento. Un brillamento forte non basta per un’aurora: serve una CME (una nube di plasma) diretta verso la Terra; qui sotto vedi se c’è stata.</p>', { right });
 }
+// probabilità NOAA di brillamento M e X nelle prossime 24 ore per una regione (riga in più sotto la regione)
+function flareProbRow(num, fp) {
+  const p = fp && fp.by[num]; if (!p || p.m == null) return '';
+  const hi = p.m >= 30 || p.x >= 10;
+  return '<span class="t-caption" style="grid-column:1/-1;color:' + (hi ? 'var(--ink-1)' : 'var(--ink-3)') + '">Probabilità di brillamento nelle prossime 24 ore: M ' + esc(p.m) + '% · X ' + esc(p.x) + '%' + (hi ? ' · regione attiva' : '') + '</span>';
+}
 const G_WORDS = ['nessuna', 'minore', 'moderata', 'forte', 'severa', 'estrema'];
 // le allerte danno un Kp intero (G1 = Kp 5): sotto G1 non è ancora una «tempesta». Condivisa fra Giorni e il banner di Adesso.
 const watchDay = (ms) => new Date(ms).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace('.', '');
@@ -500,7 +506,7 @@ function viewGiorni() {
   const sr = n.srs;
   let reg;
   if (!sr) reg = empty('Bollettino delle regioni non disponibile ora.');
-  else if (sr.regions.length) reg = regionMapSvg(sr.regions) + '<div>' + sr.regions.map((r) => '<div class="ab-region"><b>' + esc(r.num) + '</b><span>' + esc(r.loc) + ' · area ' + esc(r.area) + '</span><span class="v">' + esc(r.spots) + ' macchie · ' + esc(r.mag) + '</span></div>').join('') + '</div>';
+  else if (sr.regions.length) reg = regionMapSvg(sr.regions) + '<div>' + sr.regions.map((r) => '<div class="ab-region"><b>' + esc(r.num) + '</b><span>' + esc(r.loc) + ' · area ' + esc(r.area) + '</span><span class="v">' + esc(r.spots) + ' macchie · ' + esc(r.mag) + '</span>' + flareProbRow(r.num, n.flareProb) + '</div>').join('') + '</div>';
   else reg = '<p class="t-body ab-empty">Nessuna macchia solare numerata nel bollettino di oggi.</p>' + (sr.plages.length ? '<p class="t-body-sm" style="color:var(--ink-3);margin-top:var(--space-2)">NOAA elenca solo ' + (sr.plages.length === 1 ? 'una regione senza macchie (plaga)' : sr.plages.length + ' regioni senza macchie (plaghe)') + ': ' + sr.plages.map((p) => esc(p.num)).join(' e ') + '.</p>' : '');
   const regCard = more('Macchie solari', !sr ? 'non disponibile ora' : sr.regions.length ? sr.regions.length + (sr.regions.length === 1 ? ' regione con macchie' : ' regioni con macchie') : 'nessuna regione con macchie oggi', reg + (sr && sr.issued ? '<p class="t-caption ab-card__note">Bollettino NOAA/USAF del ' + fmtDayClock(sr.issued) + '.</p>' : ''));
   const flCard = flareCard(n), cmCard = cmeCard(n);

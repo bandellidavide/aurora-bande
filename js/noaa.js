@@ -55,6 +55,14 @@ function parseDiscussion(txt) {
   return { issued: parseIssued(txt), sections: out };
 }
 
+// «solar_regions.json»: probabilità (%) che ogni regione dia un brillamento C, M o X nelle 24 ore; si tiene l'ultimo giorno del file
+function parseFlareProb(rows) {
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const last = rows.reduce((m, r) => (r.observed_date > m ? r.observed_date : m), '');
+  const out = {};
+  rows.filter((r) => r.observed_date === last).forEach((r) => { out[String(r.region)] = { c: r.c_flare_probability, m: r.m_flare_probability, x: r.x_flare_probability }; });
+  return { date: last, by: out };
+}
 // «srs.txt»: regioni con macchie e plaghe (colonne: Nmbr Location Lo Area Z LL NN Mag Type)
 function parseSRS(txt) {
   if (!txt) return null;
@@ -138,7 +146,7 @@ function pickCurrentFrame(frames, forecastRun) {
 const DONKI = 'https://ccmc.gsfc.nasa.gov/DONKI-API/get/';
 
 async function loadNoaa() {
-  const [scales, fcTxt, discTxt, srsTxt, flares, alerts, suvi, ccor, enlil] = await Promise.all([
+  const [scales, fcTxt, discTxt, srsTxt, flares, alerts, suvi, ccor, enlil, regJson] = await Promise.all([
     getJSON(SWPC + '/products/noaa-scales.json', 'NOAA — scale G/S/R'),
     getTEXT(SWPC + '/text/3-day-forecast.txt', 'NOAA — previsione a 3 giorni'),
     getTEXT(SWPC + '/text/discussion.txt', 'NOAA — commento dei previsori'),
@@ -148,6 +156,7 @@ async function loadNoaa() {
     getJSON(SWPC + '/products/animations/suvi-primary-195.json', 'NOAA — immagini SUVI'),
     getJSON(SWPC + '/products/ccor1/jpegs.json', 'NOAA — coronografo CCOR1'),
     getJSON(SWPC + '/products/animations/enlil.json', 'NOAA — modello WSA-ENLIL'),
+    getJSON(SWPC + '/json/solar_regions.json', 'NOAA — probabilità di brillamento per regione'),
   ]);
   // analisi manuali delle CME di NASA DONKI: senza chiave, ultimi 10 giorni. Se non risponde, il resto della scheda funziona lo stesso.
   const d0 = new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10), d1 = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
@@ -156,7 +165,7 @@ async function loadNoaa() {
     getJSON(DONKI + 'FLR?startDate=' + d0 + '&endDate=' + d1, 'NASA DONKI — brillamenti'),
   ]);
   S.noaa = {
-    scales, fc: parseForecast(fcTxt), disc: parseDiscussion(discTxt), srs: parseSRS(srsTxt), flares,
+    scales, fc: parseForecast(fcTxt), disc: parseDiscussion(discTxt), srs: parseSRS(srsTxt), flares, flareProb: parseFlareProb(regJson),
     alerts: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo).slice(0, 6) : null,
     media: { suvi, ccor, enlil }, donki: Array.isArray(cme) ? { cme, flr: Array.isArray(flr) ? flr : [] } : null, loadedAt: Date.now(),
   };
