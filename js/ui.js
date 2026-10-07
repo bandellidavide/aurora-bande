@@ -104,7 +104,7 @@ function viewAdesso() {
   });
   // colonna principale: grafico e sotto il quadro d'insieme; colonna a lato: le quattro misure e il riscontro a terra (su telefono le misure vanno in cima)
   // il banner NOAA, se c'è, va sopra a tutto: è un dato confermato, non la nostra stima su Bz a L1 più sotto.
-  return '<div class="ab-page" data-cols="two">' + noaaAlertBanner() + cmeNotice() +'<div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
+  return '<div class="ab-page" data-cols="two">' + noaaAlertBanner() + noaaWatchNotice() + cmeNotice() +'<div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
 }
 
 // L'arrivo in un colpo d'occhio: misura a L1 → viaggio → finestra d'arrivo (sfumata, perché la stima è indicativa) e «adesso».
@@ -379,7 +379,15 @@ function flareCard(n) {
 }
 const G_WORDS = ['nessuna', 'minore', 'moderata', 'forte', 'severa', 'estrema'];
 // le allerte danno un Kp intero (G1 = Kp 5): sotto G1 non è ancora una «tempesta». Condivisa fra Giorni e il banner di Adesso.
-const alertHead = (a) => { if (a.kp == null) return 'Allerta geomagnetica'; const g = Math.max(0, a.kp - 4); return g > 0 ? 'Tempesta geomagnetica G' + g + ' · ' + G_WORDS[g] + ' (Kp ' + a.kp + ')' : 'Attività geomagnetica elevata · Kp ' + a.kp; };
+const watchDay = (ms) => new Date(ms).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace('.', '');
+// giorni (UTC) con tempesta G1+ prevista dall'ultimo WATCH NOAA ancora valido; null se non c'è o è stato annullato
+function activeWatch(list) {
+  const w = (list || []).filter((a) => a.watch).sort((a, b) => b.ms - a.ms)[0];
+  if (!w || w.watch.cancel) return null;
+  const days = w.watch.days.filter((d) => d.g >= 1 && d.ms + 86400000 > Date.now());
+  return days.length ? { a: w, days } : null;
+}
+const alertHead = (a) => { if (a.watch) { const d = a.watch.days.filter((x) => x.g >= 1); return a.watch.cancel ? 'Avviso WATCH annullato' : d.length ? 'WATCH · tempesta ' + d.map((x) => 'G' + x.g + ' ' + watchDay(x.ms)).join(', ') : 'WATCH · nessuna tempesta prevista'; } if (a.kp == null) return 'Allerta geomagnetica'; const g = Math.max(0, a.kp - 4); return g > 0 ? 'Tempesta geomagnetica G' + g + ' · ' + G_WORDS[g] + ' (Kp ' + a.kp + ')' : 'Attività geomagnetica elevata · Kp ' + a.kp; };
 
 // banner in cima a Adesso: solo quando NOAA conferma una tempesta G1+ in corso (dato ufficiale, non il nostro calcolo su Bz a L1).
 // Si nasconde da sola quando l'allerta scade o quando non c'è nulla da mostrare.
@@ -395,13 +403,20 @@ function noaaAlertBanner() {
     const soft = valid.length ? valid.reduce((m, a) => (a.kp > m.kp ? a : m), valid[0]) : null;
     return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA</b> · ' + (soft
       ? 'avviso in vigore: ' + esc(alertHead(soft)) + ', fino alle ' + fmtClock(soft.until) + ' · sotto la soglia di tempesta (G1 = Kp 5)'
-      : 'nessuna allerta geomagnetica attiva in questo momento') + ' <span class="ab-golink__cta">Comunicati' + icon('chev') + '</span></a>';
+      : 'nessuna allerta geomagnetica in corso ora') + ' <span class="ab-golink__cta">Comunicati' + icon('chev') + '</span></a>';
   }
   const top = active.reduce((m, a) => (a.kp > m.kp ? a : m), active[0]);
   return '<a class="ab-noaaband ab-golink ab-span" href="#giorni" data-go="giorni">' +
     '<span class="t-label">Allerta NOAA attiva</span><b>' + esc(alertHead(top)) + '</b>' +
     '<span class="t-body-sm">' + (top.until != null ? 'Valida fino alle ' + fmtClock(top.until) + ' · ' : '') + 'dato ufficiale NOAA, non la nostra stima</span>' +
     '<span class="ab-golink__cta">Tutte le allerte' + icon('chev') + '</span></a>';
+}
+// WATCH NOAA: tempesta geomagnetica prevista nei prossimi giorni (previsione ufficiale, non ancora in corso)
+function noaaWatchNotice() {
+  const w = activeWatch(S.noaaAlerts && S.noaaAlerts.list); if (!w) return '';
+  const top = w.days.reduce((m, d) => (d.g > m.g ? d : m), w.days[0]);
+  return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA · WATCH</b> · tempesta geomagnetica G' + top.g + ' (' + G_WORDS[top.g] + ') prevista per ' + esc(watchDay(top.ms)) +
+    (w.days.length > 1 ? ' (anche ' + w.days.filter((d) => d !== top).map((d) => 'G' + d.g + ' ' + esc(watchDay(d.ms))).join(', ') + ')' : '') + ' · previsione ufficiale, non ancora in corso <span class="ab-golink__cta">Dettagli' + icon('chev') + '</span></a>';
 }
 // CME in viaggio verso la Terra secondo le analisi NASA DONKI (simulazione ENLIL): è un'anticipazione, con ore di incertezza.
 function cmeNotice() {

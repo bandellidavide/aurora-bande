@@ -106,7 +106,20 @@ function parseAlert(a) {
   const isAlert = /^ALERT|^CONTINUED ALERT/i.test(title), isSummary = /^SUMMARY/i.test(title);
   // NOAA manda anche allerte per protoni/elettroni/radio (utili per satelliti, non per l'aurora): si tengono solo quelle geomagnetiche.
   const geo = /Geomagnetic|K-index/i.test(title);
-  return { id: a.product_id, ms: toMs(a.issue_datetime), title, kp: kp ? +kp[1] : null, until: parseAlertUntil(msg), kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto', geo };
+  return { id: a.product_id, ms: toMs(a.issue_datetime), title, kp: kp ? +kp[1] : null, until: parseAlertUntil(msg), kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto', geo, watch: geo ? parseWatch(title, msg, toMs(a.issue_datetime)) : null };
+}
+// WATCH = avviso con giorni di anticipo («Highest Storm Level Predicted by Day: Oct 09: G2 (Moderate)»); nessun Kp né scadenza,
+// per questo il banner a soglia di Kp non lo vede. «THIS SUPERSEDES ANY/ALL PRIOR WATCHES»: vale l'ultimo emesso; CANCEL WATCH lo annulla.
+function parseWatch(title, msg, issuedMs) {
+  if (/^CANCEL WATCH/i.test(title)) return { cancel: true, days: [] };
+  if (!/^WATCH/i.test(title)) return null;
+  const iss = new Date(issuedMs), days = [], re = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2}):\s+(None|G(\d))/g;
+  let m;
+  while ((m = re.exec(msg))) {
+    const mo = MONTHS[m[1]], y = iss.getUTCFullYear() + (mo < iss.getUTCMonth() - 6 ? 1 : 0);
+    days.push({ ms: Date.UTC(y, mo, +m[2]), g: m[4] ? +m[4] : 0 });
+  }
+  return { cancel: false, days };
 }
 
 function frameTime(url) {
