@@ -80,7 +80,7 @@ function hypothesis(F) {
     const near = rc && (rc.tier === 'overhead' || rc.tier === 'near');
     level = rc ? (near ? 3 : rc.tier === 'horizon' ? 2 : 1) : 2;
     const title2 = 'Tempesta geomagnetica G' + st.g + ' in corso · ' + G_WORDS[st.g];
-    let w = 'NOAA conferma Kp ' + st.kp + ' (' + st.src.charAt(0).toLowerCase() + st.src.slice(1) + '). ' + (rc ? rc.note : '');
+    let w = gPlain(st.g) + ' NOAA conferma Kp ' + st.kp + ' (' + st.src.charAt(0).toLowerCase() + st.src.slice(1) + '). ' + (rc ? rc.note : '');
     if (bz != null) w += bz > 0 ? ' Ora il campo a L1 è a nord: la fase più intensa potrebbe essere passata, ma può riprendere.' : isSouth(bz) ? ' Il campo a L1 è a sud: l’attività continua.' : '';
     if (worst === 'bad') w += ' Cielo o buio, in questo momento, non aiutano.';
     return { level, title: title2, why: w.trim() };

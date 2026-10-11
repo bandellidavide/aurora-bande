@@ -20,6 +20,13 @@ const VAPID_PUBLIC_KEY = 'BIrpeVr4OBEcorrIjunS5xWH9bHZyjcxRMTKmctUKQuXIFZ2z8sfoN
 const VAPID_SUBJECT = 'mailto:bandelli.davide@gmail.com';
 const G_WORDS = ['nessuna', 'minore', 'moderata', 'forte', 'severa', 'estrema'];
 
+const G_PLAIN = [null,
+  'si vede di solito solo nell’estremo nord. Dall’Italia no.',
+  'si vede di solito fino a circa 55° di latitudine (Scozia, Danimarca). Dall’Italia no.',
+  'si vede di solito fino a circa 50° (Germania, nord Francia); da noi al più un bagliore basso a nord.',
+  'si vede di solito fino a circa 45°: possibile anche in Italia del nord.',
+  'si vede molto più a sud del solito, anche in Italia. Evento rarissimo.'];
+
 const MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
 
 // stessa estrazione di js/noaa.js (parseAlert/parseAlertUntil): se le soglie cambiano là, aggiornare anche qui.
@@ -85,7 +92,7 @@ exports.noaaAlertsWatch = onSchedule({ schedule: 'every 5 minutes', timeZone: 'E
     const g = Math.max(0, maxKp - 4);
     await sendToAll(db, JSON.stringify({
       title: 'NOAA: tempesta geomagnetica G' + g,
-      body: 'Kp atteso ' + maxKp + ' · ' + G_WORDS[g] + '. Dato ufficiale NOAA, non una stima.',
+      body: 'Scala da G1 a G5: G' + g + ' = ' + G_WORDS[g] + '. L’aurora ' + G_PLAIN[g] + ' Dato ufficiale NOAA.',
       url: 'https://bandellidavide.github.io/aurora-bande/#adesso',
     }));
   }
@@ -104,7 +111,7 @@ exports.noaaAlertsWatch = onSchedule({ schedule: 'every 5 minutes', timeZone: 'E
   const top = days.reduce((m, d) => (d.g > m.g ? d : m), days[0]);
   await sendToAll(db, JSON.stringify({
     title: 'NOAA: tempesta G' + top.g + ' prevista ' + dayLabel(top.ms),
-    body: 'Avviso WATCH, ' + G_WORDS[top.g] + '. Previsione ufficiale NOAA: non è ancora in corso.',
+    body: 'Scala da G1 a G5: G' + top.g + ' = ' + G_WORDS[top.g] + '. L’aurora ' + G_PLAIN[top.g] + ' Previsione NOAA, non ancora in corso.',
     url: 'https://bandellidavide.github.io/aurora-bande/#adesso',
   }));
 });

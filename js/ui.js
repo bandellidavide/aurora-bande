@@ -384,6 +384,15 @@ function flareProbRow(num, fp) {
   return '<span class="t-caption" style="grid-column:1/-1;color:' + (hi ? 'var(--ink-1)' : 'var(--ink-3)') + '">Probabilità di brillamento nelle prossime 24 ore: M ' + esc(p.m) + '% · X ' + esc(p.x) + '%' + (hi ? ' · regione attiva' : '') + '</span>';
 }
 const G_WORDS = ['nessuna', 'minore', 'moderata', 'forte', 'severa', 'estrema'];
+// «G3» da solo non dice nulla a chi non è del mestiere: cos'è la scala e cosa vuol dire, in parole semplici.
+// Fonte: scala delle tempeste geomagnetiche NOAA (latitudini approssimative fino a cui l'aurora si vede di solito).
+const G_PLAIN = [null,
+  'si vede di solito solo nell’estremo nord (Scandinavia del nord, Islanda). Dall’Italia no.',
+  'si vede di solito fino a circa 55° di latitudine (Scozia, Danimarca). Dall’Italia no.',
+  'si vede di solito fino a circa 50° di latitudine (Germania, nord della Francia). Sulle Alpi e al nord Italia, con cielo buio e sereno, al più un bagliore basso a nord.',
+  'si vede di solito fino a circa 45° di latitudine: è possibile anche in Italia del nord, in genere verso nord.',
+  'si vede molto più a sud del solito, anche in gran parte d’Italia. È un evento rarissimo.'];
+const gPlain = (g) => g >= 1 && g <= 5 ? 'La scala NOAA va da G1 (minore) a G5 (estrema): G' + g + ' è «' + G_WORDS[g] + '». L’aurora ' + G_PLAIN[g] : '';
 // le allerte danno un Kp intero (G1 = Kp 5): sotto G1 non è ancora una «tempesta». Condivisa fra Giorni e il banner di Adesso.
 const watchDay = (ms) => new Date(ms).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace('.', '');
 // giorni (UTC) con tempesta G1+ prevista dall'ultimo WATCH NOAA ancora valido; null se non c'è o è stato annullato
@@ -415,6 +424,7 @@ function noaaAlertBanner() {
   return '<a class="ab-noaaband ab-golink ab-span" href="#giorni" data-go="giorni">' +
     '<span class="t-label">Allerta NOAA attiva</span><b>' + esc(alertHead(top)) + '</b>' +
     '<span class="t-body-sm">' + (top.until != null ? 'Valida fino alle ' + fmtClock(top.until) + ' · ' : '') + 'dato ufficiale NOAA, non la nostra stima</span>' +
+    '<span class="t-body-sm">' + esc(gPlain(Math.max(0, top.kp - 4))) + '</span>' +
     '<span class="ab-golink__cta">Tutte le allerte' + icon('chev') + '</span></a>';
 }
 // WATCH NOAA: tempesta geomagnetica prevista nei prossimi giorni (previsione ufficiale, non ancora in corso)
@@ -422,7 +432,7 @@ function noaaWatchNotice() {
   const w = activeWatch(S.noaaAlerts && S.noaaAlerts.list); if (!w) return '';
   const top = w.days.reduce((m, d) => (d.g > m.g ? d : m), w.days[0]);
   return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA · WATCH</b> · tempesta geomagnetica G' + top.g + ' (' + G_WORDS[top.g] + ') prevista per ' + esc(watchDay(top.ms)) +
-    (w.days.length > 1 ? ' (anche ' + w.days.filter((d) => d !== top).map((d) => 'G' + d.g + ' ' + esc(watchDay(d.ms))).join(', ') + ')' : '') + ' · previsione ufficiale, non ancora in corso <span class="ab-golink__cta">Dettagli' + icon('chev') + '</span></a>';
+    (w.days.length > 1 ? ' (anche ' + w.days.filter((d) => d !== top).map((d) => 'G' + d.g + ' ' + esc(watchDay(d.ms))).join(', ') + ')' : '') + ' · previsione ufficiale, non ancora in corso, può cambiare<span class="t-body-sm" style="display:block;margin-top:var(--space-1)">' + esc(gPlain(top.g)) + '</span><span class="ab-golink__cta">Dettagli' + icon('chev') + '</span></a>';
 }
 // CME in viaggio verso la Terra secondo le analisi NASA DONKI (simulazione ENLIL): è un'anticipazione, con ore di incertezza.
 function cmeNotice() {
