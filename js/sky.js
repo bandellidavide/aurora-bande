@@ -156,7 +156,30 @@ function updateOvation() {
     if (dist < bd) { bd = dist; best = val; }
     if (bd === 0) break;
   }
-  S.ovation = { val: best, obsTime: d['Observation Time'], forecastTime: d['Forecast Time'] };
+  S.ovation = { val: best, obsTime: d['Observation Time'], forecastTime: d['Forecast Time'], reach: ovalReach(d) };
+}
+// Fino a dove arriva l'ovale sul tuo meridiano (±10° di longitudine): il bordo verso l'equatore del modello OVATION (probabilità ≥ 5)
+// e quanto è lontano da te. Il valore OVATION «nel tuo luogo» da solo inganna a latitudini medie: vale 0 anche in una G3, perché
+// l'ovale sta più a nord, ma l'aurora si vede lo stesso come bagliore basso verso nord. La visibilità dipende dalla distanza:
+// una luce a ~400 km di quota (l'aurora rossa) sta a ~16° sull'orizzonte se l'ovale è a 1000 km, a ~8° a 1500 km, a ~2° a 2000 km
+// (geometria sferica, nessuna rifrazione). Quella verde, a ~110 km, sotto i ~1000 km resta praticamente nascosta dalla curvatura.
+function ovalReach(d) {
+  if (!d || !d.coordinates) return null;
+  const north = S.lat >= 0, lon360 = ((S.lon % 360) + 360) % 360, me = Math.abs(S.lat);
+  let edge = null;
+  for (const [clon, clat, val] of d.coordinates) {
+    if (val < 5 || (clat >= 0) !== north) continue;
+    let dl = Math.abs(clon - lon360); if (dl > 180) dl = 360 - dl;
+    if (dl > 10) continue;
+    const a = Math.abs(clat); if (edge === null || a < edge) edge = a;
+  }
+  if (edge === null) return null;
+  const km = Math.round((edge - me) * 111.2 / 50) * 50; // >0: l'ovale è più verso il polo di te
+  const where = north ? 'nord' : 'sud';
+  if (km <= 0) return { edge, km, tier: 'overhead', state: 'good', short: 'sopra di te', value: 'L’ovale arriva a ' + Math.round(edge) + '° e ti comprende', note: 'Sei dentro l’ovale: se è buio e sereno l’aurora può essere alta in cielo.' };
+  if (km <= 600) return { edge, km, tier: 'near', state: 'good', short: 'vicino', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where, note: 'Aurora alta sull’orizzonte ' + where + ', se è buio e sereno.' };
+  if (km <= 1500) return { edge, km, tier: 'horizon', state: 'mid', short: 'all’orizzonte', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where, note: 'Al più un bagliore basso sull’orizzonte ' + where + ', di solito debole e rossastro: servono cielo sereno e orizzonte libero.' };
+  return { edge, km, tier: 'far', state: 'bad', short: 'lontano', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where, note: 'Troppo lontano: da qui l’aurora non si vede.' };
 }
 function ovationLabel(v) {
   if (v == null) return 'dato non disponibile';

@@ -14,6 +14,16 @@ function a_moonShort(A) {
   return m.above === false ? 'non in cielo' : m.illum < 20 ? 'debole' : m.illum < 60 ? 'media' : 'luminosa';
 }
 
+// intensità della tempesta geomagnetica adesso: il più alto fra il Kp stimato da NOAA (ultimo minuto) e le allerte NOAA «soglia
+// raggiunta» (ALERT) scattate nelle ultime 3 ore — il Kp è a blocchi di 3 ore, un ALERT resta vero per tutto il blocco.
+// I WARNING non contano: sono previsioni («atteso»), non misure.
+function stormNow() {
+  const now = Date.now(), list = (S.noaaAlerts && S.noaaAlerts.list) || [];
+  let kp = S.kp != null ? Math.round(S.kp) : 0, src = S.kp != null ? 'Kp stimato NOAA' : '';
+  list.forEach((a) => { if (a.kp != null && !a.watch && a.kind === 'measured' && now - a.ms <= 3 * 3600000 && a.kp > kp) { kp = a.kp; src = 'Allerta NOAA delle ' + fmtClock(a.ms); } });
+  return { kp, g: Math.max(0, kp - 4), src };
+}
+
 function factors(e) {
   const sig = signal(), c = sig.c, A = S.astro = astro();
   const space = [], obs = [];
@@ -30,8 +40,13 @@ function factors(e) {
     note: [c.bz > 0 ? 'Bz a nord' : 'Bz vicino allo zero', 'Bz a sud, con vento lento', 'Bz a sud, andamento moderato', 'Bz a sud, andamento marcato'][sig.level] + loadNote,
   });
   // ovale aurorale
-  const ov = S.ovation && S.ovation.val != null ? S.ovation.val : null;
-  space.push({ label: 'Ovale aurorale', state: ovationState(ov), kind: 'forecast', short: ov == null ? 'n.d.' : Math.round(ov) + ' su 100', value: ov == null ? 'Modello non disponibile' : Math.round(ov) + ' su 100 nel tuo luogo', note: ov == null ? '' : ovationLabel(ov) });
+  const ov = S.ovation && S.ovation.val != null ? S.ovation.val : null, rc = S.ovation && S.ovation.reach;
+  const st = stormNow();
+  // tempesta geomagnetica in corso (Kp): la dice NOAA, indipendentemente da dove sei e da dove punta Bz in questo minuto
+  space.push(st.kp >= 4 ? { label: 'Tempesta geomagnetica', state: st.g >= 1 ? 'good' : 'mid', kind: 'measured', short: st.g >= 1 ? 'G' + st.g : 'Kp ' + st.kp, value: st.g >= 1 ? 'G' + st.g + ' · ' + G_WORDS[st.g] + ' (Kp ' + st.kp + ')' : 'Kp ' + st.kp + ' · sotto la soglia di tempesta', note: st.src + '. Il Kp è una media planetaria: dice che il campo è agitato, non dove si vede.' }
+    : { label: 'Tempesta geomagnetica', state: 'bad', kind: 'measured', short: 'calmo', value: 'Kp ' + (st.kp || 0) + ' · campo calmo', note: st.src ? st.src + '.' : '' });
+  if (rc) space.push({ label: 'Ovale aurorale', state: rc.state, kind: 'forecast', short: rc.short, value: rc.value, note: rc.note });
+  else space.push({ label: 'Ovale aurorale', state: ovationState(ov), kind: 'forecast', short: ov == null ? 'n.d.' : Math.round(ov) + ' su 100', value: ov == null ? 'Modello non disponibile' : Math.round(ov) + ' su 100 nel tuo luogo', note: ov == null ? '' : ovationLabel(ov) });
   // risposta a terra: c'è solo se esiste un fronte da confrontare
   if (e) {
     const a = groundView(e).a;
@@ -57,7 +72,20 @@ function hypothesis(F) {
   else if (g >= 1) why = 'Lo spazio dà qualche segnale, ma cielo, buio o luna sono incerti.';
   else if (worst === 'good') why = 'Cielo e buio sono buoni, ma lo spazio è calmo.';
   else why = 'Né lo spazio né il punto di osservazione offrono molto, per ora.';
-  return { level: F.sig.level == null ? 0 : Math.min(3, g === 0 ? 0 : g === 1 ? 1 : 2), title, why };
+  let level = F.sig.level == null ? 0 : Math.min(3, g === 0 ? 0 : g === 1 ? 1 : 2);
+  // con una tempesta G1+ confermata il titolo non può dire «pochi indizi»: dice cos'è, e cosa significa dal tuo luogo
+  const st = stormNow();
+  if (st.g >= 1) {
+    const rc = S.ovation && S.ovation.reach, bz = F.sig.c && F.sig.c.bz;
+    const near = rc && (rc.tier === 'overhead' || rc.tier === 'near');
+    level = rc ? (near ? 3 : rc.tier === 'horizon' ? 2 : 1) : 2;
+    const title2 = 'Tempesta geomagnetica G' + st.g + ' in corso · ' + G_WORDS[st.g];
+    let w = 'NOAA conferma Kp ' + st.kp + ' (' + st.src.charAt(0).toLowerCase() + st.src.slice(1) + '). ' + (rc ? rc.note : '');
+    if (bz != null) w += bz > 0 ? ' Ora il campo a L1 è a nord: la fase più intensa potrebbe essere passata, ma può riprendere.' : isSouth(bz) ? ' Il campo a L1 è a sud: l’attività continua.' : '';
+    if (worst === 'bad') w += ' Cielo o buio, in questo momento, non aiutano.';
+    return { level, title: title2, why: w.trim() };
+  }
+  return { level, title, why };
 }
 
 function factorGroup(name, rows) {
@@ -66,12 +94,12 @@ function factorGroup(name, rows) {
 }
 
 // dove porta ogni tessera: il grafico o la scheda che spiega il fattore
-const FACTOR_GO = { 'Campo a L1': '#fieldCard', 'Ovale aurorale': 'cielo', 'Risposta a terra': '#groundCard', Cielo: 'cielo', Buio: 'cielo', Luna: 'cielo' };
+const FACTOR_GO = { 'Campo a L1': '#fieldCard', 'Tempesta geomagnetica': '#fieldCard', 'Ovale aurorale': 'cielo', 'Risposta a terra': '#groundCard', Cielo: 'cielo', Buio: 'cielo', Luna: 'cielo' };
 
 // vista d'insieme: sei tessere, una parola ciascuna. Il dettaglio di ogni fattore resta sotto, chiuso.
 function factorTiles(name, rows) {
   return '<div class="ab-ftiles"><p class="t-label">' + name + '</p><ul>' + rows.map((r) =>
-    '<li data-state="' + r.state + '"><a href="' + (FACTOR_GO[r.label] === 'cielo' ? '#cielo' : FACTOR_GO[r.label]) + '" data-go="' + FACTOR_GO[r.label] + '" aria-label="' + esc(r.label + ': ' + (r.short || r.value)) + '"><span class="ab-check__mark" aria-hidden="true">' + MARK[r.state] + '</span><b>' + esc(r.label.replace('Risposta a terra', 'A terra').replace('Ovale aurorale', 'Ovale').replace('Campo a L1', 'Campo L1')) + '</b><span>' + esc(r.short || r.value) + '</span></a></li>').join('') + '</ul></div>';
+    '<li data-state="' + r.state + '"><a href="' + (FACTOR_GO[r.label] === 'cielo' ? '#cielo' : FACTOR_GO[r.label]) + '" data-go="' + FACTOR_GO[r.label] + '" aria-label="' + esc(r.label + ': ' + (r.short || r.value)) + '"><span class="ab-check__mark" aria-hidden="true">' + MARK[r.state] + '</span><b>' + esc(r.label.replace('Risposta a terra', 'A terra').replace('Ovale aurorale', 'Ovale').replace('Tempesta geomagnetica', 'Kp').replace('Campo a L1', 'Campo L1')) + '</b><span>' + esc(r.short || r.value) + '</span></a></li>').join('') + '</ul></div>';
 }
 function factorOverview(F) {
   return factorTiles('Nello spazio', F.space) + factorTiles('Dove sei', F.obs) +
