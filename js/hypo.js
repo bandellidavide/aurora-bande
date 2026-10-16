@@ -14,13 +14,13 @@ function a_moonShort(A) {
   return m.above === false ? 'non in cielo' : m.illum < 20 ? 'debole' : m.illum < 60 ? 'media' : 'luminosa';
 }
 
-// intensità della tempesta geomagnetica adesso: il più alto fra il Kp stimato da NOAA (ultimo minuto) e le allerte NOAA «soglia
-// raggiunta» (ALERT) scattate nelle ultime 3 ore — il Kp è a blocchi di 3 ore, un ALERT resta vero per tutto il blocco.
+// intensità della tempesta geomagnetica adesso: il più alto fra il Kp stimato da NOAA (ultimo minuto) e l'allerta NOAA «soglia
+// raggiunta» (ALERT) del periodo di 3 ore in corso — il Kp è a blocchi di 3 ore, un ALERT resta vero per tutto il suo blocco.
 // I WARNING non contano: sono previsioni («atteso»), non misure.
 function stormNow() {
-  const now = Date.now(), list = (S.noaaAlerts && S.noaaAlerts.list) || [];
+  const r = noaaGeoNow(S.noaaAlerts && S.noaaAlerts.list).reached;
   let kp = S.kp != null ? Math.round(S.kp) : 0, src = S.kp != null ? 'Kp stimato NOAA' : '';
-  list.forEach((a) => { if (a.kp != null && !a.watch && a.kind === 'measured' && now - a.ms <= 3 * 3600000 && a.kp > kp) { kp = a.kp; src = 'Allerta NOAA delle ' + fmtClock(a.ms); } });
+  if (r && r.kp > kp) { kp = r.kp; src = 'Allerta NOAA delle ' + fmtClock(r.ms); }
   return { kp, g: Math.max(0, kp - 4), src };
 }
 

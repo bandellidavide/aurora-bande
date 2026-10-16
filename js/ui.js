@@ -402,30 +402,39 @@ function activeWatch(list) {
   const days = w.watch.days.filter((d) => d.g >= 1 && d.ms + 86400000 > Date.now());
   return days.length ? { a: w, days } : null;
 }
-const alertHead = (a) => { if (a.watch) { const d = a.watch.days.filter((x) => x.g >= 1); return a.watch.cancel ? 'Avviso WATCH annullato' : d.length ? 'WATCH · tempesta ' + d.map((x) => 'G' + x.g + ' ' + watchDay(x.ms)).join(', ') : 'WATCH · nessuna tempesta prevista'; } if (a.kp == null) return 'Allerta geomagnetica'; const g = Math.max(0, a.kp - 4); return g > 0 ? 'Tempesta geomagnetica G' + g + ' · ' + G_WORDS[g] + ' (Kp ' + a.kp + ')' : 'Attività geomagnetica elevata · Kp ' + a.kp; };
+const alertHead = (a) => {
+  if (a.watch) { const d = a.watch.days.filter((x) => x.g >= 1); return a.watch.cancel ? 'Avviso WATCH annullato' : d.length ? 'WATCH · tempesta ' + d.map((x) => 'G' + x.g + ' ' + watchDay(x.ms)).join(', ') : 'WATCH · nessuna tempesta prevista'; }
+  // impulso improvviso: il segno a terra dell'onda d'urto di una CME che arriva (spesso poco prima di una tempesta)
+  if (a.impulse) return a.type === 'warning' ? 'Onda d’urto in arrivo (impulso geomagnetico atteso)' : 'Onda d’urto arrivata (impulso geomagnetico improvviso)';
+  if (a.kp == null) return 'Allerta geomagnetica';
+  const g = Math.max(0, a.kp - 4), when = a.type === 'warning' ? ' attesa' : a.type === 'alert' ? ' raggiunta' : '';
+  return g > 0 ? 'Tempesta geomagnetica G' + g + when + ' · ' + G_WORDS[g] + ' (Kp ' + a.kp + ')' : 'Attività geomagnetica elevata' + (a.type === 'warning' ? ' attesa' : '') + ' · Kp ' + a.kp;
+};
 
-// banner in cima a Adesso: solo quando NOAA conferma una tempesta G1+ in corso (dato ufficiale, non il nostro calcolo su Bz a L1).
-// Si nasconde da sola quando l'allerta scade o quando non c'è nulla da mostrare.
+// banner in cima a Adesso: lo stato ufficiale NOAA, tenendo separati «in corso» (ALERT: soglia raggiunta nel periodo di 3 ore attuale)
+// e «attesa» (WARNING: NOAA se l'aspetta entro la finestra di validità, ma non è ancora successo). Non è il nostro calcolo su Bz a L1.
 function noaaAlertBanner() {
   const list = S.noaaAlerts && S.noaaAlerts.list; if (!list) return '';
-  const now = Date.now();
-  // solo le allerte con una finestra di validità dichiarata da NOAA (WARNING/EXTENDED WARNING): un ALERT puntuale
-  // ("soglia raggiunta", senza scadenza) non va trattato come valido per sempre.
-  const valid = list.filter((a) => a.kp != null && a.until != null && a.until > now);
-  const active = valid.filter((a) => a.kp >= 5);
-  if (!active.length) {
-    // niente G1+: si vede comunque lo stato, così «nessun banner» non si confonde con «non ha caricato»
-    const soft = valid.length ? valid.reduce((m, a) => (a.kp > m.kp ? a : m), valid[0]) : null;
-    return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA</b> · ' + (soft
-      ? 'avviso in vigore: ' + esc(alertHead(soft)) + ', fino alle ' + fmtClock(soft.until) + ' · sotto la soglia di tempesta (G1 = Kp 5)'
-      : 'nessuna allerta geomagnetica in corso ora') + ' <span class="ab-golink__cta">Comunicati' + icon('chev') + '</span></a>';
+  const N = noaaGeoNow(list), R = N.reached, E = N.expected;
+  const kpNow = S.kp != null ? ' · Kp adesso ' + itNum(S.kp, 1) : '';
+  const band = (kind, label, title, line, g) => '<a class="ab-noaaband ab-golink ab-span" data-kind="' + kind + '" href="#giorni" data-go="giorni"><span class="t-label">' + label + '</span><b>' + esc(title) + '</b>' +
+    '<span class="t-body-sm">' + esc(line) + '</span><span class="t-body-sm">' + esc(gPlain(g)) + '</span><span class="ab-golink__cta">Tutte le allerte' + icon('chev') + '</span></a>';
+  if (R && R.kp >= 5) {
+    const g = R.kp - 4, up = E && E.kp > R.kp ? E : null;
+    return band('now', 'NOAA conferma · in corso', 'Tempesta geomagnetica G' + g + ' in corso · ' + G_WORDS[g],
+      'Soglia Kp ' + R.kp + ' raggiunta alle ' + fmtClock(R.ms) + ': dato ufficiale NOAA, non la nostra stima.' + (up ? ' NOAA prevede che possa salire a G' + (up.kp - 4) + ' (avviso fino alle ' + fmtClock(up.until) + ').' : ''), g);
   }
-  const top = active.reduce((m, a) => (a.kp > m.kp ? a : m), active[0]);
-  return '<a class="ab-noaaband ab-golink ab-span" href="#giorni" data-go="giorni">' +
-    '<span class="t-label">Allerta NOAA attiva</span><b>' + esc(alertHead(top)) + '</b>' +
-    '<span class="t-body-sm">' + (top.until != null ? 'Valida fino alle ' + fmtClock(top.until) + ' · ' : '') + 'dato ufficiale NOAA, non la nostra stima</span>' +
-    '<span class="t-body-sm">' + esc(gPlain(Math.max(0, top.kp - 4))) + '</span>' +
-    '<span class="ab-golink__cta">Tutte le allerte' + icon('chev') + '</span></a>';
+  if (E && E.kp >= 5) {
+    const g = E.kp - 4;
+    return band('expected', 'NOAA prevede · non ancora in corso', 'Tempesta geomagnetica G' + g + ' attesa · ' + G_WORDS[g],
+      'Avviso valido fino alle ' + fmtClock(E.until) + ': NOAA si aspetta Kp ' + E.kp + ', ma la soglia non è ancora stata raggiunta' + kpNow + '.' + (N.recent ? ' Ultima soglia raggiunta: Kp ' + N.recent.kp + ' alle ' + fmtClock(N.recent.ms) + '.' : ''), g);
+  }
+  // niente G1+ né in corso né attesa: si vede comunque lo stato, così «nessun banner» non si confonde con «non ha caricato»
+  const soft = N.recent ? 'ultima tempesta confermata: G' + (N.recent.kp - 4) + ' (Kp ' + N.recent.kp + ') alle ' + fmtClock(N.recent.ms) + ', nel periodo attuale non ancora confermata'
+    : R ? 'Kp ' + R.kp + ' raggiunto alle ' + fmtClock(R.ms) + ', sotto la soglia di tempesta (G1 = Kp 5)'
+    : E ? 'prevista attività elevata (Kp ' + E.kp + ') fino alle ' + fmtClock(E.until) + ', sotto la soglia di tempesta (G1 = Kp 5)'
+    : 'nessuna allerta geomagnetica in corso';
+  return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA</b> · ' + esc(soft + kpNow) + '<span class="ab-golink__cta">Comunicati' + icon('chev') + '</span></a>';
 }
 // WATCH NOAA: tempesta geomagnetica prevista nei prossimi giorni (previsione ufficiale, non ancora in corso)
 function noaaWatchNotice() {
@@ -451,14 +460,17 @@ function viewGiorni() {
   const sum = noaaSummary();
   const summary = sum ? situationMarkup({ id: 'sum', level: sum.level, meter: false, eyebrow: 'NOAA · 3 giorni', tag: tag('forecast', TAGS.forecast), title: sum.title, why: sum.why, caveat: 'Il Kp è una media planetaria: il clima generale, non l’aurora sopra di te.' }).replace('<h1 ', '<h2 ').replace('</h1>', '</h2>') : card('Previsione NOAA', empty('Bollettino non disponibile ora.'));
   // «adesso» vs «previsto»: le due domande che contano appena si apre Giorni, una sopra l'altra, stesso stile della card di previsione.
-  const nowActive = (n.alerts || []).filter((a) => a.kp != null && a.kp >= 5 && a.until != null && a.until > Date.now());
-  const nowTop = nowActive.length ? nowActive.reduce((m, a) => (a.kp > m.kp ? a : m), nowActive[0]) : null;
+  // «in corso» solo con un ALERT del periodo attuale; un WARNING in vigore è un'attesa, e lo si dice così
+  const GN = noaaGeoNow((S.noaaAlerts && S.noaaAlerts.list) || n.alerts), R5 = GN.reached && GN.reached.kp >= 5 ? GN.reached : null, E5 = GN.expected && GN.expected.kp >= 5 ? GN.expected : null;
+  const up = R5 && E5 && E5.kp > R5.kp ? E5 : null;
   const nowCard = situationMarkup({
-    id: 'now', level: nowTop ? Math.max(1, Math.min(3, nowTop.kp - 4)) : 0, meter: false,
+    id: 'now', level: R5 ? Math.max(1, Math.min(3, R5.kp - 4)) : 0, meter: false,
     eyebrow: 'NOAA · adesso', tag: tag('measured', TAGS.measured),
-    title: nowTop ? alertHead(nowTop) : 'Nessuna tempesta in corso',
-    why: nowTop ? ('NOAA conferma questa allerta in questo momento' + (nowTop.until != null ? ', valida fino alle ' + fmtClock(nowTop.until) : '') + '.') : 'NOAA non segnala in questo momento nessuna allerta geomagnetica attiva (G1 o superiore): il campo può comunque muoversi nelle prossime ore, guarda Adesso e Fronti.',
-    caveat: 'Dato ufficiale NOAA: cosa sta succedendo adesso, non una previsione.',
+    title: R5 ? 'Tempesta geomagnetica G' + (R5.kp - 4) + ' in corso · ' + G_WORDS[R5.kp - 4] : E5 ? 'Nessuna tempesta in corso, una è attesa' : 'Nessuna tempesta in corso',
+    why: R5 ? 'NOAA ha confermato la soglia Kp ' + R5.kp + ' alle ' + fmtClock(R5.ms) + (R5.periodEnd > Date.now() ? ' (vale per il periodo di 3 ore fino alle ' : ' (riferita al periodo di 3 ore appena chiuso, alle ') + fmtClock(R5.periodEnd) + ').' + (up ? ' Prevede che possa salire a G' + (up.kp - 4) + ', avviso fino alle ' + fmtClock(up.until) + '.' : '')
+      : E5 ? 'NOAA prevede una tempesta G' + (E5.kp - 4) + ' (' + G_WORDS[E5.kp - 4] + ') con un avviso valido fino alle ' + fmtClock(E5.until) + ': la soglia non è ancora stata raggiunta.'
+      : 'NOAA non segnala in questo momento nessuna tempesta geomagnetica (G1 o superiore), né raggiunta né attesa: il campo può comunque muoversi nelle prossime ore, guarda Adesso e Fronti.',
+    caveat: 'Dato ufficiale NOAA: «in corso» quando la soglia è stata raggiunta, «attesa» quando NOAA la prevede.',
   }).replace('<h1 ', '<h2 ').replace('</h1>', '</h2>');
   // scale
   let scales = empty('Scale non disponibili ora.');
@@ -574,17 +586,32 @@ function renderAlertsSheet() {
     '<h3>Notifiche push</h3><p class="t-body-sm">Diverse dagli avvisi qui sopra: arrivano anche ad app chiusa, quando NOAA conferma una tempesta geomagnetica G1 o superiore. Una volta attivate restano attive: non si spengono da sole riaprendo l’app.</p>' +
     sw('push', 'Notifiche push (anche ad app chiusa)', '', false, 'id="pushSw"') +
     '<p class="t-caption" id="pushMsg" style="margin-top:var(--space-2);color:var(--ink-3)">Verifica in corso…</p>' +
+    '<h3>Notifiche Telegram</h3><p class="t-body-sm">Gli stessi avvisi, ma sul bot Telegram AuroraBandebot. Sono spente finché non le accendi qui; servono il codice (una volta per dispositivo) e di aver avviato il bot.</p>' +
+    '<div class="ab-field" id="tgCodeRow"><label for="tgCode">Codice</label><input class="ab-input" id="tgCode" type="password" autocomplete="off" value="' + esc(tgCodeGet()) + '"></div>' +
+    sw('tg', 'Notifiche Telegram', '', false, 'id="tgSw" disabled') +
+    '<p class="t-caption" id="tgMsg" style="margin-top:var(--space-2);color:var(--ink-3)">' + (tgCodeGet() ? 'Verifica in corso…' : 'Inserisci il codice per abilitare l’interruttore.') + '</p>' +
     '<h3>Soglie</h3><p class="t-body-sm">Un avviso scatta alla soglia e si ripete a ogni «passo» oltre la soglia; si riarma da solo quando il valore torna indietro.</p>' +
     ALERT_RULES.map((r) => sw(r.key, r.label, r.help + (r.unit ? ' (' + r.unit + ')' : ''), alertSettings[r.key + 'Enabled'], 'data-setting="' + r.key + 'Enabled"') +
       '<div class="ab-thresh"><div class="ab-field"><label for="' + r.key + 'T">Soglia</label><input class="ab-input" id="' + r.key + 'T" type="number" step="any" data-setting="' + r.key + 'Threshold" value="' + alertSettings[r.key + 'Threshold'] + '"></div><div class="ab-field"><label for="' + r.key + 'S">Ripeti ogni</label><input class="ab-input" id="' + r.key + 'S" type="number" step="any" min="0.1" data-setting="' + r.key + 'Step" value="' + alertSettings[r.key + 'Step'] + '"></div></div>').join('') +
     '<h3>Ultimi avvisi</h3><div class="ab-alertlog" id="alertLog"></div></div>';
   renderAlertLog();
+  tgRefresh();
   // stato reale della sottoscrizione push: non un flag nostro, va chiesto al browser (asincrono)
   pushStatus().then((st) => {
     const sw2 = $('pushSw'), msg = $('pushMsg'); if (!sw2 || !msg) return;
     sw2.checked = st === 'on';
     msg.textContent = st === 'unsupported' ? 'Non disponibili su questo browser.' : st === 'denied' ? 'Notifiche bloccate nelle impostazioni del browser/telefono: vanno riabilitate da lì.' : st === 'on' ? 'Attive su questo dispositivo.' : 'Non attive su questo dispositivo.';
   });
+}
+// interruttore Telegram: lo stato vero è sul server, qui si legge e si mostra
+async function tgRefresh() {
+  const sw2 = $('tgSw'), msg = $('tgMsg'); if (!sw2 || !msg || !tgCodeGet()) return;
+  const r = await tgCall('status');
+  if (!$('tgSw')) return;
+  if (r.error === 'codice') { sw2.disabled = true; sw2.checked = false; msg.textContent = 'Codice non valido.'; return; }
+  if (r.error) { sw2.disabled = true; msg.textContent = 'Il server non ha risposto: riprova tra poco.'; return; }
+  sw2.disabled = false; sw2.checked = r.enabled === true;
+  msg.textContent = r.enabled ? 'Attive: gli avvisi arrivano anche su Telegram.' : 'Spente.';
 }
 function renderAlertLog() {
   const el = $('alertLog'); if (!el) return;
@@ -595,7 +622,7 @@ function renderInfoSheet() {
   $('sheetInfo').innerHTML = sheetHead('sheetInfoTitle', 'Come è calcolato') + '<div class="ab-sheet__body">' +
     '<h3>Catena delle informazioni</h3><ul class="ab-bullets"><li><b>Misura a L1</b> (circa 1,5 milioni di km dalla Terra): campo magnetico e vento solare, una lettura al minuto.</li><li><b>Stima dell’arrivo</b>: un calcolo nostro sulla velocità misurata.</li><li><b>Risposta a terra</b>: magnetometri IMAGE, dove esistono.</li><li><b>Cielo</b>: nuvole, buio, luna.</li></ul>' +
     '<h3>Quadro d’insieme</h3><p>L’aurora dipende da molti elementi e nessuno basta da solo. La scheda li raggruppa in due parti: <b>nello spazio</b> (campo a L1, ovale aurorale, risposta a terra) e <b>dal tuo punto di osservazione</b> (cielo, buio, luna). Il titolo dice solo quanti indizi si allineano; non prevede l’aurora.</p>' +
-    '<ul class="ab-bullets"><li><b>Campo a L1</b>: a favore con Bz a sud e andamento moderato o marcato; incerto con Bz a sud e vento lento; non aiuta con Bz a nord o neutro.</li><li><b>Tempesta geomagnetica</b>: il Kp di NOAA (stima dell’ultimo minuto o allerta «soglia raggiunta» delle ultime 3 ore). Da G1 (Kp 5) in su il titolo lo dice in chiaro, anche se in quel momento Bz è tornato a nord: il Kp è una media planetaria, non dice dove si vede.</li><li><b>Ovale aurorale</b> (modello OVATION): quanto è lontano dal tuo luogo il bordo dell’ovale (probabilità ≥ 5, entro 10° di longitudine). Fino a ~600 km a polo: a favore; fino a ~1500 km: solo bagliore basso all’orizzonte (incerto); oltre: non si vede. Il valore «nel tuo luogo» resta nella scheda Cielo, ma a latitudini medie vale 0 anche in una G3.</li><li><b>Risposta a terra</b>: compare solo se c’è un episodio da confrontare.</li><li><b>Cielo, buio, luna</b>: se cielo o buio non aiutano, le parole dell’ipotesi lo dicono anche quando lo spazio è attivo.</li></ul>' +
+    '<ul class="ab-bullets"><li><b>Campo a L1</b>: a favore con Bz a sud e andamento moderato o marcato; incerto con Bz a sud e vento lento; non aiuta con Bz a nord o neutro.</li><li><b>Tempesta geomagnetica</b>: il Kp di NOAA (stima dell’ultimo minuto o allerta «soglia raggiunta» delle ultime 3 ore). Da G1 (Kp 5) in su il titolo lo dice in chiaro, anche se in quel momento Bz è tornato a nord: il Kp è una media planetaria, non dice dove si vede.</li><li><b>Ovale aurorale</b> (modello OVATION): quanto è lontano dal tuo luogo il bordo dell’ovale (probabilità ≥ 5, entro 10° di longitudine). Sopra di te o fino a ~600 km a polo: a favore, se il modello lo dà almeno 20 su 100 (più debole: incerto); fino a ~1500 km: solo bagliore basso all’orizzonte (incerto); oltre: non si vede. Il valore «nel tuo luogo» resta nella scheda Cielo, ma a latitudini medie vale 0 anche in una G3.</li><li><b>Risposta a terra</b>: compare solo se c’è un episodio da confrontare.</li><li><b>Cielo, buio, luna</b>: se cielo o buio non aiutano, le parole dell’ipotesi lo dicono anche quando lo spazio è attivo.</li></ul>' +
     '<h3>Andamento del campo a L1</h3><ul class="ab-bullets"><li>«Bz a sud» qui significa Bz ≤ −1 nT, la stessa soglia degli episodi: tra −1 e 0 nT è rumore e non conta.</li><li><b>Marcato</b>: Bz ≤ −5 nT con vento ≥ 450 km/s, oppure Bz ≤ −3 nT con vento ≥ 550 km/s, oppure OVATION ≥ 60 con Bz a sud.</li><li><b>Moderato</b>: Bz a sud con vento ≥ 350 km/s, oppure OVATION ≥ 30 con Bz a sud.</li><li><b>Debole</b>: Bz a sud con vento più lento.</li><li><b>Nessuno</b>: Bz a nord o neutro.</li></ul>' +
     '<h3>Episodi di Bz sud e arrivo</h3><ul class="ab-bullets"><li>Un episodio comincia con Bz ≤ −1 nT, dura almeno 4 minuti e tollera risalite fino a 4 minuti.</li><li>L’arrivo è 1.500.000 km ÷ velocità misurata al fronte. Il margine di ±15 minuti è prudenziale, non un intervallo di confidenza calibrato.</li><li>La stima non tiene conto della posizione reale della sonda né dell’orientamento del fronte.</li><li>Ey+ = velocità × (Bt⊥ − Bz) / 2, con Bt⊥ = √(By²+Bz²): include anche By, non solo Bz (formula di Kan & Lee, 1979). Con By trascurabile coincide con velocità × max(0, −Bz). L’impulso ∫Ey+ dt è un indicatore dell’accoppiamento accumulato, non energia depositata.</li></ul>' +
     '<h3>Riscontro a terra</h3><p>Variazione di X dei magnetometri IMAGE rispetto alla mediana di 30–20 minuti prima dell’arrivo stimato; «marcata» da 100 nT, oppure da una velocità di variazione di almeno 15 nT/min sostenuta per 3 minuti (segue meglio l’aurora dinamica che si vede muoversi in cielo). È una regola esplorativa: un segnale è solo compatibile nel tempo, e un magnetometro tranquillo non esclude un arrivo altrove.</p>' +
@@ -691,6 +718,15 @@ function bindUI() {
       saveAlerts(); return;
     }
     if (t.dataset && t.dataset.setting) { const v = t.type === 'checkbox' ? t.checked : parseFloat(t.value); if (t.type === 'checkbox' || isFinite(v)) alertSettings[t.dataset.setting] = v; saveAlerts(); return; }
+    if (t.id === 'tgCode') { tgCodeSet(t.value.trim()); if ($('tgSw')) { $('tgSw').disabled = true; $('tgSw').checked = false; } if ($('tgMsg')) $('tgMsg').textContent = t.value.trim() ? 'Verifica in corso…' : 'Inserisci il codice per abilitare l’interruttore.'; tgRefresh(); return; }
+    if (t.id === 'tgSw') {
+      t.disabled = true;
+      const r = await tgCall('set', t.checked);
+      if (r.error) { t.checked = !t.checked; if ($('tgMsg')) $('tgMsg').textContent = r.error === 'codice' ? 'Codice non valido.' : 'Il server non ha risposto: riprova tra poco.'; t.disabled = r.error === 'codice'; return; }
+      t.disabled = false; t.checked = r.enabled === true;
+      if ($('tgMsg')) $('tgMsg').textContent = r.enabled ? 'Attive: ti ho mandato un messaggio di conferma su Telegram.' : 'Spente.';
+      return;
+    }
     if (t.id === 'pushSw') {
       t.disabled = true;
       const msg = t.checked ? await pushSubscribe() : await pushUnsubscribe().then(() => 'Notifiche push disattivate su questo dispositivo.');

@@ -166,18 +166,27 @@ function updateOvation() {
 function ovalReach(d) {
   if (!d || !d.coordinates) return null;
   const north = S.lat >= 0, lon360 = ((S.lon % 360) + 360) % 360, me = Math.abs(S.lat);
-  let edge = null;
+  let edge = null, peak = 0, here = 0, hd = Infinity;
   for (const [clon, clat, val] of d.coordinates) {
-    if (val < 5 || (clat >= 0) !== north) continue;
+    if ((clat >= 0) !== north) continue;
     let dl = Math.abs(clon - lon360); if (dl > 180) dl = 360 - dl;
     if (dl > 10) continue;
+    const dd = dl * dl + (clat - S.lat) ** 2; if (dd < hd) { hd = dd; here = val; }
+    if (val < 5) continue;
+    if (val > peak) peak = val;
     const a = Math.abs(clat); if (edge === null || a < edge) edge = a;
   }
   if (edge === null) return null;
   const km = Math.round((edge - me) * 111.2 / 50) * 50; // >0: l'ovale è più verso il polo di te
   const where = north ? 'nord' : 'sud';
-  if (km <= 0) return { edge, km, tier: 'overhead', state: 'good', short: 'sopra di te', value: 'L’ovale arriva a ' + Math.round(edge) + '° e ti comprende', note: 'Sei dentro l’ovale: se è buio e sereno l’aurora può essere alta in cielo.' };
-  if (km <= 600) return { edge, km, tier: 'near', state: 'good', short: 'vicino', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where, note: 'Aurora alta sull’orizzonte ' + where + ', se è buio e sereno.' };
+  // essere dentro (o vicino) all'ovale non basta: se il modello lo dà debole (sotto 20 su 100) il ✓ sarebbe una promessa.
+  // Sopra di te conta il valore nel tuo punto; vicino conta il massimo dell'ovale sul tuo meridiano.
+  if (km <= 0) return here < 20
+    ? { edge, km, tier: 'overhead', state: 'mid', short: 'sopra di te, debole', value: 'L’ovale ti comprende, ma qui è debole (' + Math.round(here) + ' su 100)', note: 'Al più un’aurora tenue, spesso visibile solo in foto: servono buio e cielo sereno.' }
+    : { edge, km, tier: 'overhead', state: 'good', short: 'sopra di te', value: 'L’ovale arriva a ' + Math.round(edge) + '° e ti comprende (' + Math.round(here) + ' su 100)', note: 'Sei dentro l’ovale: se è buio e sereno l’aurora può essere alta in cielo.' };
+  if (km <= 600) return peak < 20
+    ? { edge, km, tier: 'near', state: 'mid', short: 'vicino, debole', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where + ', ma è debole (al massimo ' + Math.round(peak) + ' su 100)', note: 'Al più un bagliore tenue verso ' + where + ', se è buio e sereno.' }
+    : { edge, km, tier: 'near', state: 'good', short: 'vicino', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where, note: 'Aurora alta sull’orizzonte ' + where + ', se è buio e sereno.' };
   if (km <= 1500) return { edge, km, tier: 'horizon', state: 'mid', short: 'all’orizzonte', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where, note: 'Al più un bagliore basso sull’orizzonte ' + where + ', di solito debole e rossastro: servono cielo sereno e orizzonte libero.' };
   return { edge, km, tier: 'far', state: 'bad', short: 'lontano', value: 'L’ovale arriva a ' + Math.round(edge) + '°, a circa ' + km + ' km a ' + where, note: 'Troppo lontano: da qui l’aurora non si vede.' };
 }

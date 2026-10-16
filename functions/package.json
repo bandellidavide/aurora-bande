@@ -3,7 +3,7 @@
   "private": true,
   "type": "commonjs",
   "main": "index.js",
-  "engines": { "node": "20" },
+  "engines": { "node": "22" },
   "scripts": {
     "serve": "firebase emulators:start --only functions,firestore",
     "shell": "firebase functions:shell",

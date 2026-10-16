@@ -107,14 +107,39 @@ function parseAlertUntil(msg) {
   const m = /(?:Now Valid Until|Valid To):\s*(\d{4}) (\w{3}) (\d{1,2}) (\d{2})(\d{2}) UTC/.exec(msg);
   return m ? Date.UTC(+m[1], MONTHS[m[2]], +m[3], +m[4], +m[5]) : null;
 }
+// ALERT «K-index of 7»: vale per il suo periodo sinottico di 3 ore («Threshold Reached: 2026 Oct 10 1926 UTC», «Synoptic Period: 1800-2100»).
+// NOAA ne emette uno nuovo a ogni periodo in cui la soglia viene raggiunta: finito il periodo, quell'ALERT non dice più «adesso».
+function parsePeriodEnd(msg) {
+  const r = /Threshold Reached:\s*(\d{4}) (\w{3}) (\d{1,2}) (\d{2})(\d{2}) UTC/.exec(msg), p = /Synoptic Period:\s*(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(msg);
+  if (!r || !p) return null;
+  const reached = Date.UTC(+r[1], MONTHS[r[2]], +r[3], +r[4], +r[5]);
+  let end = Date.UTC(+r[1], MONTHS[r[2]], +r[3], +p[3], +p[4]);
+  if (end <= reached) end += 86400000; // «2100-0000»: il periodo finisce a mezzanotte del giorno dopo
+  return end;
+}
 function parseAlert(a) {
   const msg = (a.message || '').replace(/\r/g, '');
   const title = msg.split('\n').map((s) => s.trim()).find((s) => /^(EXTENDED )?(ALERT|WARNING|WATCH|SUMMARY|CONTINUED ALERT)\b/i.test(s)) || (msg.split('\n').find((s) => s.trim() && !/^Space Weather|^Serial|^Issue/i.test(s.trim())) || '').trim();
   const kp = /K-index of (\d)/i.exec(title);
   const isAlert = /^ALERT|^CONTINUED ALERT/i.test(title), isSummary = /^SUMMARY/i.test(title);
+  // type: «alert» = soglia RAGGIUNTA (dato misurato); «warning» = soglia ATTESA entro la finestra di validità (previsione)
+  const type = isAlert ? 'alert' : isSummary ? 'summary' : /^(EXTENDED )?WARNING/i.test(title) ? 'warning' : /WATCH/i.test(title) ? 'watch' : 'other';
   // NOAA manda anche allerte per protoni/elettroni/radio (utili per satelliti, non per l'aurora): si tengono solo quelle geomagnetiche.
   const geo = /Geomagnetic|K-index/i.test(title);
-  return { id: a.product_id, ms: toMs(a.issue_datetime), title, kp: kp ? +kp[1] : null, until: parseAlertUntil(msg), kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto', geo, watch: geo ? parseWatch(title, msg, toMs(a.issue_datetime)) : null };
+  const ms = toMs(a.issue_datetime);
+  return { id: a.product_id, ms, title, type, kp: kp ? +kp[1] : null, until: parseAlertUntil(msg), periodEnd: isAlert ? (parsePeriodEnd(msg) || ms + 3 * 3600e3) : null, impulse: /Sudden Impulse/i.test(title), kind: isAlert || isSummary ? 'measured' : 'forecast', word: isAlert ? 'Raggiunto' : isSummary ? 'Riepilogo' : 'Previsto', geo, watch: geo ? parseWatch(title, msg, ms) : null };
+}
+// Cosa dice NOAA in questo momento, tenendo separato ciò che è RAGGIUNTO (ALERT nel suo periodo di 3 ore) da ciò che è
+// soltanto ATTESO (WARNING ancora in vigore). recent: la soglia G1+ più alta raggiunta nelle ultime 6 ore, anche a periodo chiuso.
+function noaaGeoNow(list, now) {
+  list = list || []; now = now || Date.now();
+  const top = (arr) => (arr.length ? arr.reduce((m, a) => (a.kp > m.kp ? a : m), arr[0]) : null);
+  return {
+    // un ALERT emesso a fine periodo (es. 17:58 per il periodo 15-18) vale comunque 15 minuti, come in functions/src/noaaAlertsWatch.js
+    reached: top(list.filter((a) => a.type === 'alert' && a.kp != null && Math.max(a.periodEnd, a.ms + 15 * 60e3) > now)),
+    expected: top(list.filter((a) => a.type === 'warning' && a.kp != null && a.until != null && a.until > now)),
+    recent: top(list.filter((a) => a.type === 'alert' && a.kp != null && a.kp >= 5 && now - a.ms <= 6 * 3600e3)),
+  };
 }
 // WATCH = avviso con giorni di anticipo («Highest Storm Level Predicted by Day: Oct 09: G2 (Moderate)»); nessun Kp né scadenza,
 // per questo il banner a soglia di Kp non lo vede. «THIS SUPERSEDES ANY/ALL PRIOR WATCHES»: vale l'ultimo emesso; CANCEL WATCH lo annulla.

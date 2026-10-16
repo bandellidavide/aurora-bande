@@ -68,3 +68,20 @@ async function pushUnsubscribe() {
     return 'ok';
   } catch (e) { return 'err'; }
 }
+
+// ============================ notifiche Telegram (opzionali, accese da qui) ============================
+// Il bot manda gli stessi avvisi della push, ma su Telegram. Spento di default; l'interruttore sta sul server
+// (state/telegram) ed è protetto da un codice, salvato solo su questo dispositivo.
+const TG_CODE_KEY = 'ab.tgCode';
+function tgCodeGet() { try { return localStorage.getItem(TG_CODE_KEY) || ''; } catch (e) { return ''; } }
+function tgCodeSet(c) { try { if (c) localStorage.setItem(TG_CODE_KEY, c); else localStorage.removeItem(TG_CODE_KEY); } catch (e) { /* storage non disponibile */ } }
+// action: 'status' | 'set'. Restituisce { enabled } oppure { error: 'codice' | 'rete' }
+async function tgCall(action, enabled) {
+  const code = tgCodeGet(); if (!code) return { error: 'codice' };
+  try {
+    const res = await fetch(PUSH_API_BASE + '/telegramToggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, action, enabled: enabled === true }) });
+    if (res.status === 403) return { error: 'codice' };
+    if (!res.ok) return { error: 'rete' };
+    return await res.json();
+  } catch (e) { return { error: 'rete' }; }
+}
