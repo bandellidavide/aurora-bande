@@ -50,7 +50,7 @@ const CREDITS = [
     name: 'Camere dedicate all’aurora',
     uses: 'Immagini e dirette mostrate direttamente dai server dei titolari, con collegamento alla loro pagina. Nulla viene copiato o salvato.',
     license: 'Le immagini appartengono ai rispettivi titolari; alcuni non indicano una licenza esplicita. Se sei un titolare e preferisci che la tua camera non compaia, segnalalo a Davide Bandelli.',
-    credit: 'Finnish Meteorological Institute (Kevo, Kilpisjärvi, Muonio, Sodankylä, Hankasalmi) · Swedish Institute of Space Physics, IRF (Kiruna) · Tromsø Geophysical Observatory, UiT (Skibotn) · UNIS / Kjell Henriksen Observatory (Longyearbyen) · University of Calgary / Canadian Space Agency, AuroraMAX (Yellowknife, Calgary) · Landhotel (Hella, tramite IPCamLive).',
+    credit: 'Finnish Meteorological Institute (Muonio, Hankasalmi, Nyrölä, Metsähovi; Metsähovi con Aalto University) · Swedish Institute of Space Physics, IRF (Kiruna) · Tromsø Geophysical Observatory, UiT (Skibotn) · UNIS / Kjell Henriksen Observatory (Longyearbyen) · University of Calgary / Canadian Space Agency, AuroraMAX (Yellowknife) · Landhotel (Hella, tramite IPCamLive).',
     link: ['https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', 'rwc-finland.fmi.fi'],
   },
   {

@@ -219,15 +219,14 @@ async function loadHemi() {
 // ---------- webcam ----------
 const IPCAMLIVE = 'https://g0.ipcamlive.com/player/';
 const CURATED_WEBCAMS = [
-  { name: 'Kevo · Finlandia', lat: 69.76, lon: 27.01, url: 'https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', image: 'https://space.fmi.fi/MIRACLE/RWC/latest_KEV.jpg', source: 'FMI', aurora: true },
-  { name: 'Kilpisjärvi · Finlandia', lat: 69.03, lon: 20.47, url: 'https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', image: 'https://space.fmi.fi/MIRACLE/RWC/latest_KIL.jpg', source: 'FMI', aurora: true },
+  // controllate il 17 ott 2026: tolte Kevo (non risponde), Kilpisjärvi (ferma ad aprile 2026), Sodankylä (dismessa nel 2021), Calgary (ferma da settembre)
   { name: 'Muonio · Finlandia', lat: 68.02, lon: 23.53, url: 'https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', image: 'https://space.fmi.fi/MIRACLE/RWC/latest_MUO.jpg', source: 'FMI', aurora: true },
   { name: 'Kiruna · Svezia', lat: 67.84, lon: 20.41, url: 'https://www2.irf.se/Observatory/?link=All-sky_sp_camera', image: 'https://www.irf.se/alis/allsky/krn/latest_medium.jpeg', source: 'IRF', aurora: true },
   { name: 'Skibotn · Norvegia', lat: 69.35, lon: 20.36, url: 'https://fox.phys.uit.no/ASC/ASC01.html', image: 'https://fox.phys.uit.no/ASC/Latest_ASC01.png', source: 'TGO / UiT', aurora: true },
-  { name: 'Sodankylä · Finlandia', lat: 67.37, lon: 26.63, url: 'https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', image: 'https://space.fmi.fi/MIRACLE/RWC/latest_SOD.jpg', source: 'FMI', aurora: true },
   { name: 'Hankasalmi · Finlandia', lat: 62.25, lon: 26.60, url: 'https://aurorasnow.fmi.fi/public_service/', image: 'https://aurorasnow.fmi.fi/public_service/images/latest_SIR_AllSky.jpg', source: 'FMI', aurora: true },
+  { name: 'Nyrölä · Finlandia', lat: 62.34, lon: 25.51, url: 'https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', image: 'https://space.fmi.fi/MIRACLE/RWC/latest_SIR.jpg', source: 'FMI', aurora: true },
+  { name: 'Metsähovi · Finlandia', lat: 60.22, lon: 24.39, url: 'https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', image: 'https://space.fmi.fi/MIRACLE/RWC/latest_HOV.jpg', source: 'FMI / Aalto', aurora: true },
   { name: 'Yellowknife · Canada', lat: 62.45, lon: -114.37, url: 'https://auroramax.com/live', image: 'https://auroramax.phys.ucalgary.ca/recent/recent_480p.jpg', source: 'Univ. Calgary / CSA', aurora: true },
-  { name: 'Calgary · Canada', lat: 51.08, lon: -114.13, url: 'https://www.ucalgary.ca/', image: 'https://cam01.sci.ucalgary.ca/AllSkyCam/AllSkyCurrentImage.JPG', source: 'Univ. Calgary', aurora: true },
   // camere in diretta ospitate da IPCamLive: fotogramma ufficiale (aggiornato ogni ~2 minuti, con orario leggibile) e player incorporabile
   { name: 'Hella · Islanda (cam 1)', lat: 63.97, lon: -20.25, url: 'https://landhotel.is/index.php/northernlights-live', provider: 'ipcamlive', alias: '6501dd6068492', image: IPCAMLIVE + 'snapshot.php?alias=6501dd6068492', source: 'Landhotel', aurora: true },
   { name: 'Hella · Islanda (cam 2)', lat: 63.97, lon: -20.25, url: 'https://landhotel.is/index.php/northernlights-live', provider: 'ipcamlive', alias: '6565ed34e367a', image: IPCAMLIVE + 'snapshot.php?alias=6565ed34e367a', source: 'Landhotel', aurora: true },

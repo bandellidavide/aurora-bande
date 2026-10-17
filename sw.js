@@ -3,7 +3,7 @@
 // Strategia: rete prima, cache come ripiego. Così un aggiornamento pubblicato arriva subito, e senza rete resta il guscio dell'app.
 // Non mette mai in cache i dati: meteo, NOAA, magnetometri, webcam e tutto ciò che non è di questo sito passano sempre dalla rete.
 // Quando si aggiunge o si toglie un file dell'app, aggiorna SHELL e cambia VERSION.
-const VERSION = 'aurora-bande-2026-10-17-1';
+const VERSION = 'aurora-bande-2026-10-17-2';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'css/tokens.css', 'css/app.css',
@@ -12,7 +12,8 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // 'reload': copia presa dal server, non dalla cache del browser (GitHub Pages la tiene 10 minuti: si rischiava di salvare i file vecchi)
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
@@ -24,7 +25,8 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return;                                            // dati e immagini di altri siti: sempre rete
   if (/\/(data|_aurora|versione-precedente)\//.test(url.pathname)) return;                    // magnetometri, server locale, pagine precedenti: sempre rete
   e.respondWith(
-    fetch(req).then((res) => {
+    // 'no-cache': chiede sempre al server se il file è cambiato (risposta breve se è uguale); una navigazione non accetta opzioni
+    (req.mode === 'navigate' ? fetch(req) : fetch(req, { cache: 'no-cache' })).then((res) => {
       if (res && res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || (req.mode === 'navigate' ? caches.match('index.html') : Response.error())))
