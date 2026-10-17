@@ -149,8 +149,8 @@ function groundCard(e) {
   const url = 'https://space.fmi.fi/image/realtime/UT/' + g.st + '/XYZlast2.html';
   return '<section class="ab-card ab-ground" id="groundCard"><div class="ab-card__head"><h2 class="t-title">Riscontro a terra</h2>' + tag('measured', TAGS.measured) + '</div>' +
     '<p class="t-label" style="color:var(--ink-3)">' + esc(name) + ' · ' + Math.round(g.dist) + ' km dal luogo</p>' +
-    '<div class="ab-ground__value"><span class="t-num-lg">' + (a.delta != null ? signed(a.delta, 0) : '—') + '</span><span class="t-body-sm ab-unit">nT</span></div>' +
-    '<span class="t-caption" style="color:var(--ink-3)">Variazione X rispetto al riferimento</span>' +
+    (e ? '<div class="ab-ground__value"><span class="t-num-lg">' + (a.delta != null ? signed(a.delta, 0) : '—') + '</span><span class="t-body-sm ab-unit">nT</span></div>' +
+    '<span class="t-caption" style="color:var(--ink-3)">Variazione X rispetto al riferimento</span>' : '') +
     groundChartBlock() +
     '<p class="ab-ground__state t-body" data-tone="' + tone + '">' + icon(iconName) + esc(e ? a.label : 'Nessun fronte da confrontare') + '</p>' +
     '<p class="t-body-sm" style="color:var(--ink-2);margin-top:var(--space-2)">' + esc(e ? a.detail : 'Il confronto parte quando un episodio di Bz sud ha un arrivo stimato.') + '</p>' +

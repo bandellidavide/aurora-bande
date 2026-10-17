@@ -318,16 +318,16 @@ function ovalMap() {
   const rings = OVAL_MAP.ring.filter((km) => km < viewKm).map((km, i) => {
     const r = ringR(km);
     return '<circle cx="' + C + '" cy="' + C + '" r="' + r.toFixed(1) + '" fill="none" stroke="var(--line-strong)" stroke-width="1" stroke-dasharray="' + (i ? '2 4' : '5 4') + '"/>' +
-      '<text x="' + C + '" y="' + (C - r - 4).toFixed(1) + '" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="var(--font-sans)">' + (i ? km + ' km · solo all’orizzonte' : km + ' km · alta in cielo') + '</text>';
+      '<text x="' + C + '" y="' + (C - r - 4).toFixed(1) + '" text-anchor="middle" font-size="14" fill="var(--ink-2)" stroke="var(--surface-0)" stroke-width="3" paint-order="stroke" font-family="var(--font-sans)">' + (i ? km + ' km · solo all’orizzonte' : km + ' km · alta in cielo') + '</text>';
   }).join('');
   const W = 2 * P; // immagine delle coste a doppia risoluzione per gli schermi dei telefoni
   const coast = EUM_WMS + 'wms?service=WMS&version=1.3.0&request=GetMap&styles=&layers=backgrounds:ne_10m_coastline&crs=AUTO2:42003,1,' + S.lon.toFixed(2) + ',' + S.lat.toFixed(2) +
     '&bbox=' + [-half, -half, half, half].join(',') + '&width=' + W + '&height=' + W + '&format=image/png&transparent=true';
   const svg = '<svg class="ab-ovalmap" viewBox="0 0 ' + P + ' ' + P + '" role="img" aria-label="Mappa dell’ovale aurorale attorno a ' + esc(shortPlace()) + ': ' + esc(rc ? rc.value : 'ovale non calcolabile sul tuo meridiano') + '" style="width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-0)">' +
     '<image href="' + esc(coast) + '" x="0" y="0" width="' + P + '" height="' + P + '" opacity="0.32"/>' + dots.join('') + rings +
-    '<text x="' + C + '" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink-2)" font-family="var(--font-sans)">N</text>' +
+    '<text x="' + C + '" y="18" text-anchor="middle" font-size="15" font-weight="600" fill="var(--ink-2)" font-family="var(--font-sans)">N</text>' +
     '<circle cx="' + C + '" cy="' + C + '" r="9" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity="0.6"/><circle cx="' + C + '" cy="' + C + '" r="4" fill="var(--ink)"/>' +
-    '<text x="' + (C + 13) + '" y="' + (C + 4) + '" font-size="12" font-weight="600" fill="var(--ink)" font-family="var(--font-sans)">Tu</text></svg>';
+    '<text x="' + (C + 13) + '" y="' + (C + 5) + '" font-size="15" font-weight="600" fill="var(--ink)" stroke="var(--surface-0)" stroke-width="3" paint-order="stroke" font-family="var(--font-sans)">Tu</text></svg>';
   ovalMapMemo = { key, svg };
   return svg;
 }
