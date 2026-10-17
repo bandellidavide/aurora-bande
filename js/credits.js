@@ -54,11 +54,18 @@ const CREDITS = [
     link: ['https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', 'rwc-finland.fmi.fi'],
   },
   {
-    name: 'OpenStreetMap',
-    uses: 'Ricerca di webcam vicine al luogo (tramite Overpass API).',
-    license: 'Open Database License (ODbL).',
-    credit: '© OpenStreetMap contributors.',
-    link: ['https://www.openstreetmap.org/copyright', 'openstreetmap.org/copyright'],
+    name: 'Statens vegvesen',
+    uses: 'Webcam stradali della Norvegia (scheda Webcam), lette in diretta dall’elenco aperto dell’amministrazione stradale norvegese.',
+    license: 'Norsk lisens for offentlige data (NLOD) 2.0.',
+    credit: 'Inneholder data under norsk lisens for offentlige data (NLOD) tilgjengeliggjort av Statens vegvesen.',
+    link: ['https://data.norge.no/nlod/no/2.0', 'data.norge.no/nlod'],
+  },
+  {
+    name: 'Vegagerðin',
+    uses: 'Webcam stradali dell’Islanda (scheda Webcam). L’elenco delle camere è una copia del loro catalogo aperto (aggiornata a mano); le immagini arrivano in diretta dai loro server.',
+    license: 'Dati aperti pubblicati dall’amministrazione stradale islandese, senza condizioni d’uso indicate.',
+    credit: 'Myndir: Vegagerðin (umferdin.is).',
+    link: ['https://umferdin.is/', 'umferdin.is'],
   },
   {
     name: 'BigDataCloud',
@@ -86,6 +93,6 @@ const CREDITS = [
 function renderCreditsSheet() {
   const items = CREDITS.map((c) => '<div class="ab-credit-item"><h3>' + esc(c.name) + '</h3><p>' + esc(c.uses) + '</p><p class="ab-credit-lic"><b>Licenza:</b> ' + esc(c.license) + '</p><p class="ab-credit-txt"><b>Credito:</b> ' + esc(c.credit) + '</p>' + (c.link ? '<div class="ab-linkrow">' + extLink(c.link[0], c.link[1]) + '</div>' : '') + '</div>').join('');
   $('sheetCredits').innerHTML = sheetHead('sheetCreditsTitle', 'Fonti e crediti') + '<div class="ab-sheet__body">' +
-    '<p class="ab-notice"><b>Posizione e riservatezza.</b> Il luogo scelto, o la tua posizione se la consenti, resta sul dispositivo. Le sue coordinate vengono inviate solo ai servizi dei dati: Open-Meteo (meteo), Overpass/OpenStreetMap (webcam vicine) e, solo per «Usa la mia posizione», BigDataCloud (nome del luogo). Nessun server di Aurora Bande le riceve.</p><p class="ab-notice" style="margin-top:var(--space-2)"><b>Aurora Bande non è un servizio ufficiale</b> di NOAA, NASA, FMI o degli altri titolari e non è approvato da loro. Episodi di Bz sud, arrivo stimato, quadro d’insieme, riscontro a terra e le altre sintesi sono elaborazioni proprie dei dati originali: non sono dati originali e non sono una previsione.</p>' +
+    '<p class="ab-notice"><b>Posizione e riservatezza.</b> Il luogo scelto, o la tua posizione se la consenti, resta sul dispositivo. Le sue coordinate vengono inviate solo ai servizi dei dati: Open-Meteo (meteo), Statens vegvesen (webcam stradali, solo per luoghi in Norvegia o vicini) e, solo per «Usa la mia posizione», BigDataCloud (nome del luogo). Nessun server di Aurora Bande le riceve.</p><p class="ab-notice" style="margin-top:var(--space-2)"><b>Aurora Bande non è un servizio ufficiale</b> di NOAA, NASA, FMI o degli altri titolari e non è approvato da loro. Episodi di Bz sud, arrivo stimato, quadro d’insieme, riscontro a terra e le altre sintesi sono elaborazioni proprie dei dati originali: non sono dati originali e non sono una previsione.</p>' +
     items + '<p class="t-caption" style="margin-top:var(--space-5);color:var(--ink-3)">Windy e EUMETView compaiono solo come collegamenti esterni: non ne vengono presi dati.</p></div>';
 }

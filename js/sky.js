@@ -274,6 +274,32 @@ async function loadRoadCams(lat, lon, radiusKm) {
   }).filter(Boolean);
 }
 
+// ---------- webcam stradali della Norvegia (Statens vegvesen, dati aperti NLOD: citare la fonte) ----------
+// Elenco ufficiale DATEX 3.1 in GeoJSON, senza chiave e con CORS aperto. Si chiede solo il riquadro attorno al luogo.
+const VEGVESEN_CAMS = 'https://ogckart-sn1.atlas.vegvesen.no/ogc/features/v1/collections/datex_3_1:CctvSimple/items';
+async function loadNorwayCams(lat, lon, radiusKm) {
+  const r = Math.min(Math.max(radiusKm, 100), 300), dLat = r / 111, dLon = r / (111 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
+  if (lat + dLat < 57.5 || lat - dLat > 71.5 || lon + dLon < 4 || lon - dLon > 31.5) return []; // lontano dalla Norvegia
+  const bbox = [lon - dLon, lat - dLat, lon + dLon, lat + dLat].map((v) => v.toFixed(3)).join(',');
+  const d = await getJSON(VEGVESEN_CAMS + '?f=json&limit=500&bbox=' + bbox, 'Webcam stradali (Statens vegvesen)', 20000);
+  if (!d || !Array.isArray(d.features)) return [];
+  return d.features.filter((f) => f.properties && f.properties.stillImageUrl && f.properties['status.stillImageAvailability'] === 'videoOrImagesAvailable' && f.geometry && f.geometry.coordinates)
+    .map((f) => { const p = f.properties, c = f.geometry.coordinates; return { name: p.description + (p.orientationDescription && p.orientationDescription !== p.description ? ' → ' + p.orientationDescription : ''), lat: c[1], lon: c[0], url: safeUrl(p.stillImageUrl), image: safeUrl(p.stillImageUrl), source: 'Statens vegvesen', kind: 'road', aurora: false, note: p.roadNumber ? 'strada ' + p.roadNumber : '' }; })
+    .filter((c) => c.image).map((c) => ({ ...c, dist: haversineKm(lat, lon, c.lat, c.lon) })).sort((a, b) => a.dist - b.dist).slice(0, 40);
+}
+
+// ---------- webcam stradali dell'Islanda (Vegagerðin, nessuna condizione d'uso nel catalogo nazionale) ----------
+// Il loro server non permette la lettura dal browser: l'elenco è copiato in elenchi/webcam-islanda.json (si rigenera con: node tools/webcam-islanda.js),
+// le immagini restano quelle in diretta dal loro server. Una vista per punto: quella verso nord se c'è.
+let ICELAND = null;
+async function loadIcelandCams(lat, lon, radiusKm) {
+  if (lat < 60 || lat > 70 || lon < -28 || lon > -10) return [];
+  if (!ICELAND) { const d = await getJSON('elenchi/webcam-islanda.json', 'Webcam stradali (Vegagerðin)', 15000); ICELAND = Array.isArray(d && d.cams) ? d.cams : null; }
+  if (!ICELAND) return [];
+  return ICELAND.map((c) => ({ name: c.name, lat: c.lat, lon: c.lon, url: safeUrl(c.img), image: safeUrl(c.img), source: 'Vegagerðin', kind: 'road', aurora: false, north: c.north, note: c.north ? 'vista verso nord' : '', dist: haversineKm(lat, lon, c.lat, c.lon) }))
+    .filter((c) => c.image && c.dist <= Math.max(radiusKm, 150)).sort((a, b) => a.dist - b.dist).slice(0, 40);
+}
+
 // Le camere IPCamLive rispondono con l'ora dell'ultimo fotogramma (Last-Modified, CORS aperto): così si vede se sono ferme o spente.
 async function checkStreams(list) {
   await Promise.all(list.filter((c) => c.provider === 'ipcamlive').map(async (c) => {
@@ -291,16 +317,12 @@ async function checkStreams(list) {
 async function loadWebcams() {
   const lat = S.lat, lon = S.lon;
   S.webcams = CURATED_WEBCAMS.map((c) => ({ ...c, dist: haversineKm(lat, lon, c.lat, c.lon) }));
-  const radius = Math.max(500, S.camRadius) * 1000;
-  const q = '[out:json][timeout:12];node["tourism"="webcam"](around:' + radius + ',' + lat + ',' + lon + ');out body;';
-  const [d, road] = await Promise.all([getJSON('https://overpass.kumi.systems/api/interpreter?data=' + encodeURIComponent(q), 'Webcam vicine (OpenStreetMap)', 15000), loadRoadCams(lat, lon, S.camRadius).catch(() => [])]);
+  // reti stradali ufficiali con licenza aperta (Finlandia, Norvegia, Islanda). La ricerca su OpenStreetMap è stata tolta il 17 ott 2026:
+  // i server Overpass dal browser fallivano quasi sempre e le webcam OSM non hanno quasi mai un'immagine.
+  const [fi, no, is] = await Promise.all([loadRoadCams(lat, lon, S.camRadius).catch(() => []), loadNorwayCams(lat, lon, S.camRadius).catch(() => []), loadIcelandCams(lat, lon, S.camRadius).catch(() => [])]);
   if (lat !== S.lat || lon !== S.lon) return;
-  const osm = (Array.isArray(d && d.elements) ? d.elements : []).filter((el) => isFinite(el.lat) && isFinite(el.lon)).map((el) => {
-    const t = el.tags || {};
-    return { name: t.name || 'Webcam di zona', lat: el.lat, lon: el.lon, url: safeUrl(t.website || t['contact:webcam'] || t.url || t.image), image: t.image && /\.(jpe?g|png|webp)(\?.*)?$/i.test(t.image) ? safeUrl(t.image) : null, source: 'OpenStreetMap', aurora: false };
-  }).filter((c) => c.url);
   const seen = new Set();
-  S.webcams = [...CURATED_WEBCAMS, ...osm, ...road].filter((c) => { const k = camKey(c); if (seen.has(k)) return false; seen.add(k); return true; }).map((c) => ({ ...c, dist: haversineKm(lat, lon, c.lat, c.lon) }));
+  S.webcams = [...CURATED_WEBCAMS, ...fi, ...no, ...is].filter((c) => { const k = camKey(c); if (seen.has(k)) return false; seen.add(k); return true; }).map((c) => ({ ...c, dist: haversineKm(lat, lon, c.lat, c.lon) }));
   await checkStreams(S.webcams);
 }
 
