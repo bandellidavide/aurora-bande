@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p site
           cp index.html sole-noaa.html manifest.webmanifest sw.js site/
-          cp -r css js icons versione-precedente site/
+          cp -r css js icons elenchi versione-precedente site/
           cp README.md site/ 2>/dev/null || true
           cp -r data site/
           # le pagine precedenti leggono i magnetometri da data/ relativo alla loro cartella
