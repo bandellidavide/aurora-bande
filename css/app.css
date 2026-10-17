@@ -336,6 +336,36 @@ a{color:var(--ink-2)}
 .ab-hbars i{display:block;width:100%;border-radius:4px 4px 2px 2px;background:var(--level-0)}
 .ab-hbars i[data-c="good"]{background:var(--aurora-green)}
 .ab-hbars i[data-c="bad"]{background:var(--north)}
+/* nuvole: probabilità di cielo libero ora per ora nelle ore di buio (barra alta = più probabile) */
+.t-num-lg[data-c="good"]{color:var(--aurora-green)}
+.t-num-lg[data-c="bad"]{color:var(--ink-2)}
+.ab-nstrip__t{margin-top:var(--space-4);color:var(--ink-3)}
+.ab-nstrip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(22px,1fr);gap:3px;align-items:end;margin-top:var(--space-2);overflow-x:auto;padding-bottom:2px}
+.ab-nstrip>div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;height:96px;font:400 11px/14px var(--font-mono);color:var(--ink-3);border-radius:6px 6px 0 0}
+.ab-nstrip>div[data-best]{background:color-mix(in srgb,var(--aurora-green) 10%,transparent)}
+.ab-nstrip i{display:block;width:100%;min-height:3px;height:calc(var(--p) * .6px);border-radius:4px 4px 2px 2px;background:var(--ink-3)}
+.ab-nstrip i[data-c="good"]{background:var(--aurora-green)}
+.ab-nstrip i[data-c="mid"]{background:var(--warning)}
+.ab-nstrip b{font-weight:500;color:var(--ink)}
+.ab-mtable{width:100%;border-collapse:collapse;font:400 13px/18px var(--font-sans);color:var(--ink-2)}
+.ab-mtable th{font:500 12px/16px var(--font-sans);color:var(--ink-3);text-align:right;padding:4px 0 4px 8px}
+.ab-mtable th:first-child,.ab-mtable td:first-child{text-align:left;padding-left:0}
+.ab-mtable td{text-align:right;padding:6px 0 6px 8px;border-top:1px solid var(--line);font-family:var(--font-mono);color:var(--ink)}
+.ab-mtable td:first-child{font-family:var(--font-sans)}
+.ab-mtable small{color:var(--ink-3)}
+.ab-mtable td[data-c="good"]{color:var(--aurora-green)}
+/* mappe: nuvole attorno a te e satellite. Il punto al centro è il luogo scelto */
+.ab-map{margin-top:var(--space-2)}
+.ab-map__box{position:relative;width:100%;border-radius:var(--radius-md,10px);overflow:hidden;background:#0b1220}
+.ab-map__box>canvas,.ab-map__box>img{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* le coste arrivano chiare: un alone scuro le fa leggere sia sulle nuvole bianche sia sul fondo scuro */
+.ab-map__lines{filter:drop-shadow(0 0 1px rgba(0,0,0,.95)) drop-shadow(0 0 1px rgba(0,0,0,.6));opacity:.85;pointer-events:none}
+.ab-map__dot{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--aurora-magenta);box-shadow:0 0 0 3px rgba(0,0,0,.55),0 0 12px var(--aurora-magenta)}
+.ab-map__n{position:absolute;right:8px;top:6px;font:500 12px/16px var(--font-mono);color:var(--ink-2);background:rgba(0,0,0,.45);padding:2px 6px;border-radius:6px}
+.ab-map__imo{display:block;width:100%;height:auto;border-radius:8px;margin-top:var(--space-2);background:#fff}
+.ab-map__ctl{display:flex;align-items:center;gap:var(--space-3);margin-top:var(--space-3)}
+.ab-map__ctl input{flex:1;min-width:0;accent-color:var(--aurora-green);min-height:var(--tap-comfort,44px)}
+.ab-map__ctl output{font:500 13px/18px var(--font-mono);color:var(--ink);white-space:nowrap}
 .ab-timeline{list-style:none;margin:var(--space-3) 0 0;padding:0}
 .ab-timeline li{display:flex;justify-content:space-between;gap:var(--space-3);padding:var(--space-2) 0;border-top:1px solid var(--line);font:400 14px/20px var(--font-sans);color:var(--ink-2)}
 .ab-timeline li:first-child{border-top:0}

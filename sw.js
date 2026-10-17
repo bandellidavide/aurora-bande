@@ -3,11 +3,11 @@
 // Strategia: rete prima, cache come ripiego. Così un aggiornamento pubblicato arriva subito, e senza rete resta il guscio dell'app.
 // Non mette mai in cache i dati: meteo, NOAA, magnetometri, webcam e tutto ciò che non è di questo sito passano sempre dalla rete.
 // Quando si aggiunge o si toglie un file dell'app, aggiorna SHELL e cambia VERSION.
-const VERSION = 'aurora-bande-2026-10-17-3';
+const VERSION = 'aurora-bande-2026-10-17-4';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest',
   'css/tokens.css', 'css/app.css',
-  'js/core.js', 'js/l1.js', 'js/ground.js', 'js/sky.js', 'js/noaa.js', 'js/alerts.js', 'js/field.js', 'js/minicharts.js', 'js/hypo.js', 'js/credits.js', 'js/ui.js', 'js/main.js', 'js/pwa.js',
+  'js/core.js', 'js/l1.js', 'js/ground.js', 'js/sky.js', 'js/meteo.js', 'js/noaa.js', 'js/alerts.js', 'js/field.js', 'js/minicharts.js', 'js/hypo.js', 'js/credits.js', 'js/ui.js', 'js/main.js', 'js/pwa.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
 ];
 

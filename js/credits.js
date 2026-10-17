@@ -34,10 +34,24 @@ const CREDITS = [
   },
   {
     name: 'Open-Meteo',
-    uses: 'Nuvole, temperatura, pioggia e vento del luogo (scheda Cielo e Adesso); ricerca dei luoghi (dati GeoNames).',
-    license: 'CC BY 4.0. Uso gratuito solo non commerciale: se un giorno l’app avesse pubblicità o abbonamenti serve la licenza commerciale. Le medie e le sintesi mostrate (per esempio «nuvole stanotte») sono calcolate da Aurora Bande.',
-    credit: 'Weather data by Open-Meteo.com. Place search: GeoNames.',
+    uses: 'Nuvole, temperatura, pioggia e vento del luogo (scheda Cielo e Adesso); scenari delle nuvole (ensemble ECMWF, ICON, GFS) per la probabilità di cielo libero; confronto fra sei modelli (ECMWF, DWD ICON, NOAA GFS, MET Norway, Météo-France, UK Met Office); griglia di punti per la mappa «Nuvole attorno a te»; ricerca dei luoghi (dati GeoNames).',
+    license: 'CC BY 4.0. Uso gratuito solo non commerciale: se un giorno l’app avesse pubblicità o abbonamenti serve la licenza commerciale. I dati vengono dai servizi meteorologici nazionali citati. Probabilità, medie, momento migliore, mappa e indicazione del cielo libero più vicino sono calcolati da Aurora Bande.',
+    credit: 'Weather data by Open-Meteo.com (ECMWF, DWD, NOAA, MET Norway, Météo-France, UK Met Office). Place search: GeoNames.',
     link: ['https://open-meteo.com/en/license', 'open-meteo.com/en/license'],
+  },
+  {
+    name: 'EUMETSAT · Meteosat',
+    uses: 'Immagine infrarossa (canale 10,8 µm) del satellite Meteosat attorno al luogo, nella scheda Cielo; coste e confini (Natural Earth) disegnati sopra le mappe.',
+    license: 'Dati EUMETSAT «essenziali», liberi e senza restrizioni con licenza CC BY 4.0 (EUMETSAT Data Policy). Le immagini sono chieste al servizio EUMETView e mostrate senza modifiche al contenuto. Natural Earth è di pubblico dominio.',
+    credit: 'Contiene dati EUMETSAT Meteosat ' + new Date().getFullYear() + '. Coste e confini: Natural Earth.',
+    link: ['https://view.eumetsat.int/', 'view.eumetsat.int'],
+  },
+  {
+    name: 'Veðurstofa Íslands (istituto meteorologico islandese)',
+    uses: 'Solo per luoghi in Islanda: mappa ufficiale delle nubi basse e medie (modello HARMONIE), mostrata dai loro server dentro la scheda Cielo.',
+    license: 'Dati aperti con licenza CC BY 4.0 (legge islandese n. 45/2018 sul riuso dell’informazione pubblica).',
+    credit: 'Veðurstofa Íslands — skýjahuluspá (cloud cover forecast), CC BY 4.0.',
+    link: ['https://en.vedur.is/weather/forecasts/cloudcover/', 'en.vedur.is'],
   },
   {
     name: 'Fintraffic · Digitraffic',
@@ -93,6 +107,6 @@ const CREDITS = [
 function renderCreditsSheet() {
   const items = CREDITS.map((c) => '<div class="ab-credit-item"><h3>' + esc(c.name) + '</h3><p>' + esc(c.uses) + '</p><p class="ab-credit-lic"><b>Licenza:</b> ' + esc(c.license) + '</p><p class="ab-credit-txt"><b>Credito:</b> ' + esc(c.credit) + '</p>' + (c.link ? '<div class="ab-linkrow">' + extLink(c.link[0], c.link[1]) + '</div>' : '') + '</div>').join('');
   $('sheetCredits').innerHTML = sheetHead('sheetCreditsTitle', 'Fonti e crediti') + '<div class="ab-sheet__body">' +
-    '<p class="ab-notice"><b>Posizione e riservatezza.</b> Il luogo scelto, o la tua posizione se la consenti, resta sul dispositivo. Le sue coordinate vengono inviate solo ai servizi dei dati: Open-Meteo (meteo), Statens vegvesen (webcam stradali, solo per luoghi in Norvegia o vicini) e, solo per «Usa la mia posizione», BigDataCloud (nome del luogo). Nessun server di Aurora Bande le riceve.</p><p class="ab-notice" style="margin-top:var(--space-2)"><b>Aurora Bande non è un servizio ufficiale</b> di NOAA, NASA, FMI o degli altri titolari e non è approvato da loro. Episodi di Bz sud, arrivo stimato, quadro d’insieme, riscontro a terra e le altre sintesi sono elaborazioni proprie dei dati originali: non sono dati originali e non sono una previsione.</p>' +
-    items + '<p class="t-caption" style="margin-top:var(--space-5);color:var(--ink-3)">Windy e EUMETView compaiono solo come collegamenti esterni: non ne vengono presi dati.</p></div>';
+    '<p class="ab-notice"><b>Posizione e riservatezza.</b> Il luogo scelto, o la tua posizione se la consenti, resta sul dispositivo. Le sue coordinate vengono inviate solo ai servizi dei dati: Open-Meteo (meteo e mappa delle nuvole), EUMETSAT (immagine del satellite e coste, solo il riquadro attorno al luogo), Statens vegvesen (webcam stradali, solo per luoghi in Norvegia o vicini) e, solo per «Usa la mia posizione», BigDataCloud (nome del luogo). Nessun server di Aurora Bande le riceve.</p><p class="ab-notice" style="margin-top:var(--space-2)"><b>Aurora Bande non è un servizio ufficiale</b> di NOAA, NASA, FMI o degli altri titolari e non è approvato da loro. Episodi di Bz sud, arrivo stimato, quadro d’insieme, riscontro a terra e le altre sintesi sono elaborazioni proprie dei dati originali: non sono dati originali e non sono una previsione.</p>' +
+    items + '<p class="t-caption" style="margin-top:var(--space-5);color:var(--ink-3)">Windy compare solo come collegamento esterno: non ne vengono presi dati.</p></div>';
 }

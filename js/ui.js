@@ -222,6 +222,73 @@ function skyOutlookBlock() {
   }).join('');
   return '<details class="ab-details"><summary>Prossimi 5 giorni: luna, tramonto e alba' + icon('chev') + '</summary><ul class="ab-sky5" aria-label="Prossimi 5 giorni"><li class="hd" aria-hidden="true"><span>Notte di</span><span>Luna</span><span>Tramonto</span><span>Alba dopo</span></li>' + rows + '</ul><p class="t-caption ab-card__note">La luna è quella di metà notte. «Luna in cielo» conta le ore, fra tramonto e alba, in cui sta sopra l’orizzonte: con la luna bassa o assente il cielo è più scuro.</p></details>';
 }
+// ---------- nuvole: probabilità di cielo libero nelle ore di buio (js/meteo.js) ----------
+function nightStrip(s) {
+  const hr = (t) => new Date(t).toLocaleTimeString('it-IT', { hour: '2-digit', timeZone: zone() });
+  const best = s.best && s.best.p >= 20 && s.best.p > s.avg + 5 ? s.best : null; // si evidenzia solo un momento davvero migliore
+  return '<div class="ab-nstrip" role="img" aria-label="' + esc(nightName(s.w) + ': probabilità di cielo libero ora per ora') + '">' + s.cells.map((c) => {
+    const inBest = best && c.t >= best.a && c.t < best.b;
+    return '<div' + (inBest ? ' data-best' : '') + '><i data-c="' + pClass(c.pClear) + '" style="--p:' + c.pClear + '"></i><b>' + c.pClear + '</b><span>' + hr(c.t) + '</span></div>';
+  }).join('') + '</div>';
+}
+function cloudsCard() {
+  const W = S.wx;
+  if (!W || !W.ens) return card('Nuvole nelle ore di buio', !W ? '<p class="ab-empty">Previsioni delle nuvole in caricamento…</p>' : empty('Previsioni delle nuvole non disponibili ora.'), { right: tag('forecast', TAGS.forecast) });
+  const wins = nightWindows(2), sums = wins.map(nightCloudSummary).filter(Boolean);
+  if (!sums.length) return card('Nuvole nelle ore di buio', empty(window.SunCalc ? 'Nessuna ora di buio nelle prossime notti (sole troppo alto).' : 'Calcolo del buio non disponibile.'), { right: tag('forecast', TAGS.forecast) });
+  const s0 = sums[0], m = s0.models;
+  const head = '<div class="ab-bigvalue"><span class="t-num-lg" data-c="' + pClass(s0.avg) + '">' + s0.avg + '</span><span class="t-body-sm ab-unit">su 100</span></div>' +
+    '<p class="t-body" style="font-weight:600;margin-top:var(--space-1)">' + esc(nightName(s0.w)) + ': cielo libero ' + esc(pWord(s0.avg)) + '</p>' +
+    '<p class="t-body-sm" style="color:var(--ink-2)">' + (s0.best && s0.best.p >= 20 && s0.best.p > s0.avg + 5 ? 'Momento migliore ' + fmtClock(s0.best.a) + '–' + fmtClock(s0.best.b) + ' (' + s0.best.p + ' su 100).' : s0.max < 20 ? 'Nessuna schiarita prevista qui.' : 'Senza un momento nettamente migliore.') +
+    ' Buio ' + fmtClock(s0.w.a) + '–' + fmtClock(s0.w.b) + (s0.w.deep ? '' : ' (solo crepuscolo)') + '.</p>';
+  const north = isNorth(S.lat, S.lon), hs = north && S.wxMap && S.wxMap.lat === S.lat && S.wxMap.lon === S.lon ? mapHours() : [], sp = hs.length && s0.avg < 50 ? clearSpot(mapDefaultHour(hs)) : null;
+  const go = sp && sp.k != null ? '<a class="ab-linkcard" href="#mappa-nuvole" data-go="#mappa-nuvole" style="margin-top:var(--space-3)">' + icon('cloud') + '<span><b>Più libero a circa ' + sp.km + ' km verso ' + esc(sp.dir) + '</b><small>Guarda la mappa delle nuvole attorno a te</small></span>' + icon('chev') + '</a>' : '';
+  const strips = go + sums.map((s, i) => '<h3 class="t-label ab-nstrip__t">' + esc(nightName(s.w)) + (i ? ' · ' + s.avg + ' su 100' : ' · ora per ora') + (s.partial ? ' · dati parziali' : '') + '</h3>' + nightStrip(s)).join('') +
+    '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">Barra alta e verde = cielo libero più probabile in quell’ora.</p>';
+  let mod = '';
+  if (m) {
+    const r = m.rows, blk = r.map((x) => x.block).filter((x) => x != null), hi = r.map((x) => x.high).filter((x) => x != null);
+    const avg = (v) => Math.round(v.reduce((a, b) => a + b, 0) / v.length);
+    mod = '<p class="t-body-sm" style="margin-top:var(--space-3)"><b>I modelli sono ' + esc(m.agree) + '</b>: da ' + m.min + '% a ' + m.max + '% di nuvole.' +
+      (blk.length ? ' Nubi basse o medie (quelle che coprono davvero) ~' + avg(blk) + '%' : '') + (hi.length ? ', velo alto ~' + avg(hi) + '% (attenua ma spesso lascia vedere).' : '.') + '</p>' +
+      (m.fog.length ? '<p class="t-body-sm" style="color:var(--warning)">Possibile nebbia o foschia fitta verso le ' + fmtClock(m.fog[0]) + ' (visibilità sotto 1 km).</p>' : '') +
+      '<details class="ab-details"><summary>I sei modelli, uno per uno' + icon('chev') + '</summary><table class="ab-mtable"><thead><tr><th>Modello</th><th>Totali</th><th>Basse/medie</th><th>Alte</th></tr></thead><tbody>' +
+      r.map((x) => '<tr><td>' + esc(x.name) + ' <small>' + esc(x.from) + '</small></td><td data-c="' + cloudClass(x.total) + '">' + x.total + '%</td><td>' + (x.block == null ? '—' : x.block + '%') + '</td><td>' + (x.high == null ? '—' : x.high + '%') + '</td></tr>').join('') +
+      '</tbody></table><p class="t-caption">Medie sulle ore di buio di ' + esc(nightName(s0.w).toLowerCase()) + '. Quando i modelli non sono d’accordo, il numero in alto è più incerto: conviene ricontrollare più tardi e guardare il satellite.</p></details>';
+  }
+  const inner = head + strips + mod + (north ? '' : '<p class="t-body-sm" style="margin-top:var(--space-3);color:var(--ink-2)">La mappa delle nuvole attorno a te e il satellite ci sono solo per i luoghi del nord dove l’aurora si vede spesso: Norvegia, Svezia, Finlandia, Islanda, Faroe, Groenlandia, Svalbard, Scozia del nord.</p>') +
+    '<p class="t-caption ab-card__note">Il numero è quanti dei ' + (W.ens ? W.ens.members : '') + ' scenari dei modelli ECMWF, ICON e GFS danno cielo libero o quasi (nuvole fino al 30%) in quell’ora: una possibilità, non una certezza. Le schiarite piccole e locali possono sfuggire. Fonte: Open-Meteo.com (CC BY 4.0), elaborazione di Aurora Bande, aggiornata alle ' + fmtClock(W.fetchedAt) + '.</p>';
+  return card('Nuvole nelle ore di buio', inner, { right: tag('forecast', TAGS.forecast), id: 'nuvole' });
+}
+function cloudMapCard() {
+  if (!isNorth(S.lat, S.lon)) return '';
+  const M = S.wxMap;
+  const failed = S.wxMapFail && S.wxMapFail.key === S.lat + ',' + S.lon && Date.now() - S.wxMapFail.t < 10 * 60000;
+  if (failed && (!M || M.lat !== S.lat || M.lon !== S.lon)) return card('Nuvole attorno a te', empty('Mappa non disponibile ora: il servizio dei dati non risponde o chiede di rallentare. Riprovo da solo fra qualche minuto.'), { right: tag('forecast', TAGS.forecast) });
+  if (!M || M.lat !== S.lat || M.lon !== S.lon) { loadCloudMap().then(() => { if (S.view === 'cielo') renderSoon(); }); return card('Mappa delle nuvole', '<p class="ab-empty">Mappa in caricamento…</p>', { right: tag('forecast', TAGS.forecast) }); }
+  const hours = mapHours();
+  if (!hours.length) return card('Mappa delle nuvole', empty('Mappa non disponibile ora.'), { right: tag('forecast', TAGS.forecast) });
+  const t = S.mapHour = mapDefaultHour(hours), i = hours.indexOf(t), bb = M.bb, W = 600, H = 400;
+  const imo = S.imoRun != null && inIceland(S.lat, S.lon) ? imoUrl(S.imoRun, t) : null;
+  const inner = '<div class="ab-map"><div class="ab-map__box" style="aspect-ratio:' + W + '/' + H + '"><canvas id="wxMapCv" width="' + W + '" height="' + H + '"></canvas><img class="ab-map__lines" src="' + esc(linesUrl(bb, W, H)) + '" alt="" loading="lazy" decoding="async"><span class="ab-map__dot" title="Sei qui: ' + esc(shortPlace()) + '"></span><span class="ab-map__n" aria-hidden="true">N ↑</span></div></div>' +
+    '<div class="ab-map__ctl"><input type="range" id="wxMapHour" min="0" max="' + (hours.length - 1) + '" step="1" value="' + i + '" aria-label="Ora della mappa"><output id="wxMapLbl" for="wxMapHour">' + esc(mapHourLabel(t)) + '</output></div>' +
+    '<p class="t-body" id="wxMapSpot" style="margin-top:var(--space-2)">' + esc(spotText(t)) + '</p>' +
+    '<p class="t-body-sm" style="color:var(--ink-2)"><b>Bianco = nubi basse o medie</b>, quelle che coprono davvero. <b>Scuro = cielo libero</b> da quelle nubi (un velo alto può esserci comunque). Il punto al centro sei tu; i cerchi sono a 50, 100 e 200 km.</p>' +
+    (imo ? '<details class="ab-details"><summary>Mappa ufficiale islandese, più dettagliata' + icon('chev') + '</summary><img id="wxMapImg" class="ab-map__imo" src="' + esc(imo) + '" alt="Mappa delle nubi basse e medie sull’Islanda, istituto meteorologico islandese" loading="lazy" decoding="async"><p class="t-caption">Veðurstofa Íslands (istituto meteorologico islandese), modello HARMONIE a 2,5 km, CC BY 4.0, corsa delle ' + fmtClock(S.imoRun, 'UTC') + ' UTC. Qui i colori sono al contrario: <b>verde = nuvole</b> (in ottavi), <b>bianco = cielo libero</b>. Segue lo stesso cursore.</p></details>' : '') +
+    '<p class="t-caption ab-card__note">Costruita da Aurora Bande con 121 punti, uno ogni 45 km circa, presi dal modello più fine disponibile in ciascun punto (' + esc((M.models || []).join(', ')) + '; via Open-Meteo.com, CC BY 4.0): le schiarite piccole non si vedono, e una previsione non è una certezza. Distanze in linea d’aria, non su strada. Coste e confini: Natural Earth, dal server EUMETSAT.</p>';
+  return card('Nuvole attorno a te', inner, { right: tag('forecast', TAGS.forecast), id: 'mappa-nuvole' });
+}
+function satCard() {
+  const v = isNorth(S.lat, S.lon) ? satView(S.lat, S.lon) : null;
+  if (!v) return '';
+  const when = S.satTime ? fmtDay(S.satTime) + ' ' + fmtClock(S.satTime) : null;
+  const inner = '<div class="ab-map"><div class="ab-map__box ab-map__box--sat" style="aspect-ratio:600/400"><img src="' + esc(v.ir) + '" alt="Immagine infrarossa del satellite Meteosat attorno al luogo" loading="lazy" decoding="async"><img class="ab-map__lines" src="' + esc(v.lines) + '" alt="" loading="lazy" decoding="async"><span class="ab-map__dot"></span></div></div>' +
+    '<p class="t-body-sm" style="margin-top:var(--space-2)">' + (when ? 'Immagine delle ' + esc(when) + '. ' : '') + '<b>Chiaro = nuvole</b> (più bianche, più alte e fredde), <b>scuro = terra o mare senza nuvole</b>. Funziona anche di notte.</p>' +
+    (v.skewed ? '<p class="t-body-sm" style="color:var(--ink-2)">A questa latitudine il satellite (che sta sopra l’equatore) vede la zona molto di sbieco: l’immagine è schiacciata e meno precisa.</p>' : '') +
+    '<p class="t-caption ab-card__note">Contiene dati EUMETSAT Meteosat ' + new Date().getFullYear() + ' (canale infrarosso 10,8 µm, un’immagine ogni 15 minuti, circa 45 minuti di ritardo). Riquadro di circa ' + v.kmW + ' km di larghezza. Nubi basse e nebbia, a temperatura simile al suolo, possono sembrare cielo libero.</p>';
+  return card('Satellite adesso', inner, { right: tag('measured', TAGS.measured) });
+}
+
 function viewCielo() {
   const a = S.astro = astro(), d = S.sky.data, now = Date.now();
   // meteo
@@ -230,17 +297,16 @@ function viewCielo() {
   else {
     const cur = d.current, cc = Math.round(cur.cloud_cover), cls = cloudClass(cc), fz = d.timezone;
     const rows = d.hourly.time.map((t, i) => ({ t: t * 1000, v: d.hourly.cloud_cover[i], rain: d.hourly.precipitation_probability ? d.hourly.precipitation_probability[i] : null })).filter((p) => p.t + 3600000 > now).slice(0, 6);
-    const rain = rows.length && isFinite(rows[0].rain) ? Math.round(rows[0].rain) : null, nc = nightCloud();
+    const rain = rows.length && isFinite(rows[0].rain) ? Math.round(rows[0].rain) : null;
     const layer = (lb, k) => { const v = isFinite(cur[k]) ? Math.round(cur[k]) : null; return '<div class="ab-layer"><span>' + lb + '</span><i><b style="width:' + (v == null ? 0 : v) + '%;background:' + (v == null ? 'var(--line)' : v <= 30 ? 'var(--aurora-green)' : v > 70 ? 'var(--north)' : 'var(--ink-2)') + '"></b></i><strong>' + (v == null ? '—' : v + '%') + '</strong></div>'; };
     wx = '<div class="ab-bigvalue">' + icon('cloud', 'ab-icon--lg') + '<span class="t-num-lg">' + cc + '%</span><span class="t-body">' + cloudWord(cc) + ' · nuvole ora</span></div>' +
       '<p class="t-body-sm" style="color:var(--ink-2);margin-top:var(--space-1)">' + [Math.round(cur.temperature_2m) + ' °C', rain != null ? 'pioggia ' + rain + '%' : null, isFinite(cur.wind_speed_10m) ? 'vento ' + Math.round(cur.wind_speed_10m) + ' km/h' : null].filter(Boolean).join(' · ') + '</p>' +
       '<div class="ab-layers">' + layer('Totali', 'cloud_cover') + layer('Basse', 'cloud_cover_low') + layer('Medie', 'cloud_cover_mid') + layer('Alte', 'cloud_cover_high') + '</div>' +
       '<h3 class="t-label" style="margin-top:var(--space-4);color:var(--ink-3)">Prossime 6 ore</h3><div class="ab-hbars">' + rows.map((p) => '<div><strong>' + Math.round(p.v) + '%</strong><i data-c="' + cloudClass(p.v) + '" style="height:' + Math.max(4, p.v * 0.6) + 'px"></i><span>' + new Date(p.t).toLocaleTimeString('it-IT', { hour: '2-digit', timeZone: fz }) + '</span></div>').join('') + '</div>' +
-      (nc != null ? '<p class="t-body-sm" style="margin-top:var(--space-3);color:var(--ink-2)">Media stanotte (21:00–05:00): ~' + nc + '% di nuvole.</p>' : '') +
-      '<div class="ab-linkrow">' + extLink('https://www.windy.com/?clouds,' + S.lat + ',' + S.lon + ',8', 'Windy · nuvole') + extLink('https://view.eumetsat.int/', 'EUMETView · satellite') + extLink('https://www.windy.com/?webcams,' + S.lat + ',' + S.lon + ',8', 'Windy · webcam') + '</div>' +
+      '<div class="ab-linkrow">' + extLink('https://www.windy.com/?clouds,' + S.lat + ',' + S.lon + ',8', 'Windy · nuvole') + extLink('https://view.eumetsat.int/', 'EUMETView · satellite') + (inIceland(S.lat, S.lon) ? extLink('https://en.vedur.is/weather/forecasts/cloudcover/', 'Vedur.is · nuvole') : '') + '</div>' +
       '<p class="t-caption ab-card__note">Dati meteo: Open-Meteo.com (CC BY 4.0), stime da modello recuperate alle ' + fmtClock(S.sky.fetchedAt, fz) + '. Gli strati nuvolosi non si sommano e le schiarite locali possono differire.</p>';
   }
-  const wxCard = card('Meteo del luogo', wx, { right: tag('forecast', TAGS.forecast) });
+  const wxCard = card('Meteo adesso', wx, { right: tag('forecast', TAGS.forecast) });
   // buio e luna
   let as;
   if (!a.ok) as = empty('Calcolo non disponibile: libreria SunCalc non caricata.');
@@ -265,7 +331,7 @@ function viewCielo() {
     '<p class="t-caption ab-card__note">Dati: NOAA SWPC · modello OVATION' + (ov.forecastTime ? ' · previsione delle ' + esc(String(ov.forecastTime).replace('T', ' ').replace(/:\d\d(\.\d+)?Z?$/, '')) + ' UTC' : '') + '. Descrive l’attività regionale del modello e non garantisce la visibilità a occhio nudo nel tuo luogo.</p>';
   const ovCard = card('Ovale aurorale', ovh, { right: tag('forecast', TAGS.forecast) });
   const camLink = '<a class="ab-linkcard" href="#webcam" data-go="webcam">' + icon('camera') + '<span><b>Guarda il cielo dal vivo</b><small>Webcam vicine a te e camere dedicate all’aurora</small></span>' + icon('chev') + '</a>';
-  return '<div class="ab-page" data-cols="even"><div class="ab-span"><h1 class="ab-h1">Cielo</h1><p class="ab-lede">Nuvole, buio e luna a ' + esc(placeLabel()) + ': ciò che decide se un segnale diventa un’aurora visibile.</p></div>' + wxCard + asCard + '<div class="ab-stack">' + ovCard + camLink + '</div></div>';
+  return '<div class="ab-page" data-cols="even"><div class="ab-span"><h1 class="ab-h1">Cielo</h1><p class="ab-lede">Nuvole, buio e luna a ' + esc(placeLabel()) + ': ciò che decide se un segnale diventa un’aurora visibile.</p></div>' + cloudsCard() + cloudMapCard() + satCard() + wxCard + asCard + '<div class="ab-stack">' + ovCard + camLink + '</div></div>';
 }
 
 // ============================ WEBCAM ============================
@@ -651,6 +717,7 @@ function renderView(name) {
   if (S.back && S.back.view !== name) el.innerHTML = el.innerHTML.replace(/(<div class="ab-page"[^>]*>)/, '$1' + backChip());
   if (name === 'adesso') { drawField(); drawGround(); drawWind(); }
   if (name === 'giorni') drawFlares();
+  if (name === 'cielo') drawCloudMap();
   if (name === 'fronti') drawFront(pickEvent(Date.now()) || S.episodes[S.episodes.length - 1] || null);
 }
 function renderAll() {
@@ -710,6 +777,9 @@ function bindUI() {
     if (t.closest('#notifBtn')) { $('notifMsg').textContent = await enableNotifications(); return; }
     if (t.closest('#diagCopy')) { const txt = diagReport(); try { await navigator.clipboard.writeText(txt); $('diagMsg').textContent = 'Copiato.'; } catch (e) { $('diagMsg').textContent = 'Copia non riuscita: seleziona e copia a mano.'; } return; }
     if (t.tagName === 'DIALOG') t.close(); // clic sullo sfondo
+  });
+  document.addEventListener('input', (ev) => {
+    if (ev.target.id === 'wxMapHour') { const hs = mapHours(), t = hs[Number(ev.target.value)]; if (t) setMapHour(t); }
   });
   document.addEventListener('change', async (ev) => {
     const t = ev.target;

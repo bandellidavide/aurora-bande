@@ -72,6 +72,13 @@ function cloudWord(c) { return c <= 30 ? 'Sereno' : c <= 70 ? 'Variabile' : 'Cop
 
 // riquadro «Cielo» per LocalConditions
 function skyCheck(e) {
+  // prima scelta: la probabilità di cielo libero dagli scenari dei modelli (js/meteo.js), nella finestra d'arrivo o nelle ore di buio di stanotte
+  if (typeof nightCloudSummary === 'function' && S.wx && S.wx.ens) {
+    let s = null;
+    if (e && e.arrStart != null) { const a = e.arrStart - ARRIVAL_MARGIN_MS, b = e.arrStart + ARRIVAL_MARGIN_MS; if (b > Date.now()) s = nightCloudSummary({ a, b, arrival: true }); }
+    if (!s) { const w = nightWindows(1)[0]; s = w ? nightCloudSummary(w) : null; }
+    if (s) return { state: pClass(s.avg), value: 'Cielo libero ' + pWord(s.avg), note: s.avg + ' su 100 ' + (s.w.arrival ? 'nella finestra d’arrivo' : nightName(s.w).toLowerCase()) + (s.best && s.best.p > s.avg + 10 ? ', meglio ' + fmtClock(s.best.a) + '–' + fmtClock(s.best.b) : '') };
+  }
   const d = S.sky.data;
   if (!d) return { state: 'mid', value: 'Non disponibile', note: 'Meteo non raggiungibile' };
   const range = skyWindow(e);
