@@ -218,7 +218,10 @@ async function loadHemi() {
 
 // ---------- webcam ----------
 const IPCAMLIVE = 'https://g0.ipcamlive.com/player/';
+// Dirette YouTube: solo canali dei titolari, incorporabili (oEmbed) e in onda 24/7. Se la diretta cambia ID, l'anteprima sparisce: ricontrollare.
+const YT_THUMB = (id) => 'https://i.ytimg.com/vi/' + id + '/hqdefault_live.jpg';
 const CURATED_WEBCAMS = [
+  { name: 'Churchill · Canada (diretta)', lat: 58.73, lon: -93.82, url: 'https://explore.org/livecams/zen-den/northern-lights-cam', provider: 'youtube', yt: 'a0i1Kg6fROg', image: YT_THUMB('a0i1Kg6fROg'), source: 'explore.org / Polar Bears International', aurora: true },
   // controllate il 17 ott 2026: tolte Kevo (non risponde), Kilpisjärvi (ferma ad aprile 2026), Sodankylä (dismessa nel 2021), Calgary (ferma da settembre)
   { name: 'Muonio · Finlandia', lat: 68.02, lon: 23.53, url: 'https://rwc-finland.fmi.fi/index.php/all-sky-camera-images/', image: 'https://space.fmi.fi/MIRACLE/RWC/latest_MUO.jpg', source: 'FMI', aurora: true },
   { name: 'Kiruna · Svezia', lat: 67.84, lon: 20.41, url: 'https://www2.irf.se/Observatory/?link=All-sky_sp_camera', image: 'https://www.irf.se/alis/allsky/krn/latest_medium.jpeg', source: 'IRF', aurora: true },
