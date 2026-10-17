@@ -13,7 +13,7 @@ const CREDITS = [
   },
   {
     name: 'FMI · rete di magnetometri IMAGE',
-    uses: 'Variazione del campo magnetico a terra (scheda Adesso e Fronti). Dati in tempo reale, provvisori.',
+    uses: 'Variazione del campo magnetico a terra (scheda Adesso e Fronti). Dati in tempo reale, provvisori, letti dai file pubblici di FMI tramite un piccolo servizio di Aurora Bande (Firebase) che fa da tramite, perché il browser non può leggerli direttamente; medie al minuto, nessuna altra modifica.',
     license: 'Creative Commons Attribution 4.0 (CC BY 4.0). Il gruppo IMAGE chiede di ringraziare gli istituti che mantengono la rete.',
     credit: 'We thank the institutes who maintain the IMAGE Magnetometer Array: Tromsø Geophysical Observatory of UiT the Arctic University of Norway (Norway), Finnish Meteorological Institute (Finland), Institute of Geophysics Polish Academy of Sciences (Poland), GFZ German Research Centre for Geosciences (Germany), Geological Survey of Sweden (Sweden), Swedish Institute of Space Physics (Sweden), Sodankylä Geophysical Observatory of the University of Oulu (Finland), DTU Technical University of Denmark (Denmark), and Science Institute of the University of Iceland (Iceland).',
     link: ['https://space.fmi.fi/image/', 'space.fmi.fi/image'],
@@ -41,7 +41,7 @@ const CREDITS = [
   },
   {
     name: 'EUMETSAT · Meteosat',
-    uses: 'Immagine infrarossa (canale 10,8 µm) del satellite Meteosat attorno al luogo, nella scheda Cielo; coste e confini (Natural Earth) disegnati sopra le mappe.',
+    uses: 'Immagine infrarossa (canale 10,8 µm) del satellite Meteosat attorno al luogo, nella scheda Cielo; coste e confini (Natural Earth) disegnati sopra le mappe, anche nella mappa dell’ovale aurorale.',
     license: 'Dati EUMETSAT «essenziali», liberi e senza restrizioni con licenza CC BY 4.0 (EUMETSAT Data Policy). Le immagini sono chieste al servizio EUMETView e mostrate senza modifiche al contenuto. Natural Earth è di pubblico dominio.',
     credit: 'Contiene dati EUMETSAT Meteosat ' + new Date().getFullYear() + '. Coste e confini: Natural Earth.',
     link: ['https://view.eumetsat.int/', 'view.eumetsat.int'],

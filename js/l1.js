@@ -24,10 +24,18 @@ function emSouth(bz, by) { return bz == null ? null : Math.max(0, Math.sqrt((by 
 // richiedere «OVATION alto» e «Bz a sud» insieme non è una doppia conferma indipendente, Bz ne fa già parte.
 // Qui «Bz a sud» funziona da controllo di freschezza: OVATION riassume alcune ore di storia e può restare alto
 // per un po' anche se il vento è appena tornato a nord; richiederlo filtra quel ritardo, non rafforza il segnale.
+// Le regole si applicano alla MEDIA degli ultimi SIGNAL_MEAN_MIN minuti, non al singolo minuto (vedi l1Mean).
+// Soglie riviste il 17 ott 2026 sui dati veri: con «Bz ≤ −1 e vento ≥ 350» al minuto, nei giorni calmi 12–17 ott (Kp max 3,7)
+// il segnale era «moderato» il 22% del tempo e cambiava ~90 volte al giorno; così è il 6% e ~9 volte, e nella tempesta
+// del 10 ott (G3) resta «elevato» nella fase principale (16:30–18:30 UTC a L1).
+const SIGNAL_MEAN_MIN = 15;
 const SIGNAL_RULES = {
-  elevated: (bz, v, ov) => (bz <= -5 && v >= 450) || (bz <= -3 && v >= 550) || (ov != null && ov >= 60 && isSouth(bz)),
-  moderate: (bz, v, ov) => (isSouth(bz) && v >= 350) || (ov != null && ov >= 30 && isSouth(bz)),
+  elevated: (bz, v, ov) => bz <= -10 || (bz <= -5 && v >= 450) || (bz <= -3 && v >= 550) || (ov != null && ov >= 60 && isSouth(bz)),
+  moderate: (bz, v, ov) => (bz <= -3 && v >= 350) || (bz <= -2 && v >= 500) || (ov != null && ov >= 30 && isSouth(bz)),
 };
+// NOAA RTSW pubblica i dati con qualche minuto di ritardo (misurato il 17 ott: 3–7 minuti): un dato fino a
+// FRESH_MAX_MIN minuti fa è «l'ultimo disponibile», non un buco. Stesso limite di freshRow.
+const FRESH_MAX_MIN = 10;
 const SIGNAL_TITLES = ['Nessun segnale favorevole', 'Segnale debole', 'Segnale moderato', 'Segnale elevato'];
 const SIGNAL_STEPS = ['Nessuno', 'Debole', 'Moderato', 'Elevato'];
 
@@ -97,7 +105,7 @@ function freshRow(raw, keys) {
   const r = latestValid(raw.filter((x) => x && x.source === src), keys);
   if (!r) return null;
   const age = (Date.now() - toMs(r.time_tag)) / 60000;
-  if (!isFinite(age) || age < -2 || age > 10) return null;
+  if (!isFinite(age) || age < -2 || age > FRESH_MAX_MIN) return null;
   if (keys.includes('proton_speed') && !(num(r.proton_speed) > 0)) return null;
   return r;
 }
@@ -138,6 +146,23 @@ function l1RecentLoad(hours) {
   return { hours, chargeMvmin: charge, southShare: southMin / totalMin };
 }
 
+// media di Bz e velocità negli ultimi `minutes` minuti della sonda scelta, ciascuna fino al suo ultimo dato disponibile
+// (il vento arriva spesso qualche minuto dopo il campo). null se i dati sono vecchi o troppo radi per una media.
+function l1Mean(minutes) {
+  const src = selectedSource();
+  if (!src) return null;
+  const avg = (series) => {
+    if (!series.length) return null;
+    const end = series[series.length - 1].t;
+    if ((Date.now() - end) / 60000 > FRESH_MAX_MIN) return null;
+    const win = series.filter((p) => p.t > end - minutes * 60000);
+    return win.length >= minutes / 2 ? win.reduce((s, p) => s + p.v, 0) / win.length : null;
+  };
+  const cutoff = Date.now() - (minutes + FRESH_MAX_MIN) * 60000;
+  const bz = avg(seriesFor(S.magRaw, src, 'bz_gsm', cutoff)), v = avg(seriesFor(S.windRaw, src, 'proton_speed', cutoff));
+  return bz != null && v != null ? { bz, v, minutes } : null;
+}
+
 // ---------- livello del segnale ----------
 function signal() {
   const c = l1Now();
@@ -147,13 +172,19 @@ function signal() {
     return { level: null, title: 'Dati non disponibili', why, c };
   }
   const ov = S.ovation && S.ovation.val != null ? S.ovation.val : null;
-  const level = SIGNAL_RULES.elevated(c.bz, c.v, ov) ? 3 : SIGNAL_RULES.moderate(c.bz, c.v, ov) ? 2 : isSouth(c.bz) ? 1 : 0;
+  // il livello si decide sulla media degli ultimi minuti; se non è calcolabile (es. solo il riepilogo NOAA) sul valore attuale
+  // eccezione rapida: una svolta a sud forte (media di 5 minuti ≤ −10 nT) non aspetta che la media di 15 minuti la raggiunga
+  // (10 ott, 16:24 UTC a L1: Bz −29 nT ma media di 15 min ancora +4)
+  const m15 = l1Mean(SIGNAL_MEAN_MIN), m5 = l1Mean(5), sharp = !!(m5 && m5.bz <= -10);
+  const m = sharp ? m5 : m15, bz = m ? m.bz : c.bz, v = m ? m.v : c.v;
+  const level = sharp || SIGNAL_RULES.elevated(bz, v, ov) ? 3 : SIGNAL_RULES.moderate(bz, v, ov) ? 2 : isSouth(bz) ? 1 : 0;
   const ong = ongoingEpisode();
-  const wind = 'vento a ' + Math.round(c.v) + ' km/s';
+  const wind = 'vento a ' + Math.round(v) + ' km/s';
+  const val = signed(bz, 1) + ' nT' + (m ? ' in media negli ultimi ' + m.minutes + ' min' : '');
   let why;
-  if (isSouth(c.bz)) why = 'Bz a sud' + (ong ? ' da ' + fmtDur(ong.durMin) : ' (' + signed(c.bz, 1) + ' nT)') + ', ' + wind + '.';
-  else why = (c.bz > 0 ? 'Bz a nord' : 'Bz vicino allo zero') + ' (' + signed(c.bz, 1) + ' nT), ' + wind + '.';
-  return { level, title: SIGNAL_TITLES[level], why, c, ov };
+  if (isSouth(bz)) why = 'Bz a sud' + (ong ? ' da ' + fmtDur(ong.durMin) + ' (' + val + ')' : ' (' + val + ')') + ', ' + wind + '.';
+  else why = (bz > 0 ? 'Bz a nord' : 'Bz vicino allo zero') + ' (' + val + '), ' + wind + '.';
+  return { level, title: SIGNAL_TITLES[level], why, c, ov, mean: m };
 }
 
 // ---------- serie e episodi ----------
@@ -214,7 +245,10 @@ function computeEpisodes() {
     if (cur) cur.samples.push(p);
     previous = p;
   });
-  if (cur) { cur.end = lastIn; cur.reason = Date.now() - previous.t > 120000 ? 'gap' : 'open'; raw.push(cur); }
+  // l'episodio ancora aperto alla fine dei dati: «open» se l'ultimo dato è recente (NOAA arriva con qualche minuto di ritardo,
+  // con il vecchio limite di 2 minuti un episodio in corso risultava sempre «continuità non verificata»)
+  if (cur) { cur.end = lastIn; cur.reason = Date.now() - previous.t > FRESH_MAX_MIN * 60000 ? 'gap' : 'open'; raw.push(cur); }
+  const lastT = previous ? previous.t : null;
 
   const now = Date.now();
   raw.forEach((e) => {
@@ -238,7 +272,8 @@ function computeEpisodes() {
     const arrStart = lagStart != null ? e.start + lagStart * 60000 : null;
     const candidateEnd = lagEnd != null ? e.end + lagEnd * 60000 : null;
     const propagationUnresolved = candidateEnd != null && arrStart != null && candidateEnd < arrStart;
-    const ongoing = e === cur && e.reason === 'open' && now - e.end <= BZ_CFG.gapTolMin * 60000;
+    // in corso = ancora a sud nell'ultimo dato disponibile (non «adesso», che a L1 non si conosce ancora)
+    const ongoing = e === cur && e.reason === 'open' && lastT - e.end <= BZ_CFG.gapTolMin * 60000;
     const continuityUnknown = e.reason === 'gap';
     const arrEnd = !ongoing && !continuityUnknown && !propagationUnresolved ? candidateEnd : null;
     S.episodes.push({

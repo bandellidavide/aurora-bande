@@ -277,3 +277,57 @@ function drawWind() {
     return '<span class="t-caption" style="color:var(--ink-2)">' + fmtClock(t) + ' · orario di misura a L1 · km/s</span>' + (vals.length ? '<div>' + vals.join('') + '</div>' : '');
   });
 }
+
+// ============================ mappa dell'ovale attorno a te ============================
+// Proiezione ortografica centrata sul luogo scelto, la stessa (AUTO2:42003) con cui il WMS di EUMETSAT disegna le coste:
+// le due cose combaciano senza calcoli in più. Al centro ci sei tu, il nord è in alto. I punti sono le celle del modello
+// OVATION con probabilità ≥ 5 su 100 (lo stesso bordo usato per «fin dove arriva l'ovale», ovalReach in sky.js);
+// dove in quel momento è giorno sono più tenui, perché lì l'aurora non si vede comunque.
+// I due anelli sono le distanze di ovalReach: entro ~600 km l'aurora può stare alta in cielo, entro ~1500 km al più bassa all'orizzonte.
+const OVAL_MAP = { ring: [600, 1500], minKm: 2000, maxKm: 3600, px: 360 };
+let ovalMapMemo = { key: null, svg: '' };
+function ovalMap() {
+  const d = S.ovationRaw;
+  if (!d || !d.coordinates) return '';
+  const rc = S.ovation && S.ovation.reach;
+  // quanto mostrare: almeno fino all'anello dell'orizzonte, di più se l'ovale è lontano (fino a 3600 km)
+  const viewKm = Math.min(OVAL_MAP.maxKm, Math.max(OVAL_MAP.minKm, rc && rc.km > 0 ? rc.km + 500 : 0));
+  const key = [d['Observation Time'], S.lat, S.lon, viewKm, Math.floor(Date.now() / 600000)].join('|');
+  if (ovalMapMemo.key === key) return ovalMapMemo.svg;
+  const R = 6378137, rad = Math.PI / 180, f0 = S.lat * rad, l0 = S.lon * rad, sf0 = Math.sin(f0), cf0 = Math.cos(f0);
+  const half = viewKm * 1000, P = OVAL_MAP.px, k = P / (2 * half), C = P / 2;
+  const proj = (lat, lon) => {
+    const f = lat * rad, dl = lon * rad - l0, cf = Math.cos(f), sf = Math.sin(f), cd = Math.cos(dl);
+    if (sf0 * sf + cf0 * cf * cd <= 0) return null; // dietro il globo
+    const x = R * cf * Math.sin(dl), y = R * (cf0 * sf - sf0 * cf * cd);
+    // un po' di margine oltre il bordo: le celle a cavallo del bordo le taglia il riquadro dell'SVG
+    return Math.abs(x) > half * 1.08 || Math.abs(y) > half * 1.08 ? null : [C + x * k, C - y * k];
+  };
+  const now = new Date(), dots = [];
+  for (const [clon, clat, val] of d.coordinates) {
+    if (val < 5 || Math.abs(clat - S.lat) > viewKm / 100) continue;
+    const lon = clon > 180 ? clon - 360 : clon;
+    // ogni cella del modello (1° × 1°) come quadrilatero proiettato: le celle vicine combaciano senza sovrapporsi
+    const q = [[clat - 0.5, lon - 0.5], [clat - 0.5, lon + 0.5], [clat + 0.5, lon + 0.5], [clat + 0.5, lon - 0.5]].map(([a, b]) => proj(Math.min(90, a), b));
+    if (q.some((p) => !p)) continue;
+    const day = window.SunCalc ? SunCalc.getPosition(now, clat, lon).altitude > -6 * rad : false;
+    const strong = val >= 50, a = Math.min(0.9, 0.18 + val / 60) * (day ? 0.35 : 1);
+    dots.push('<path d="M' + q.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L') + 'Z" fill="var(' + (strong ? '--aurora-magenta' : '--aurora-green') + ')" fill-opacity="' + a.toFixed(2) + '"/>');
+  }
+  const ringR = (km) => R * Math.sin(km * 1000 / R) * k;
+  const rings = OVAL_MAP.ring.filter((km) => km < viewKm).map((km, i) => {
+    const r = ringR(km);
+    return '<circle cx="' + C + '" cy="' + C + '" r="' + r.toFixed(1) + '" fill="none" stroke="var(--line-strong)" stroke-width="1" stroke-dasharray="' + (i ? '2 4' : '5 4') + '"/>' +
+      '<text x="' + C + '" y="' + (C - r - 4).toFixed(1) + '" text-anchor="middle" font-size="11" fill="var(--ink-3)" font-family="var(--font-sans)">' + (i ? km + ' km · solo all’orizzonte' : km + ' km · alta in cielo') + '</text>';
+  }).join('');
+  const W = 2 * P; // immagine delle coste a doppia risoluzione per gli schermi dei telefoni
+  const coast = EUM_WMS + 'wms?service=WMS&version=1.3.0&request=GetMap&styles=&layers=backgrounds:ne_10m_coastline&crs=AUTO2:42003,1,' + S.lon.toFixed(2) + ',' + S.lat.toFixed(2) +
+    '&bbox=' + [-half, -half, half, half].join(',') + '&width=' + W + '&height=' + W + '&format=image/png&transparent=true';
+  const svg = '<svg class="ab-ovalmap" viewBox="0 0 ' + P + ' ' + P + '" role="img" aria-label="Mappa dell’ovale aurorale attorno a ' + esc(shortPlace()) + ': ' + esc(rc ? rc.value : 'ovale non calcolabile sul tuo meridiano') + '" style="width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-0)">' +
+    '<image href="' + esc(coast) + '" x="0" y="0" width="' + P + '" height="' + P + '" opacity="0.32"/>' + dots.join('') + rings +
+    '<text x="' + C + '" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink-2)" font-family="var(--font-sans)">N</text>' +
+    '<circle cx="' + C + '" cy="' + C + '" r="9" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity="0.6"/><circle cx="' + C + '" cy="' + C + '" r="4" fill="var(--ink)"/>' +
+    '<text x="' + (C + 13) + '" y="' + (C + 4) + '" font-size="12" font-weight="600" fill="var(--ink)" font-family="var(--font-sans)">Tu</text></svg>';
+  ovalMapMemo = { key, svg };
+  return svg;
+}

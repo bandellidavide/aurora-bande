@@ -7,8 +7,11 @@
 
 const GROUND_STATIONS = { KEV: [69.76, 27.01], MAS: [69.46, 23.70], KIL: [69.02, 20.79], IVA: [68.56, 27.29], MUO: [68.02, 23.53], PEL: [66.90, 24.08], RAN: [65.54, 26.25], OUJ: [64.52, 27.23], HAN: [62.25, 26.60], NUR: [60.50, 24.65] };
 const GROUND_NAMES = { KEV: 'Kevo', MAS: 'Masi', KIL: 'Kilpisjärvi', IVA: 'Ivalo', MUO: 'Muonio', PEL: 'Pello', RAN: 'Ranua', OUJ: 'Oulujärvi', HAN: 'Hankasalmi', NUR: 'Nurmijärvi' };
-// Con il server locale (aurora-server.py, porta 8866) i dati sono live; sul sito pubblico si legge il file statico data/ground/<STAZIONE>.json.
+// Con il server locale (aurora-server.py, porta 8866) i dati sono live. Altrimenti si leggono dalla funzione groundData
+// (Firebase, legge FMI in tempo reale) e, se non risponde, dal file statico data/ground/<STAZIONE>.json del sito, che però il cron
+// di GitHub aggiorna solo ogni poche ore (misurato il 17 ott 2026: 2-5 ore invece di 5 minuti).
 const HAS_LOCAL_SERVER = (location.hostname === '127.0.0.1' || location.hostname === 'localhost') && location.port === '8866';
+const GROUND_API = 'https://europe-west1-aurora-bande.cloudfunctions.net/groundData';
 
 function earthDistance(lat, lon, st) {
   const r = Math.PI / 180, [a, b] = GROUND_STATIONS[st];
@@ -100,25 +103,43 @@ async function loadGround() {
   if (S.ground.failAt && Date.now() - S.ground.failAt < 10 * 60000 && S.ground.station === station) return;
   const id = ++S.ground.requestId;
   S.ground.station = station; S.ground.pending = true;
-  await Promise.allSettled(stations.map(async (st) => {
+  const clean = (arr) => arr.filter((p) => Array.isArray(p) && p.length >= 2 && isFinite(p[0]) && isFinite(p[1]) && Math.abs(p[1]) < 90000);
+  const get = async (url) => {
     const abort = new AbortController(), timer = setTimeout(() => abort.abort(), 15000);
     try {
-      const url = HAS_LOCAL_SERVER ? '/_aurora/ground?station=' + encodeURIComponent(st) : 'data/ground/' + encodeURIComponent(st) + '.json';
       const res = await fetch(url, { cache: 'no-store', signal: abort.signal });
       if (!res.ok) throw new Error('Fonte non disponibile');
-      const payload = await res.json();
+      return await res.json();
+    } finally { clearTimeout(timer); }
+  };
+  const via = {};
+  await Promise.allSettled(stations.map(async (st) => {
+    try {
+      const have = S.ground.byStation[st] || [], lastT = have.length ? have[have.length - 1][0] : 0;
+      let payload = null, how = 'file';
+      if (HAS_LOCAL_SERVER) { payload = await get('/_aurora/ground?station=' + encodeURIComponent(st)); how = 'locale'; }
+      else {
+        // dalla funzione: la prima volta le 24 ore, poi solo i minuti nuovi (pochi byte a ogni aggiornamento)
+        try { payload = await get(GROUND_API + '?station=' + encodeURIComponent(st) + (lastT ? '&since=' + lastT : '')); how = 'diretta'; }
+        catch (e) { payload = await get('data/ground/' + encodeURIComponent(st) + '.json'); how = 'file'; }
+      }
       if (id !== S.ground.requestId) return;
       if (payload.station !== st || !Array.isArray(payload.samples)) throw new Error('Formato non riconosciuto');
-      S.ground.byStation[st] = payload.samples.filter((p) => Array.isArray(p) && p.length >= 2 && isFinite(p[0]) && isFinite(p[1]) && Math.abs(p[1]) < 90000).sort((a, b) => a[0] - b[0]);
+      let samples = clean(payload.samples);
+      if (payload.partial) samples = have.concat(samples.filter((p) => p[0] > lastT));
+      const cut = Date.now() - 24 * 3600e3;
+      S.ground.byStation[st] = samples.filter((p) => p[0] >= cut).sort((a, b) => a[0] - b[0]);
+      via[st] = how;
       delete S.ground.errors[st];
     } catch (err) { if (id === S.ground.requestId) S.ground.errors[st] = 'Misure non disponibili'; }
-    finally { clearTimeout(timer); }
   }));
   if (id === S.ground.requestId) {
     S.ground.pending = false;
     const ok = stations.filter((s) => !S.ground.errors[s]).length;
     S.ground.failAt = ok ? 0 : Date.now();
-    diagSet('Magnetometri IMAGE (FMI)', ok ? 'ok' : 'err', ok ? ok + '/' + stations.length + ' stazioni' : 'misure numeriche non raggiungibili da qui');
+    const st0 = S.ground.byStation[station] || [], age = st0.length ? Math.round((Date.now() - st0[st0.length - 1][0]) / 60000) : null;
+    const how = Object.values(via).includes('file') ? 'copia del sito (aggiornata ogni poche ore)' : Object.values(via).includes('diretta') ? 'FMI in diretta' : 'server locale';
+    diagSet('Magnetometri IMAGE (FMI)', ok && age != null && age <= 10 ? 'ok' : 'err', ok ? ok + '/' + stations.length + ' stazioni · ' + how + (age != null ? ' · ultimo dato ' + age + ' min fa' : '') : 'misure numeriche non raggiungibili da qui');
   }
 }
 

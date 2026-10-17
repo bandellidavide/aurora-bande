@@ -37,7 +37,7 @@ function factors(e) {
     label: 'Campo a L1', state: sig.level >= 2 ? 'good' : sig.level === 1 ? 'mid' : 'bad', kind: 'measured',
     short: sig.level === 0 && c.bz > 0 ? 'Bz a nord' : ['calmo', 'debole', 'moderato', 'marcato'][sig.level],
     value: 'Bz ' + signed(c.bz, 1) + ' nT · vento ' + Math.round(c.v) + ' km/s',
-    note: [c.bz > 0 ? 'Bz a nord' : 'Bz vicino allo zero', 'Bz a sud, con vento lento', 'Bz a sud, andamento moderato', 'Bz a sud, andamento marcato'][sig.level] + loadNote,
+    note: [c.bz > 0 ? 'Bz a nord' : 'Bz vicino allo zero', 'Bz a sud, debole', 'Bz a sud, andamento moderato', 'Bz a sud, andamento marcato'][sig.level] + (sig.mean ? ' (media degli ultimi ' + sig.mean.minutes + ' min: ' + signed(sig.mean.bz, 1) + ' nT)' : '') + loadNote,
   });
   // ovale aurorale
   const ov = S.ovation && S.ovation.val != null ? S.ovation.val : null, rc = S.ovation && S.ovation.reach;
