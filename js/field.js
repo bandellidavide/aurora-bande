@@ -50,15 +50,26 @@ function niceStep(range) {
 const tickText = (v) => String(Math.round(v * 10) / 10).replace('.', ',').replace('-', '−');
 
 // ---------- scheda ----------
-function fieldCard() {
+// Semplice: due righe sotto il grafico che dicono com'è adesso la linea Bz e che cosa cambia quando scende sotto lo zero
+function fieldCaption() {
+  const c = l1Now(); if (c.bz == null) return '';
+  const south = isSouth(c.bz);
+  return '<p class="t-body-sm ab-fieldcap">La linea rossa (Bz) è ' + (south ? 'sotto' : 'sopra') + ' lo zero: <b>adesso il Sole ' + (south ? 'spinge' : 'non spinge') + '</b>.' + (south ? '' : ' Quando scende sotto, spinge.') + ' Quello che la sonda misura a destra arriva da noi tra mezz’ora e un’ora.</p>';
+}
+// sonde e curve stanno in una riga apribile (le scelte restano: il grafico è sempre quello completo); ctlOpen la tiene aperta
+// quando si tocca una sonda o una curva, che ridisegna la pagina
+let ctlOpen = false;
+function fieldCard(simple) {
   const c = S.chart, sats = chartSats(), ref = selectedSource();
+  const dots = FIELD_COMPS.filter((cp) => c.comps[cp.key]).map((cp) => '<i class="ab-dot" style="background:' + cp.color + '"></i>').join('');
   const satChips = sats.length ? sats.map((s, i) => '<button type="button" class="ab-chip" data-sat="' + esc(s) + '" aria-pressed="' + !c.hiddenSats[s] + '"><svg class="ab-dash" viewBox="0 0 34 10" aria-hidden="true"><path d="M1 5H33" fill="none" stroke="currentColor" stroke-width="' + (s === ref ? 2.4 : 1.4) + '" stroke-dasharray="' + (s === ref ? '' : satDash(s, i)) + '"/></svg>' + esc(s) + (s === ref ? '<small>NOAA</small>' : '') + '</button>').join('') : '<span class="t-body-sm" style="color:var(--ink-3)">In attesa delle sonde…</span>';
   const compChips = FIELD_COMPS.map((cp) => '<button type="button" class="ab-chip" data-comp="' + cp.key + '" aria-pressed="' + !!c.comps[cp.key] + '" title="' + cp.label + ' · ' + cp.name + '" aria-label="' + cp.label + ', ' + cp.name + '"><i class="ab-dot" style="background:' + cp.color + '"></i>' + cp.label + '<small class="ab-name">' + cp.name + '</small></button>').join('');
   const seg = (attr, items, cur) => '<div class="ab-seg" role="group">' + items.map(([v, l]) => '<button type="button" ' + attr + '="' + v + '" aria-pressed="' + (String(cur) === String(v)) + '">' + l + '</button>').join('') + '</div>';
   return card('Campo magnetico a L1',
-    '<div class="ab-chart" id="fieldChart"></div><div class="ab-ro" id="fieldReadout" aria-live="off"></div>' +
+    '<div class="ab-chart" id="fieldChart"></div><div class="ab-ro" id="fieldReadout" aria-live="off"></div>' + (simple ? fieldCaption() : '') +
+    '<details class="ab-details ab-ctls"' + (ctlOpen ? ' open' : '') + '><summary><span>Sonde e curve</span><span class="ab-ctls__now" aria-hidden="true">' + dots + '</span>' + icon('chev') + '</summary>' +
     '<div class="ab-ctl"><span class="ab-label">Sonde</span><div class="ab-chips" role="group" aria-label="Sonde visibili">' + satChips + '</div></div>' +
-    '<div class="ab-ctl"><span class="ab-label">Componenti</span><div class="ab-chips" role="group" aria-label="Componenti visibili">' + compChips + '</div></div>' +
+    '<div class="ab-ctl"><span class="ab-label">Componenti</span><div class="ab-chips" role="group" aria-label="Componenti visibili">' + compChips + '</div></div></details>' +
     '<details class="ab-details"><summary>Come leggere il grafico' + icon('chev') + '</summary><ul class="ab-bullets" style="margin:0 0 var(--space-2);padding-left:var(--space-5);color:var(--ink-2)">' +
     '<li>Ogni componente ha un colore: Bt bianco, Bz rosso, Bx azzurro, By sabbia. Ogni sonda ha un tratto.</li>' +
     '<li>La linea continua, un po’ più marcata, è la sonda di riferimento NOAA: è quella su cui si decide. Le tratteggiate sono le altre sonde a L1: se dicono tutte la stessa cosa il dato è solido, se divergono vai cauto.</li>' +
@@ -67,55 +78,6 @@ function fieldCard() {
     '<li>Scegliere quali curve vedere non cambia la sonda usata per episodi e livello del segnale: si cambia in «Come è calcolato».</li></ul></details>' +
     '<div class="ab-tagrow">' + tag('measured', 'Campo misurato') + tag('estimated', 'Linea «Terra»: stimata') + '</div><p class="t-caption ab-credit">Dati: NOAA Space Weather Prediction Center.</p>',
     { id: 'fieldCard', right: seg('data-hours', CHART_HOURS.map((h) => [h, h + ' h']), c.hours) });
-}
-
-// ---------- Semplice: il campo delle ultime 2 ore, in grande e senza controlli ----------
-// Solo il Bz della sonda di riferimento: verde sotto lo zero (aiuta l'aurora), azzurro sopra. A destra della linea
-// tratteggiata c'è il vento già misurato a L1 ma non ancora arrivato sulla Terra.
-function bzMiniCard() {
-  const c = l1Now(), bz = c && c.bz != null ? c.bz : null;
-  const now = bz == null ? '' : '<span class="ab-bzmini__now" data-s="' + (bz < 0 ? 'south' : 'north') + '"><b>' + (bz > 0 ? '+' : '') + String(Math.round(bz * 10) / 10).replace('.', ',').replace('-', '−') + '</b> nT · ' + (bz < 0 ? 'a sud' : 'a nord') + '</span>';
-  return '<section class="ab-card ab-bzmini ab-span"><div class="ab-card__head"><h2 class="t-title">Campo magnetico</h2>' + now + '</div>' +
-    '<p class="t-caption ab-bzmini__key"><i data-s="south"></i><span>sotto lo zero aiuta l’aurora</span><i data-s="north"></i><span>sopra la frena</span></p>' +
-    '<div class="ab-chart" id="bzMini"></div>' +
-    '<div class="ab-bzmini__foot">' + tag('measured', 'Misurato a L1') + '<button type="button" class="ab-golink ab-golink__cta" data-home="esperto" data-to="fieldCard">Grafico completo' + icon('chev') + '</button></div></section>';
-}
-function drawBzMini() {
-  const el = $('bzMini'); if (!el) return;
-  const now = Date.now(), xmin = now - 2 * 3600e3, ref = selectedSource();
-  const pts = seriesFor(S.magRaw, ref, 'bz_gsm', xmin - 60000).filter((p) => p.t >= xmin);
-  if (pts.length < 2) { el.innerHTML = empty('In attesa dei dati delle sonde…'); return; }
-  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 170 : 200, L = 34, R = W - 6, T = 22, B = H - 24;
-  let lo = Math.min(0, ...pts.map((p) => p.v)), hi = Math.max(0, ...pts.map((p) => p.v));
-  const span = Math.max(hi - lo, 6); lo = Math.min(lo, -span * 0.25); hi = Math.max(hi, span * 0.25);
-  const xmax = Math.max(now, pts[pts.length - 1].t);
-  const X = (t) => L + (t - xmin) / (xmax - xmin) * (R - L), Y = (v) => B - (v - lo) / (hi - lo) * (B - T), z = Y(0);
-  // area tra la curva e lo zero, spezzata dove mancano dati
-  let a = '', line = '', prev = null;
-  pts.forEach((p) => {
-    const x = X(p.t).toFixed(1), y = Y(p.v).toFixed(1), gap = !prev || p.t - prev.t > 3 * 60000;
-    if (gap) { if (prev) a += 'L' + X(prev.t).toFixed(1) + ',' + z.toFixed(1) + 'Z'; a += 'M' + x + ',' + z.toFixed(1) + 'L' + x + ',' + y; } else a += 'L' + x + ',' + y;
-    line += (gap ? 'M' : 'L') + x + ',' + y; prev = p;
-  });
-  a += 'L' + X(prev.t).toFixed(1) + ',' + z.toFixed(1) + 'Z';
-  const fill = '<defs><clipPath id="bmn"><rect x="0" y="0" width="' + W + '" height="' + z.toFixed(1) + '"/></clipPath><clipPath id="bms"><rect x="0" y="' + z.toFixed(1) + '" width="' + W + '" height="' + (H - z).toFixed(1) + '"/></clipPath></defs>' +
-    '<path class="northfill" clip-path="url(#bmn)" d="' + a + '"/><path class="south" clip-path="url(#bms)" d="' + a + '"/>';
-  // solo tre etichette sull'asse: il massimo, lo zero, il minimo
-  const yt = [hi, 0, lo].map((v) => Math.round(v)).filter((v, i, s) => s.indexOf(v) === i && Math.abs(Y(v) - z) > 14 || v === 0);
-  let grid = yt.map((v) => '<text class="tick" x="' + (L - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + tickText(v) + '</text>').join('');
-  for (let t = Math.ceil(xmin / 1800e3) * 1800e3; t <= xmax; t += 1800e3) { const x = X(t); if (x > L + 20 && x < R - 20) grid += '<text class="tick" x="' + x.toFixed(1) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmtClock(t) + '</text>'; }
-  let earth = '';
-  const c = l1Now(), lag = c && c.v ? lagMin(c.v) : null, xe = lag != null ? now - lag * 60000 : null;
-  if (xe != null && xe > xmin + 60000) {
-    const ex = X(xe);
-    earth = '<rect x="' + ex.toFixed(1) + '" y="' + T + '" width="' + Math.max(0, R - ex).toFixed(1) + '" height="' + (B - T) + '" fill="var(--surface-2)" fill-opacity=".7"/>' +
-      '<line class="now" x1="' + ex.toFixed(1) + '" x2="' + ex.toFixed(1) + '" y1="' + (T - 4) + '" y2="' + B + '"/>' +
-      '<text class="tag" x="' + (ex - 6).toFixed(1) + '" y="' + (T - 8) + '" text-anchor="end">sulla Terra ora</text>' +
-      (R - ex >= 70 ? '<text class="tag" x="' + (ex + 6).toFixed(1) + '" y="' + (T - 8) + '">in arrivo</text>' : '');
-  }
-  el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bz a L1, ultime 2 ore: sotto lo zero aiuta l’aurora">' +
-    earth + fill + '<line class="zero" x1="' + L + '" x2="' + R + '" y1="' + z.toFixed(1) + '" y2="' + z.toFixed(1) + '"/>' + grid +
-    '<path class="line" d="' + line + '" style="stroke:var(--ink);stroke-width:2"/></svg>';
 }
 
 // ---------- disegno ----------
@@ -177,7 +139,7 @@ function drawField() {
       '<text class="tag" x="' + (left ? (ex - 13).toFixed(1) : (ex + 13).toFixed(1)) + '" y="' + (gy + 4) + '" text-anchor="' + (left ? 'end' : 'start') + '">now</text>' +
       (R - ex >= (left ? 74 : 110) ? '<text class="tag" x="' + (ex + 13).toFixed(1) + '" y="' + (gy + (left ? 4 : 20)) + '">in viaggio</text>' : '');
   }
-  if (c.comps.bz_gsm && z > T + 14 && z < B - 4) marks += '<text class="tag zlabel" x="' + (L + 8) + '" y="' + (z - 7).toFixed(1) + '">' + (W < 520 ? 'Sotto lo zero: Bz a sud (favorevole)' : '0 nT — sotto questa linea Bz punta a sud (favorevole)') + '</text>';
+  if (c.comps.bz_gsm && z > T + 14 && z < B - 4) marks += '<text class="tag zlabel" x="' + (L + 8) + '" y="' + (z - 7).toFixed(1) + '">' + (homeMode() === 'semplice' ? 'Sotto lo zero il Sole spinge' : W < 520 ? 'Sotto lo zero: Bz a sud (favorevole)' : '0 nT — sotto questa linea Bz punta a sud (favorevole)') + '</text>';
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Campo magnetico interplanetario a L1: ' + esc(d.series.map((s) => s.comp.label + ' ' + s.src).filter((v, i, a) => a.indexOf(v) === i).join(', ')) + ', ultime ' + c.hours + ' ore, orario di misura a L1">' +
     travel + bands + grid + fill + lines + marks + '<text class="tick" x="4" y="12">nT</text><line class="ab-cursor" id="fieldCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
   out.innerHTML = '<span class="t-caption" style="color:var(--ink-3)">' + hint + '</span>';

@@ -112,37 +112,46 @@ function viewAdesso() {
   });
   // su telefono l'ordine è: righe NOAA, quadro d'insieme, quattro misure, grafici (css: .ab-page[data-cols="two"]).
   // Il riscontro a terra c'è solo quando esiste un fronte da confrontare: senza, la tessera «A terra» basta.
-  return '<div class="ab-page" data-cols="two">' + modeSwitch() + noaaLines() + '<div class="ab-stack">' + geoHint() + sit + fieldCard() + '</div><div class="ab-stack">' + metricsBlock(sig.c) + (e ? groundCard(e) : '') + '</div><div class="ab-span">' + windCard() + '</div></div>';
+  return '<div class="ab-page" data-cols="two">' + modeSwitch() + noaaLines() + '<div class="ab-stack">' + geoHint() + sit + fieldCard() + '</div><div class="ab-stack">' + metricsBlock(sig.c) + probesCard() + (e ? groundCard(e) : '') + '</div><div class="ab-span">' + windCard() + '</div></div>';
 }
 
 // ---------- Semplice ----------
-// righe in parole semplici, senza sigle: lo spazio, l'ovale, buio e luna, le nuvole
-function plainRows(F) {
-  const sig = F.sig, st = stormNow(), rc = S.ovation && S.ovation.reach, ov = S.ovation && S.ovation.val;
-  const rows = [];
-  if (sig.level == null) rows.push({ state: 'unk', kind: 'measured', text: 'Dati dallo spazio non recenti' });
-  else if (st.g >= 1) rows.push({ state: 'good', kind: 'measured', text: 'Tempesta geomagnetica in corso (G' + st.g + ', ' + G_WORDS[st.g] + ')' });
-  else rows.push({ state: sig.level >= 2 ? 'good' : sig.level === 1 ? 'mid' : 'bad', kind: 'measured', text: ['Lo spazio è calmo', 'Dallo spazio arriva un segnale debole', 'Dallo spazio arrivano segnali a favore', 'Dallo spazio arriva un segnale forte'][sig.level] });
-  if (rc) {
-    const weak = /debole/.test(rc.short), where = S.lat >= 0 ? 'nord' : 'sud';
-    const t = rc.tier === 'overhead' ? 'La zona dell’aurora è sopra di te' + (weak ? ', ma debole' : '')
-      : rc.tier === 'near' ? 'La zona dell’aurora è vicina, a circa ' + rc.km + ' km a ' + where + (weak ? ', ma debole' : '')
-      : rc.tier === 'horizon' ? 'La zona dell’aurora è lontana: al più bassa a ' + where
-      : 'La zona dell’aurora è troppo lontana da qui';
-    rows.push({ state: rc.state, kind: 'forecast', text: t });
-  } else rows.push({ state: ov == null ? 'unk' : 'bad', kind: 'forecast', text: ov == null ? 'Modello dell’ovale non disponibile' : 'Nessuna aurora prevista vicino a te' });
-  const A = S.astro || astro(), dk = darkCheck(A), mn = moonCheck(A);
-  if (A.ok) {
-    // l'orario è quello della scheda Stanotte (sole sotto −12°), così i due numeri coincidono
-    const nw = nightWindows(1)[0], from = nw && !nw.ongoing && !nw.polar ? nw.a : A.darkStart && A.darkStart.getTime();
-    const d = dk.value === 'Buio' ? 'È buio' + (A.darkEnd ? ' fino alle ' + fmtClock(A.darkEnd.getTime()) : '') : dk.value === 'Niente buio' ? 'Niente buio in questo periodo' : (dk.value === 'Giorno' ? 'È giorno' : 'Crepuscolo') + (from ? ': buio dalle ' + fmtClock(from) : '');
-    const m = A.moon.above === false ? 'luna non in cielo' : 'luna ' + mn.value.toLowerCase() + ' (' + A.moon.illum + '%)';
-    rows.push({ state: [dk.state, mn.state].includes('bad') ? 'bad' : [dk.state, mn.state].includes('mid') ? 'mid' : 'good', kind: 'computed', text: d + ' · ' + m });
-  }
-  const sky = F.obs.find((x) => x.label === 'Cielo');
-  if (sky) rows.push({ state: sky.state, kind: 'forecast', text: sky.value + (sky.note ? ' · ' + sky.note : '') });
-  return rows;
+// Solo il Sole. Dall'alto: com'è il Sole adesso (una parola e la scala), le righe NOAA/NASA che si aprono, il grafico del campo a L1
+// (quello completo), i prossimi giorni secondo NOAA e, in fondo, il cielo di stanotte. Buio, luna, ovale e «possibilità» non stanno qui.
+const SUN_STEPS = ['Calmo', 'Minore', 'Moderata', 'Forte'];
+function sunHero(F) {
+  const st = stormNow(), idx = Math.min(3, st.g), c = l1Now(), noData = F.sig.level == null && S.kp == null;
+  const word = noData ? 'Dati non recenti' : idx === 0 && st.kp >= 4 ? 'Agitato' : SUN_STEPS[idx];
+  const line = noData ? 'Le sonde non hanno dati recenti: riprova tra poco.'
+    : idx === 0 ? (st.kp >= 4 ? 'Il campo è un po’ agitato, ma sotto la soglia di tempesta.' : 'Nessuna tempesta in corso. Il Sole non sta mandando niente di forte.')
+      : 'Tempesta geomagnetica G' + st.g + ' in corso. ' + st.src + '.';
+  const meta = (noData ? '' : 'Kp ' + st.kp) + (c.age != null ? (noData ? '' : ' · ') + 'dato di ' + (c.age < 2 ? 'adesso' : fmtDur(c.age) + ' fa') : '');
+  return '<section class="ab-sun ab-span" aria-labelledby="sunNow"><div class="ab-sun__head"><p class="t-label">Il Sole adesso</p><span class="t-caption">' + esc(meta) + '</span></div>' +
+    '<h1 id="sunNow" class="ab-sun__word">' + esc(word) + '</h1>' +
+    '<div class="ab-sun__scale" role="img" aria-label="Scala dell’attività del Sole: calmo, minore, moderata, forte. Adesso: ' + esc(word.toLowerCase()) + '">' +
+    '<div class="ab-sun__bar">' + SUN_STEPS.map((n, i) => '<i data-l="' + i + '"' + (i === idx && !noData ? ' class="on"' : '') + '></i>').join('') + '</div>' +
+    '<ol class="ab-sun__lbl" aria-hidden="true">' + SUN_STEPS.map((n, i) => '<li' + (i === idx && !noData ? ' class="on"' : '') + '>' + n + '</li>').join('') + '</ol></div>' +
+    '<p class="ab-sun__why">' + esc(line) + '</p></section>';
 }
+// prossimi giorni: l'attività prevista da NOAA (Kp a 3 ore e avviso WATCH), una barra e una parola per notte.
+// Il Kp è una media mondiale: dice il «clima» della notte, non cosa si vedrà nel luogo.
+function daysCard() {
+  const n = nightsOutlook(); if (!n || !n.length) return '';
+  const w = activeWatch(S.noaaAlerts && S.noaaAlerts.list), wg = (ms) => (w ? Math.max(0, ...w.days.filter((d) => ms >= d.ms && ms < d.ms + 864e5).map((d) => d.g)) : 0);
+  const cols = n.slice(0, 3).map((x) => {
+    const g = Math.max(x.g, wg(x.a), wg(x.b - 1));
+    const word = g >= 1 ? SUN_STEPS[Math.min(3, g)] : x.kp >= 4 ? 'Agitato' : 'Calmo';
+    const label = x.ongoing ? 'Stanotte' : new Date(x.a).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', timeZone: zone() }).replace('.', '');
+    const h = Math.round(12 + Math.min(9, Math.max(0, x.kp)) / 9 * 44);
+    return '<div class="ab-days__col" data-g="' + g + '"><div class="ab-days__bar"><i style="height:' + h + 'px"></i></div><b>' + esc(label) + '</b><small>' + esc(word) + '</small></div>';
+  }).join('');
+  return card('Prossimi giorni', '<div class="ab-days__row">' + cols + '</div><p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-3)">Kp = quanto è agitato il campo magnetico, in media nel mondo.</p>', { right: tag('forecast', 'NOAA') });
+}
+function viewSemplice(now, e, F, H) {
+  return '<div class="ab-page ab-simple">' + modeSwitch() + sunHero(F) + noaaLines() + '<div class="ab-span">' + fieldCard(true) + '</div>' + daysCard() + geoHint() + tonightCard() +
+    '<button type="button" class="ab-linkcard ab-span" data-home="esperto">' + icon('activity') + '<span><b>Tutti i dati</b><small>Campo magnetico, vento solare, sonde, magnetometri: versione Esperto</small></span>' + icon('chev') + '</button></div>';
+}
+
 // stanotte: la probabilità di cielo libero ora per ora (gli stessi scenari della scheda Cielo)
 function tonightCard() {
   if (!S.wx || !S.wx.ens) return '';
@@ -154,35 +163,14 @@ function tonightCard() {
     (s.cells.some((c) => c.pClear >= 10) ? nightStrip(s) + '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">Barra alta e verde = più probabile vedere il cielo. ' : '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">') + 'Buio ' + fmtClock(s.w.a) + '–' + fmtClock(s.w.b) + '.</p>' +
     '<a class="ab-golink ab-golink__cta" href="#cielo" data-go="cielo">Nuvole, mappa e satellite' + icon('chev') + '</a></section>';
 }
-// le prossime notti secondo NOAA (Kp previsto e avviso WATCH) con la luna: una riga per notte
-function nightsCard() {
-  const n = nightsOutlook(); if (!n || !n.length) return '';
-  const w = activeWatch(S.noaaAlerts && S.noaaAlerts.list), wg = (ms) => (w ? Math.max(0, ...w.days.filter((d) => ms >= d.ms && ms < d.ms + 864e5).map((d) => d.g)) : 0);
-  const rows = n.map((x) => {
-    const g = Math.max(x.g, wg(x.a), wg(x.b - 1));
-    const word = g >= 1 ? 'Tempesta ' + G_WORDS[g] : x.kp >= 4 ? 'Agitato' : 'Calmo';
-    const chip = g >= 1 ? 'G' + g : 'Kp ' + itNum(x.kp, 0);
-    const label = x.ongoing ? 'Questa notte' : new Date(x.a).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', timeZone: zone() }).replace('.', '');
-    return '<li><span class="t-label">' + esc(label) + '</span><b>' + esc(word) + '</b><small>luna ' + x.moon + '%</small><span class="ab-nchip" data-g="' + g + '">' + chip + '</span></li>';
-  }).join('');
-  return '<section class="ab-card ab-nights2"><div class="ab-card__head"><h2 class="t-title">Prossime notti</h2>' + tag('forecast', 'NOAA') + '</div><ul>' + rows + '</ul>' +
-    '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-2)">Quanto sarà agitato il campo magnetico (Kp, media mondiale): non dice cosa vedrai da qui.</p></section>';
-}
-function viewSemplice(now, e, F, H) {
-  const rows = plainRows(F);
-  const arr = F.sig.level != null && e && e.arrStart != null && e.arrStart + ARRIVAL_MARGIN_MS > now
-    ? '<a class="ab-linkcard" href="#fronti" data-go="fronti">' + icon('clock') + '<span><b>Possibile arrivo ' + fmtClock(e.arrStart - ARRIVAL_MARGIN_MS) + '–' + fmtClock(e.arrStart + ARRIVAL_MARGIN_MS) + '</b><small>Stima: un tratto di campo favorevole è in viaggio verso la Terra</small></span>' + icon('chev') + '</a>' : '';
-  const hero = '<section class="ab-situation ab-hero ab-span" data-level="' + H.level + '" aria-labelledby="sit"><h1 id="sit" class="t-verdict ab-situation__title">' + esc(H.title) + '</h1>' +
-    '<p class="t-body ab-situation__why">' + esc(H.why) + '</p>' +
-    '<ul class="ab-plain">' + rows.map((r) => '<li data-state="' + r.state + '"><span class="ab-check__mark" aria-hidden="true">' + MARK[r.state] + '</span><span>' + esc(r.text) + tag(r.kind, TAGS[r.kind]) + '</span></li>').join('') + '</ul>' + arr +
-    '<details class="ab-details"><summary>Come leggerlo' + icon('chev') + '</summary><p class="t-body-sm" style="color:var(--ink-2)">' + esc(CAVEAT) + '</p><button type="button" class="ab-btn-text" data-open="info">Come è calcolato ' + icon('info') + '</button></details></section>';
-  return '<div class="ab-page ab-simple">' + modeSwitch() + noaaLines() + geoHint() + hero + bzMiniCard() + tonightCard() + nightsCard() +
-    '<button type="button" class="ab-linkcard ab-span" data-home="esperto">' + icon('activity') + '<span><b>Tutti i dati</b><small>Campo magnetico, vento solare, magnetometri: versione Esperto</small></span>' + icon('chev') + '</button></div>';
-}
 
 // ---------- righe NOAA / NASA ----------
 // Una riga per ogni cosa che c'è davvero: tempesta in corso o attesa, avviso WATCH per i prossimi giorni, onda d'urto, nube (CME) in viaggio.
 // Se non c'è niente, niente. Il dettaglio (testo dei comunicati, cosa vuol dire la scala G) è in Giorni.
+function cmeNext() {
+  const d = S.noaaAlerts && S.noaaAlerts.donki, now = Date.now(); if (!d) return null;
+  return (donkiRows(d, null) || []).filter((r) => r.kind === 'cme' && r.arrival && ['incoming', 'glancing'].includes(cmeOutcome(r, now))).sort((a, b) => a.arrival - b.arrival)[0] || null;
+}
 function noaaLines() {
   const out = [], list = S.noaaAlerts && S.noaaAlerts.list, now = Date.now();
   if (list) {
@@ -198,9 +186,8 @@ function noaaLines() {
       if (!(R && R.kp >= 5) || top.ms > today) out.push({ k: 'watch', t: 'Tempesta G' + top.g + ' prevista', s: watchDay(top.ms) + ' · ' + G_WORDS[top.g], src: 'NOAA' });
     }
   }
-  const d = S.noaaAlerts && S.noaaAlerts.donki;
-  if (d) {
-    const inc = (donkiRows(d, null) || []).filter((r) => r.kind === 'cme' && r.arrival && ['incoming', 'glancing'].includes(cmeOutcome(r, now))).sort((a, b) => a.arrival - b.arrival)[0];
+  {
+    const inc = cmeNext();
     if (inc) out.push({ k: 'cme', t: inc.glancing ? 'Nube dal Sole, di striscio' : 'Nube dal Sole in arrivo', s: fmtDayClock(inc.arrival) + ' circa' + (inc.kp ? ' · Kp ' + (inc.kp[0] === inc.kp[1] ? inc.kp[0] : inc.kp[0] + '–' + inc.kp[1]) : ''), src: 'NASA' });
   }
   if (!out.length) return '';
@@ -231,14 +218,26 @@ function geoHint() {
 }
 
 function metricsBlock(c) {
-  const ong = ongoingEpisode(), lag = c.v ? Math.round(lagMin(c.v)) : null;
+  const ong = ongoingEpisode(), lag = c.v ? Math.round(lagMin(c.v)) : null, st = stormNow(), wr = freshRow(S.windRaw, ['proton_speed']), dens = wr && num(wr.proton_density) >= 0 ? num(wr.proton_density) : null;
   const bzTone = c.bz == null ? 'neutral' : isSouth(c.bz) ? 'south' : c.bz > 0 ? 'north' : 'neutral';
   const bzNote = c.bz == null ? 'Dato non recente' : isSouth(c.bz) ? 'Sud · favorevole' + (ong ? ' · ' + fmtDur(ong.durMin) : '') : c.bz > 0 ? 'Nord · sfavorevole' : 'Vicino allo zero · neutro';
   return '<div class="ab-metrics">' +
     metricTile(bzTone, 'Bz · direzione', c.bz == null ? '—' : signed(c.bz, 1), 'nT', c.bz == null || !(isSouth(c.bz) || c.bz > 0) ? '' : isSouth(c.bz) ? 'down' : 'up', bzNote) +
     metricTile('neutral', 'Bt · campo totale', c.bt == null ? '—' : itNum(c.bt, 1), 'nT', '', 'Misurato · ' + (c.src || '—')) +
     metricTile('neutral', 'Vento solare', c.v == null ? '—' : String(Math.round(c.v)), 'km/s', '', lag != null ? 'Viaggio stimato · ' + lag + ' min' : 'Velocità non recente') +
-    metricTile(c.ey != null && isSouth(c.bz) ? 'south' : 'neutral', 'Forzante sud · Ey+', c.ey == null ? '—' : itNum(c.ey, 2), 'mV/m', '', 'Favorevole se Bz è sud') + '</div>';
+    metricTile(c.ey != null && isSouth(c.bz) ? 'south' : 'neutral', 'Forzante sud · Ey+', c.ey == null ? '—' : itNum(c.ey, 2), 'mV/m', '', 'Favorevole se Bz è sud') +
+    metricTile('neutral', 'Kp · agitazione', String(st.kp), '', '', st.g >= 1 ? 'Tempesta G' + st.g : 'Sotto la soglia di tempesta') +
+    metricTile('neutral', 'Densità del vento', dens == null ? '—' : itNum(dens, 1), 'p/cm³', '', 'Protoni · ' + (c.src || '—')) + '</div>';
+}
+// stato delle sonde a L1: da quanto tempo ciascuna manda dati; la principale è quella su cui si decide
+function probesCard() {
+  const sats = chartSats(), ref = selectedSource(); if (!sats.length) return '';
+  const rows = sats.map((s) => {
+    let t = null; (S.magRaw || []).forEach((r) => { if (r && r.source === s) { const m = toMs(r.time_tag); if (isFinite(m) && (t == null || m > t)) t = m; } });
+    const age = t == null ? null : Math.max(0, Math.round((Date.now() - t) / 60000)), ok = age != null && age <= 10;
+    return '<li data-ok="' + ok + '"><i aria-hidden="true"></i><b>' + esc(s) + '</b>' + (s === ref ? '<small>principale</small>' : '') + '<span>' + (age == null ? 'nessun dato' : 'dato di ' + (age < 2 ? 'adesso' : fmtDur(age) + ' fa')) + '</span></li>';
+  }).join('');
+  return card('Sonde a L1', '<ul class="ab-probes">' + rows + '</ul><p class="t-caption ab-credit">Dati: NOAA SWPC.</p>', { right: tag('measured', 'Misurato') });
 }
 
 function groundCard(e) {
@@ -778,7 +777,7 @@ function renderView(name) {
   stopAnims();
   el.innerHTML = { adesso: viewAdesso, fronti: viewFronti, cielo: viewCielo, webcam: viewWebcam, giorni: viewGiorni }[name]().replace(/<\/div>\s*$/, footLinks() + '</div>');
   if (S.back && S.back.view !== name) el.innerHTML = el.innerHTML.replace(/(<div class="ab-page"[^>]*>)/, '$1' + backChip());
-  if (name === 'adesso') { drawBzMini(); drawField(); drawGround(); drawWind(); }
+  if (name === 'adesso') { drawField(); drawGround(); drawWind(); }
   if (name === 'giorni') drawFlares();
   if (name === 'cielo') drawCloudMap();
   if (name === 'fronti') drawFront(pickEvent(Date.now()) || S.episodes[S.episodes.length - 1] || null);
@@ -815,9 +814,10 @@ function bindUI() {
     if (t.closest('[data-close]')) { t.closest('dialog').close(); return; }
     if (t.closest('#refreshBtn')) { refreshNow(true); return; }
     const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); const to = hm.dataset.to && $(hm.dataset.to); if (to) to.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); return; }
+    const cs = t.closest('.ab-ctls > summary'); if (cs) ctlOpen = !cs.parentElement.open; // la riga Sonde e curve resta come l'hai lasciata
     const hrs = t.closest('[data-hours]'); if (hrs) { S.chart.hours = Number(hrs.dataset.hours); saveChart(); renderView('adesso'); return; }
-    const cm = t.closest('[data-comp]'); if (cm) { S.chart.comps[cm.dataset.comp] = !S.chart.comps[cm.dataset.comp]; saveChart(); renderView('adesso'); return; }
-    const sa = t.closest('[data-sat]'); if (sa) { S.chart.hiddenSats[sa.dataset.sat] = !S.chart.hiddenSats[sa.dataset.sat]; saveChart(); renderView('adesso'); return; }
+    const cm = t.closest('[data-comp]'); if (cm) { ctlOpen = true; S.chart.comps[cm.dataset.comp] = !S.chart.comps[cm.dataset.comp]; saveChart(); renderView('adesso'); return; }
+    const sa = t.closest('[data-sat]'); if (sa) { ctlOpen = true; S.chart.hiddenSats[sa.dataset.sat] = !S.chart.hiddenSats[sa.dataset.sat]; saveChart(); renderView('adesso'); return; }
     const fnv = t.closest('[data-fnav]');
     if (fnv) { const list = flareWindowEvents(); if (list.length) { let i = list.findIndex((x) => x.t === S.flareSel); i = i < 0 ? list.length - 1 : Math.max(0, Math.min(list.length - 1, i + Number(fnv.dataset.fnav))); S.flareSel = list[i].t; drawFlares(); } return; }
     const lv = t.closest('[data-live]');
@@ -875,7 +875,7 @@ function bindUI() {
   });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'placeQ') { ev.preventDefault(); runSearch(); } });
   window.addEventListener('hashchange', () => goto(location.hash.replace('#', '')));
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.view === 'adesso') { drawBzMini(); drawField(); drawGround(); drawWind(); } if (S.view === 'fronti' || S.view === 'giorni') renderView(S.view); }, 150); });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.view === 'adesso') { drawField(); drawGround(); drawWind(); } if (S.view === 'fronti' || S.view === 'giorni') renderView(S.view); }, 150); });
 }
 
 async function runSearch() {
