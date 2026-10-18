@@ -69,6 +69,55 @@ function fieldCard() {
     { id: 'fieldCard', right: seg('data-hours', CHART_HOURS.map((h) => [h, h + ' h']), c.hours) });
 }
 
+// ---------- Semplice: il campo delle ultime 2 ore, in grande e senza controlli ----------
+// Solo il Bz della sonda di riferimento: verde sotto lo zero (aiuta l'aurora), azzurro sopra. A destra della linea
+// tratteggiata c'è il vento già misurato a L1 ma non ancora arrivato sulla Terra.
+function bzMiniCard() {
+  const c = l1Now(), bz = c && c.bz != null ? c.bz : null;
+  const now = bz == null ? '' : '<span class="ab-bzmini__now" data-s="' + (bz < 0 ? 'south' : 'north') + '"><b>' + (bz > 0 ? '+' : '') + String(Math.round(bz * 10) / 10).replace('.', ',').replace('-', '−') + '</b> nT · ' + (bz < 0 ? 'a sud' : 'a nord') + '</span>';
+  return '<section class="ab-card ab-bzmini ab-span"><div class="ab-card__head"><h2 class="t-title">Campo magnetico</h2>' + now + '</div>' +
+    '<p class="t-caption ab-bzmini__key"><i data-s="south"></i><span>sotto lo zero aiuta l’aurora</span><i data-s="north"></i><span>sopra la frena</span></p>' +
+    '<div class="ab-chart" id="bzMini"></div>' +
+    '<div class="ab-bzmini__foot">' + tag('measured', 'Misurato a L1') + '<button type="button" class="ab-golink ab-golink__cta" data-home="esperto" data-to="fieldCard">Grafico completo' + icon('chev') + '</button></div></section>';
+}
+function drawBzMini() {
+  const el = $('bzMini'); if (!el) return;
+  const now = Date.now(), xmin = now - 2 * 3600e3, ref = selectedSource();
+  const pts = seriesFor(S.magRaw, ref, 'bz_gsm', xmin - 60000).filter((p) => p.t >= xmin);
+  if (pts.length < 2) { el.innerHTML = empty('In attesa dei dati delle sonde…'); return; }
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 170 : 200, L = 34, R = W - 6, T = 22, B = H - 24;
+  let lo = Math.min(0, ...pts.map((p) => p.v)), hi = Math.max(0, ...pts.map((p) => p.v));
+  const span = Math.max(hi - lo, 6); lo = Math.min(lo, -span * 0.25); hi = Math.max(hi, span * 0.25);
+  const xmax = Math.max(now, pts[pts.length - 1].t);
+  const X = (t) => L + (t - xmin) / (xmax - xmin) * (R - L), Y = (v) => B - (v - lo) / (hi - lo) * (B - T), z = Y(0);
+  // area tra la curva e lo zero, spezzata dove mancano dati
+  let a = '', line = '', prev = null;
+  pts.forEach((p) => {
+    const x = X(p.t).toFixed(1), y = Y(p.v).toFixed(1), gap = !prev || p.t - prev.t > 3 * 60000;
+    if (gap) { if (prev) a += 'L' + X(prev.t).toFixed(1) + ',' + z.toFixed(1) + 'Z'; a += 'M' + x + ',' + z.toFixed(1) + 'L' + x + ',' + y; } else a += 'L' + x + ',' + y;
+    line += (gap ? 'M' : 'L') + x + ',' + y; prev = p;
+  });
+  a += 'L' + X(prev.t).toFixed(1) + ',' + z.toFixed(1) + 'Z';
+  const fill = '<defs><clipPath id="bmn"><rect x="0" y="0" width="' + W + '" height="' + z.toFixed(1) + '"/></clipPath><clipPath id="bms"><rect x="0" y="' + z.toFixed(1) + '" width="' + W + '" height="' + (H - z).toFixed(1) + '"/></clipPath></defs>' +
+    '<path class="northfill" clip-path="url(#bmn)" d="' + a + '"/><path class="south" clip-path="url(#bms)" d="' + a + '"/>';
+  // solo tre etichette sull'asse: il massimo, lo zero, il minimo
+  const yt = [hi, 0, lo].map((v) => Math.round(v)).filter((v, i, s) => s.indexOf(v) === i && Math.abs(Y(v) - z) > 14 || v === 0);
+  let grid = yt.map((v) => '<text class="tick" x="' + (L - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + tickText(v) + '</text>').join('');
+  for (let t = Math.ceil(xmin / 1800e3) * 1800e3; t <= xmax; t += 1800e3) { const x = X(t); if (x > L + 20 && x < R - 20) grid += '<text class="tick" x="' + x.toFixed(1) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmtClock(t) + '</text>'; }
+  let earth = '';
+  const c = l1Now(), lag = c && c.v ? lagMin(c.v) : null, xe = lag != null ? now - lag * 60000 : null;
+  if (xe != null && xe > xmin + 60000) {
+    const ex = X(xe);
+    earth = '<rect x="' + ex.toFixed(1) + '" y="' + T + '" width="' + Math.max(0, R - ex).toFixed(1) + '" height="' + (B - T) + '" fill="var(--surface-2)" fill-opacity=".7"/>' +
+      '<line class="now" x1="' + ex.toFixed(1) + '" x2="' + ex.toFixed(1) + '" y1="' + (T - 4) + '" y2="' + B + '"/>' +
+      '<text class="tag" x="' + (ex - 6).toFixed(1) + '" y="' + (T - 8) + '" text-anchor="end">sulla Terra ora</text>' +
+      (R - ex >= 70 ? '<text class="tag" x="' + (ex + 6).toFixed(1) + '" y="' + (T - 8) + '">in arrivo</text>' : '');
+  }
+  el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bz a L1, ultime 2 ore: sotto lo zero aiuta l’aurora">' +
+    earth + fill + '<line class="zero" x1="' + L + '" x2="' + R + '" y1="' + z.toFixed(1) + '" y2="' + z.toFixed(1) + '"/>' + grid +
+    '<path class="line" d="' + line + '" style="stroke:var(--ink);stroke-width:2"/></svg>';
+}
+
 // ---------- disegno ----------
 function drawField() {
   const el = $('fieldChart'); if (!el) return;
@@ -76,7 +125,7 @@ function drawField() {
   const hint = 'Tocca o passa sul grafico per leggere i valori.';
   if (!d.sats.length) { el.innerHTML = empty('In attesa dei dati delle sonde…'); out.textContent = ''; return; }
   if (!d.series.length) { el.innerHTML = empty(Object.values(c.comps).some(Boolean) && d.sats.some((s) => !c.hiddenSats[s]) ? 'Nessun dato in questo intervallo.' : 'Attiva almeno una sonda e una componente.'); out.textContent = ''; return; }
-  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 260 : W < 700 ? 350 : 420, L = 44, R = W - 8, T = 22, B = H - 30;
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 310 : W < 700 ? 350 : 420, L = 44, R = W - 8, T = 22, B = H - 30;
   let lo = 0, hi = 0;
   d.series.forEach((s) => s.pts.forEach((p) => { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }));
   const span = Math.max(hi - lo, 2); lo -= span * 0.08; hi += span * 0.08;

@@ -357,6 +357,19 @@ a{color:var(--ink-2)}
 .ab-nchip[data-g="2"]{background:var(--level-2);border-color:transparent;color:var(--on-signal)}
 .ab-nchip[data-g="3"],.ab-nchip[data-g="4"],.ab-nchip[data-g="5"]{background:var(--level-3);border-color:transparent;color:var(--on-signal)}
 .ab-simple{max-width:640px}
+/* Semplice: il campo delle ultime 2 ore */
+.ab-bzmini__now{font:500 14px/20px var(--font-sans);color:var(--ink-2);white-space:nowrap}
+.ab-bzmini__now b{font:600 18px/22px var(--font-sans);color:var(--north)}
+.ab-bzmini__now[data-s="south"] b{color:var(--aurora-green)}
+.ab-bzmini__key{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin:var(--space-1) 0 var(--space-2);color:var(--ink-2)}
+.ab-bzmini__key i{width:10px;height:10px;border-radius:2px;background:var(--north);opacity:.7}
+.ab-bzmini__key i[data-s="south"]{background:var(--aurora-green)}
+.ab-bzmini__key i+*{margin-right:var(--space-2)}
+.ab-bzmini .ab-chart .south{fill-opacity:.45}
+.ab-bzmini .ab-chart .northfill{fill-opacity:.3}
+.ab-bzmini__foot{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-top:var(--space-2)}
+.ab-bzmini__foot .ab-golink{margin-top:0;background:none;border:0;cursor:pointer;padding:0}
+#fieldCard{scroll-margin-top:116px} /* "Grafico completo" porta qui: il titolo non finisce sotto la barra in alto */
 .ab-simple>.ab-linkcard{width:100%;border:0;font:inherit;text-align:left;cursor:pointer}
 .ab-notice.ab-golink .ab-golink__cta{display:flex;width:fit-content;margin-top:var(--space-1);min-height:32px}
 .ab-agree{display:grid;gap:var(--space-1)}
@@ -613,7 +626,7 @@ a{color:var(--ink-2)}
    Su schermi larghi restano nella colonna del grafico. */
 @media (max-width:767px){
   .ab-page[data-cols="two"] .ab-stack{display:contents}
-  .ab-page[data-cols="two"] .ab-metrics{order:-1}
+  .ab-page[data-cols="two"] #fieldCard{order:-1}
   .ab-page[data-cols="two"] .ab-situation{order:-2}
   .ab-page[data-cols="two"] .ab-geohint{order:-3}
   .ab-page[data-cols="two"]>.ab-nlines{order:-4}

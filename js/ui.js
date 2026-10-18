@@ -176,7 +176,7 @@ function viewSemplice(now, e, F, H) {
     '<p class="t-body ab-situation__why">' + esc(H.why) + '</p>' +
     '<ul class="ab-plain">' + rows.map((r) => '<li data-state="' + r.state + '"><span class="ab-check__mark" aria-hidden="true">' + MARK[r.state] + '</span><span>' + esc(r.text) + tag(r.kind, TAGS[r.kind]) + '</span></li>').join('') + '</ul>' + arr +
     '<details class="ab-details"><summary>Come leggerlo' + icon('chev') + '</summary><p class="t-body-sm" style="color:var(--ink-2)">' + esc(CAVEAT) + '</p><button type="button" class="ab-btn-text" data-open="info">Come è calcolato ' + icon('info') + '</button></details></section>';
-  return '<div class="ab-page ab-simple">' + modeSwitch() + noaaLines() + geoHint() + hero + tonightCard() + nightsCard() +
+  return '<div class="ab-page ab-simple">' + modeSwitch() + noaaLines() + geoHint() + hero + bzMiniCard() + tonightCard() + nightsCard() +
     '<button type="button" class="ab-linkcard ab-span" data-home="esperto">' + icon('activity') + '<span><b>Tutti i dati</b><small>Campo magnetico, vento solare, magnetometri: versione Esperto</small></span>' + icon('chev') + '</button></div>';
 }
 
@@ -775,7 +775,7 @@ function renderView(name) {
   stopAnims();
   el.innerHTML = { adesso: viewAdesso, fronti: viewFronti, cielo: viewCielo, webcam: viewWebcam, giorni: viewGiorni }[name]().replace(/<\/div>\s*$/, footLinks() + '</div>');
   if (S.back && S.back.view !== name) el.innerHTML = el.innerHTML.replace(/(<div class="ab-page"[^>]*>)/, '$1' + backChip());
-  if (name === 'adesso') { drawField(); drawGround(); drawWind(); }
+  if (name === 'adesso') { drawBzMini(); drawField(); drawGround(); drawWind(); }
   if (name === 'giorni') drawFlares();
   if (name === 'cielo') drawCloudMap();
   if (name === 'fronti') drawFront(pickEvent(Date.now()) || S.episodes[S.episodes.length - 1] || null);
@@ -811,7 +811,7 @@ function bindUI() {
     if (t.closest('#alertBtn')) { openSheet('sheetAlerts'); return; }
     if (t.closest('[data-close]')) { t.closest('dialog').close(); return; }
     if (t.closest('#refreshBtn')) { refreshNow(true); return; }
-    const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); window.scrollTo(0, 0); return; }
+    const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); const to = hm.dataset.to && $(hm.dataset.to); if (to) to.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); return; }
     const hrs = t.closest('[data-hours]'); if (hrs) { S.chart.hours = Number(hrs.dataset.hours); saveChart(); renderView('adesso'); return; }
     const cm = t.closest('[data-comp]'); if (cm) { S.chart.comps[cm.dataset.comp] = !S.chart.comps[cm.dataset.comp]; saveChart(); renderView('adesso'); return; }
     const sa = t.closest('[data-sat]'); if (sa) { S.chart.hiddenSats[sa.dataset.sat] = !S.chart.hiddenSats[sa.dataset.sat]; saveChart(); renderView('adesso'); return; }
@@ -872,7 +872,7 @@ function bindUI() {
   });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'placeQ') { ev.preventDefault(); runSearch(); } });
   window.addEventListener('hashchange', () => goto(location.hash.replace('#', '')));
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.view === 'adesso') { drawField(); drawGround(); drawWind(); } if (S.view === 'fronti' || S.view === 'giorni') renderView(S.view); }, 150); });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.view === 'adesso') { drawBzMini(); drawField(); drawGround(); drawWind(); } if (S.view === 'fronti' || S.view === 'giorni') renderView(S.view); }, 150); });
 }
 
 async function runSearch() {
