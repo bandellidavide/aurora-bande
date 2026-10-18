@@ -233,6 +233,7 @@ h1,h2,h3,p{margin:0}
 .ab-dash{width:30px;height:10px;flex:none}
 .ab-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
 .ab-ro{display:grid;gap:4px;margin-top:var(--space-2);min-height:72px;align-content:start;font:400 14px/20px var(--font-sans);color:var(--ink-2)}
+@media (max-width:767px){.ab-ro{min-height:0}} /* su telefono niente spazio vuoto riservato sotto i grafici: le righe compaiono solo quando tocchi */
 .ab-ro>div{display:flex;flex-wrap:wrap;align-items:center;gap:2px var(--space-3)}
 .ab-ro em{font-style:normal;font-weight:600;color:var(--ink);min-width:20px}
 .ab-ro>div b,.ab-ro>div span{font:400 14px/20px var(--font-mono);font-variant-numeric:tabular-nums}
@@ -313,12 +314,50 @@ a{color:var(--ink-2)}
 .ab-facts dd{margin:var(--space-1) 0 0;font:500 16px/24px var(--font-sans);font-variant-numeric:tabular-nums}
 .ab-facts dd small{color:var(--ink-3);font:400 12px/16px var(--font-sans)}
 .ab-notice{padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--surface-2);color:var(--ink-2);font:400 14px/20px var(--font-sans)}
-.ab-noaaband{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-1);padding:var(--space-4);border-radius:var(--radius-lg);background:color-mix(in srgb,var(--warning) 14%,var(--surface-1));border:1px solid color-mix(in srgb,var(--warning) 45%,transparent)}
-.ab-noaaband .t-label{color:var(--warning)}
-.ab-noaaband b{font:600 18px/24px var(--font-sans);color:var(--ink)}
-.ab-noaaband .t-body-sm{color:var(--ink-2)}
-.ab-noaaband .ab-golink__cta{margin-top:var(--space-1)}
-.ab-noaaband[data-kind="expected"]{background:var(--surface-2);border-style:dashed}
+/* prima pagina: Semplice | Esperto */
+.ab-modesel{display:grid;grid-template-columns:1fr 1fr;width:100%}
+.ab-modesel button{min-height:40px;font-weight:600}
+/* righe NOAA / NASA: una per cosa, solo se c'è */
+.ab-nlines{display:flex;flex-direction:column;gap:var(--space-2)}
+.ab-nline{display:flex;align-items:center;gap:var(--space-3);min-height:var(--tap-comfort);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);background:var(--surface-1);border:1px solid var(--line-strong);color:var(--ink);text-decoration:none}
+.ab-nline>i{flex:none;width:12px;height:12px;border-radius:50%;background:var(--warning)}
+.ab-nline[data-k="now"]{border-color:var(--warning);background:color-mix(in srgb,var(--warning) 16%,var(--surface-1))}
+.ab-nline[data-k="now"]>i{animation:ab-pulse 2s ease-in-out infinite}
+.ab-nline[data-k="exp"]>i,.ab-nline[data-k="watch"]>i{background:transparent;border:2px solid var(--warning)}
+.ab-nline[data-k="past"]>i{background:var(--ink-3)}
+.ab-nline[data-k="cme"]>i{background:transparent;border:2px dashed var(--ink-2)}
+.ab-nline>span{flex:1;min-width:0;display:flex;flex-direction:column}
+.ab-nline b{font:600 15px/20px var(--font-sans)}
+.ab-nline small{color:var(--ink-2);font:400 13px/18px var(--font-sans)}
+.ab-nline em{flex:none;font:600 11px/16px var(--font-sans);font-style:normal;letter-spacing:.06em;color:var(--ink-3)}
+.ab-nline>.ab-icon{flex:none;width:18px;height:18px;color:var(--ink-3);transform:rotate(-90deg)}
+/* Semplice: la risposta in parole */
+.ab-hero{display:flex;flex-direction:column;gap:var(--space-2)}
+.ab-plain{list-style:none;margin:var(--space-2) 0 0;padding:0;display:flex;flex-direction:column;gap:var(--space-2)}
+.ab-plain li{display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);background:var(--surface-2)}
+.ab-plain li .ab-check__mark{flex:none;width:24px;height:24px;font-size:13px;margin-top:1px}
+.ab-plain li[data-state="good"] .ab-check__mark{background:var(--aurora-green)}
+.ab-plain li[data-state="mid"] .ab-check__mark{background:var(--warning)}
+.ab-plain li[data-state="bad"] .ab-check__mark{background:var(--level-0)}
+.ab-plain li[data-state="unk"] .ab-check__mark{background:transparent;border:1.5px solid var(--ink-3);color:var(--ink-3)}
+.ab-plain li>span:last-child{flex:1;min-width:0;display:block;font:500 16px/22px var(--font-sans);color:var(--ink)}
+.ab-plain li .ab-tag{min-height:20px;margin-left:6px;padding:0 6px;font-size:11px;vertical-align:1px;color:var(--ink-3)}
+.ab-hero .ab-linkcard{margin-top:var(--space-2)}
+.ab-hero .ab-details{margin-top:var(--space-1)}
+.ab-tonight b[data-c="good"]{color:var(--aurora-green)}
+.ab-tonight b[data-c="mid"]{color:var(--warning)}
+.ab-tonight .ab-golink__cta{display:flex;width:fit-content}
+.ab-nights2 ul{list-style:none;margin:var(--space-2) 0 0;padding:0;display:flex;flex-direction:column;gap:var(--space-2)}
+.ab-nights2 li{display:grid;grid-template-columns:92px 1fr auto auto;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);background:var(--surface-2)}
+.ab-nights2 li .t-label{color:var(--ink-3)}
+.ab-nights2 li b{font:500 15px/20px var(--font-sans);color:var(--ink)}
+.ab-nights2 li small{color:var(--ink-3);font:400 12px/16px var(--font-sans)}
+.ab-nchip{padding:2px 8px;border-radius:var(--radius-pill);background:var(--surface-1);border:1px solid var(--line-strong);color:var(--ink-2);font:600 13px/18px var(--font-sans);white-space:nowrap}
+.ab-nchip[data-g="1"]{background:var(--level-1);border-color:transparent;color:var(--on-signal)}
+.ab-nchip[data-g="2"]{background:var(--level-2);border-color:transparent;color:var(--on-signal)}
+.ab-nchip[data-g="3"],.ab-nchip[data-g="4"],.ab-nchip[data-g="5"]{background:var(--level-3);border-color:transparent;color:var(--on-signal)}
+.ab-simple{max-width:640px}
+.ab-simple>.ab-linkcard{width:100%;border:0;font:inherit;text-align:left;cursor:pointer}
 .ab-notice.ab-golink .ab-golink__cta{display:flex;width:fit-content;margin-top:var(--space-1);min-height:32px}
 .ab-agree{display:grid;gap:var(--space-1)}
 .ab-agree__row{display:flex;justify-content:space-between;gap:var(--space-3);font:400 14px/20px var(--font-sans);color:var(--ink-2)}
@@ -570,13 +609,15 @@ a{color:var(--ink-2)}
 .ab-fnav{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-top:var(--space-3)}
 .ab-fnav .ab-btn[disabled]{opacity:.4;cursor:default}
 
-/* Adesso su telefono: le quattro misure (Bz, Bt, vento, Ey+) vengono prima di tutto, poi il quadro d'insieme.
+/* Adesso (Esperto) su telefono: selettore, righe NOAA, quadro d'insieme, poi le quattro misure (Bz, Bt, vento, Ey+) e i grafici.
    Su schermi larghi restano nella colonna del grafico. */
 @media (max-width:767px){
   .ab-page[data-cols="two"] .ab-stack{display:contents}
   .ab-page[data-cols="two"] .ab-metrics{order:-1}
-  .ab-page[data-cols="two"] .ab-geohint{order:-2}
-  .ab-page[data-cols="two"] .ab-noaaband,.ab-page[data-cols="two"]>.ab-notice.ab-golink{order:-3}
+  .ab-page[data-cols="two"] .ab-situation{order:-2}
+  .ab-page[data-cols="two"] .ab-geohint{order:-3}
+  .ab-page[data-cols="two"]>.ab-nlines{order:-4}
+  .ab-page[data-cols="two"]>.ab-modesel{order:-5}
 }
 
 /* cinque sezioni nella barra in basso */

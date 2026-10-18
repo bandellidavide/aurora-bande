@@ -227,7 +227,8 @@ function windCard() {
   return card('Vento solare a L1',
     '<div class="ab-bigvalue"><span class="t-num-lg">' + (v == null ? '—' : v) + '</span><span class="t-body-sm ab-unit">km/s</span>' + (word ? '<span class="t-body" style="margin-left:var(--space-3)">' + word + '</span>' : '') + '</div>' +
     '<div class="ab-chart" id="windChart" style="margin-top:var(--space-3)"></div><div class="ab-ro" id="windReadout" aria-live="off" style="min-height:24px"></div>' +
-    '<p class="t-caption ab-card__note">Velocità dei protoni misurata dalle sonde a L1. Più è alta, prima arriva sulla Terra (1.500.000 km ÷ velocità). Sonde e intervallo sono quelli scelti nel grafico del campo. Dati: NOAA SWPC.</p>',
+    '<details class="ab-details"><summary>Come leggerlo' + icon('chev') + '</summary><p class="t-caption" style="color:var(--ink-2);margin:0 0 var(--space-2)">Velocità dei protoni misurata dalle sonde a L1. Più è alta, prima arriva sulla Terra (1.500.000 km ÷ velocità). Sonde e intervallo sono quelli scelti nel grafico del campo.</p></details>' +
+    '<p class="t-caption ab-credit">Dati: NOAA SWPC.</p>',
     { right: tag('measured', 'Misurato') });
 }
 
@@ -237,7 +238,7 @@ function drawWind() {
   const series = chartSats().filter((s) => !c.hiddenSats[s]).map((s, i) => ({ src: s, isRef: s === ref, dash: s === ref ? '' : satDash(s, i),
     pts: seriesFor(S.windRaw, s, 'proton_speed', xmin - 60000).filter((p) => p.t >= xmin).map((p) => ({ x: p.t, v: p.v })) })).filter((s) => s.pts.length);
   if (!series.length) { el.innerHTML = empty('Nessun dato di velocità in questo intervallo.'); out.textContent = ''; return; }
-  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 220 : 260, L = 48, R = W - 8, T = 22, B = H - 30;
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 180 : 260, L = 48, R = W - 8, T = 22, B = H - 30;
   let lo = Infinity, hi = -Infinity;
   series.forEach((s) => s.pts.forEach((p) => { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }));
   const pad = Math.max((hi - lo) * 0.12, 15); lo = Math.max(0, lo - pad); hi += pad;

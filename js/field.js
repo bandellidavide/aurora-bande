@@ -76,7 +76,7 @@ function drawField() {
   const hint = 'Tocca o passa sul grafico per leggere i valori.';
   if (!d.sats.length) { el.innerHTML = empty('In attesa dei dati delle sonde…'); out.textContent = ''; return; }
   if (!d.series.length) { el.innerHTML = empty(Object.values(c.comps).some(Boolean) && d.sats.some((s) => !c.hiddenSats[s]) ? 'Nessun dato in questo intervallo.' : 'Attiva almeno una sonda e una componente.'); out.textContent = ''; return; }
-  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 310 : W < 700 ? 350 : 420, L = 44, R = W - 8, T = 22, B = H - 30;
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 260 : W < 700 ? 350 : 420, L = 44, R = W - 8, T = 22, B = H - 30;
   let lo = 0, hi = 0;
   d.series.forEach((s) => s.pts.forEach((p) => { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }));
   const span = Math.max(hi - lo, 2); lo -= span * 0.08; hi += span * 0.08;

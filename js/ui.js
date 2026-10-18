@@ -87,8 +87,16 @@ function renderStatus() {
 }
 
 // ============================ ADESSO ============================
+// Prima pagina in due modi: «Semplice» (la risposta in parole, poi stanotte e le prossime notti) ed «Esperto» (tutti i dati).
+// La scelta resta sul telefono. In tutti e due: ciò che non c'è non occupa spazio, NOAA e NASA sono una riga che porta al dettaglio.
+const homeMode = () => (store.get('aurora_home', 'semplice') === 'esperto' ? 'esperto' : 'semplice');
+function modeSwitch() {
+  const m = homeMode();
+  return '<div class="ab-seg ab-modesel ab-span" role="group" aria-label="Come vedere la prima pagina">' + [['semplice', 'Semplice'], ['esperto', 'Esperto']].map(([k, l]) => '<button type="button" data-home="' + k + '" aria-pressed="' + (m === k) + '">' + l + '</button>').join('') + '</div>';
+}
 function viewAdesso() {
   const now = Date.now(), e = pickEvent(now), F = factors(e), H = hypothesis(F), sig = F.sig;
+  if (homeMode() === 'semplice') return viewSemplice(now, e, F, H);
   let win = '';
   if (sig.level != null && e && e.arrStart != null) {
     const st = eventState(e, now), ov = overlapsOf(e);
@@ -102,9 +110,101 @@ function viewAdesso() {
     title: H.title, why: H.why, window: win, body: factorOverview(F), caveat: CAVEAT,
     foot: '<button type="button" class="ab-btn-text" data-open="info">Come è calcolato ' + icon('info') + '</button>' + (sig.c.fallback ? '<span class="t-caption" style="color:var(--ink-3)">Campo da riepilogo NOAA</span>' : ''),
   });
-  // colonna principale: grafico e sotto il quadro d'insieme; colonna a lato: le quattro misure e il riscontro a terra (su telefono le misure vanno in cima)
-  // il banner NOAA, se c'è, va sopra a tutto: è un dato confermato, non la nostra stima su Bz a L1 più sotto.
-  return '<div class="ab-page" data-cols="two">' + noaaAlertBanner() + noaaWatchNotice() + cmeNotice() +'<div class="ab-stack">' + geoHint() + fieldCard() + sit + '</div><div class="ab-stack">' + metricsBlock(sig.c) + groundCard(e) + '</div><div class="ab-span">' + windCard() + '</div></div>';
+  // su telefono l'ordine è: righe NOAA, quadro d'insieme, quattro misure, grafici (css: .ab-page[data-cols="two"]).
+  // Il riscontro a terra c'è solo quando esiste un fronte da confrontare: senza, la tessera «A terra» basta.
+  return '<div class="ab-page" data-cols="two">' + modeSwitch() + noaaLines() + '<div class="ab-stack">' + geoHint() + sit + fieldCard() + '</div><div class="ab-stack">' + metricsBlock(sig.c) + (e ? groundCard(e) : '') + '</div><div class="ab-span">' + windCard() + '</div></div>';
+}
+
+// ---------- Semplice ----------
+// righe in parole semplici, senza sigle: lo spazio, l'ovale, buio e luna, le nuvole
+function plainRows(F) {
+  const sig = F.sig, st = stormNow(), rc = S.ovation && S.ovation.reach, ov = S.ovation && S.ovation.val;
+  const rows = [];
+  if (sig.level == null) rows.push({ state: 'unk', kind: 'measured', text: 'Dati dallo spazio non recenti' });
+  else if (st.g >= 1) rows.push({ state: 'good', kind: 'measured', text: 'Tempesta geomagnetica in corso (G' + st.g + ', ' + G_WORDS[st.g] + ')' });
+  else rows.push({ state: sig.level >= 2 ? 'good' : sig.level === 1 ? 'mid' : 'bad', kind: 'measured', text: ['Lo spazio è calmo', 'Dallo spazio arriva un segnale debole', 'Dallo spazio arrivano segnali a favore', 'Dallo spazio arriva un segnale forte'][sig.level] });
+  if (rc) {
+    const weak = /debole/.test(rc.short), where = S.lat >= 0 ? 'nord' : 'sud';
+    const t = rc.tier === 'overhead' ? 'La zona dell’aurora è sopra di te' + (weak ? ', ma debole' : '')
+      : rc.tier === 'near' ? 'La zona dell’aurora è vicina, a circa ' + rc.km + ' km a ' + where + (weak ? ', ma debole' : '')
+      : rc.tier === 'horizon' ? 'La zona dell’aurora è lontana: al più bassa a ' + where
+      : 'La zona dell’aurora è troppo lontana da qui';
+    rows.push({ state: rc.state, kind: 'forecast', text: t });
+  } else rows.push({ state: ov == null ? 'unk' : 'bad', kind: 'forecast', text: ov == null ? 'Modello dell’ovale non disponibile' : 'Nessuna aurora prevista vicino a te' });
+  const A = S.astro || astro(), dk = darkCheck(A), mn = moonCheck(A);
+  if (A.ok) {
+    // l'orario è quello della scheda Stanotte (sole sotto −12°), così i due numeri coincidono
+    const nw = nightWindows(1)[0], from = nw && !nw.ongoing && !nw.polar ? nw.a : A.darkStart && A.darkStart.getTime();
+    const d = dk.value === 'Buio' ? 'È buio' + (A.darkEnd ? ' fino alle ' + fmtClock(A.darkEnd.getTime()) : '') : dk.value === 'Niente buio' ? 'Niente buio in questo periodo' : (dk.value === 'Giorno' ? 'È giorno' : 'Crepuscolo') + (from ? ': buio dalle ' + fmtClock(from) : '');
+    const m = A.moon.above === false ? 'luna non in cielo' : 'luna ' + mn.value.toLowerCase() + ' (' + A.moon.illum + '%)';
+    rows.push({ state: [dk.state, mn.state].includes('bad') ? 'bad' : [dk.state, mn.state].includes('mid') ? 'mid' : 'good', kind: 'computed', text: d + ' · ' + m });
+  }
+  const sky = F.obs.find((x) => x.label === 'Cielo');
+  if (sky) rows.push({ state: sky.state, kind: 'forecast', text: sky.value + (sky.note ? ' · ' + sky.note : '') });
+  return rows;
+}
+// stanotte: la probabilità di cielo libero ora per ora (gli stessi scenari della scheda Cielo)
+function tonightCard() {
+  if (!S.wx || !S.wx.ens) return '';
+  const w = nightWindows(1)[0], s = w ? nightCloudSummary(w) : null; if (!s) return '';
+  const best = s.best && s.best.p >= 20 && s.best.p > s.avg + 5 ? s.best : null;
+  return '<section class="ab-card ab-tonight"><div class="ab-card__head"><h2 class="t-title">' + esc(nightName(s.w)) + '</h2>' + tag('forecast', TAGS.forecast) + '</div>' +
+    '<p class="t-body">Cielo libero <b data-c="' + pClass(s.avg) + '">' + esc(pWord(s.avg)) + '</b>' + (best ? ', meglio tra le ' + fmtClock(best.a) + ' e le ' + fmtClock(best.b) : '') + '.</p>' +
+    // se nessuna ora arriva al 10% la barra sarebbe vuota: basta la frase
+    (s.cells.some((c) => c.pClear >= 10) ? nightStrip(s) + '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">Barra alta e verde = più probabile vedere il cielo. ' : '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">') + 'Buio ' + fmtClock(s.w.a) + '–' + fmtClock(s.w.b) + '.</p>' +
+    '<a class="ab-golink ab-golink__cta" href="#cielo" data-go="cielo">Nuvole, mappa e satellite' + icon('chev') + '</a></section>';
+}
+// le prossime notti secondo NOAA (Kp previsto e avviso WATCH) con la luna: una riga per notte
+function nightsCard() {
+  const n = nightsOutlook(); if (!n || !n.length) return '';
+  const w = activeWatch(S.noaaAlerts && S.noaaAlerts.list), wg = (ms) => (w ? Math.max(0, ...w.days.filter((d) => ms >= d.ms && ms < d.ms + 864e5).map((d) => d.g)) : 0);
+  const rows = n.map((x) => {
+    const g = Math.max(x.g, wg(x.a), wg(x.b - 1));
+    const word = g >= 1 ? 'Tempesta ' + G_WORDS[g] : x.kp >= 4 ? 'Agitato' : 'Calmo';
+    const chip = g >= 1 ? 'G' + g : 'Kp ' + itNum(x.kp, 0);
+    const label = x.ongoing ? 'Questa notte' : new Date(x.a).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', timeZone: zone() }).replace('.', '');
+    return '<li><span class="t-label">' + esc(label) + '</span><b>' + esc(word) + '</b><small>luna ' + x.moon + '%</small><span class="ab-nchip" data-g="' + g + '">' + chip + '</span></li>';
+  }).join('');
+  return '<section class="ab-card ab-nights2"><div class="ab-card__head"><h2 class="t-title">Prossime notti</h2>' + tag('forecast', 'NOAA') + '</div><ul>' + rows + '</ul>' +
+    '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-2)">Quanto sarà agitato il campo magnetico (Kp, media mondiale): non dice cosa vedrai da qui.</p></section>';
+}
+function viewSemplice(now, e, F, H) {
+  const rows = plainRows(F);
+  const arr = F.sig.level != null && e && e.arrStart != null && e.arrStart + ARRIVAL_MARGIN_MS > now
+    ? '<a class="ab-linkcard" href="#fronti" data-go="fronti">' + icon('clock') + '<span><b>Possibile arrivo ' + fmtClock(e.arrStart - ARRIVAL_MARGIN_MS) + '–' + fmtClock(e.arrStart + ARRIVAL_MARGIN_MS) + '</b><small>Stima: un tratto di campo favorevole è in viaggio verso la Terra</small></span>' + icon('chev') + '</a>' : '';
+  const hero = '<section class="ab-situation ab-hero ab-span" data-level="' + H.level + '" aria-labelledby="sit"><h1 id="sit" class="t-verdict ab-situation__title">' + esc(H.title) + '</h1>' +
+    '<p class="t-body ab-situation__why">' + esc(H.why) + '</p>' +
+    '<ul class="ab-plain">' + rows.map((r) => '<li data-state="' + r.state + '"><span class="ab-check__mark" aria-hidden="true">' + MARK[r.state] + '</span><span>' + esc(r.text) + tag(r.kind, TAGS[r.kind]) + '</span></li>').join('') + '</ul>' + arr +
+    '<details class="ab-details"><summary>Come leggerlo' + icon('chev') + '</summary><p class="t-body-sm" style="color:var(--ink-2)">' + esc(CAVEAT) + '</p><button type="button" class="ab-btn-text" data-open="info">Come è calcolato ' + icon('info') + '</button></details></section>';
+  return '<div class="ab-page ab-simple">' + modeSwitch() + noaaLines() + geoHint() + hero + tonightCard() + nightsCard() +
+    '<button type="button" class="ab-linkcard ab-span" data-home="esperto">' + icon('activity') + '<span><b>Tutti i dati</b><small>Campo magnetico, vento solare, magnetometri: versione Esperto</small></span>' + icon('chev') + '</button></div>';
+}
+
+// ---------- righe NOAA / NASA ----------
+// Una riga per ogni cosa che c'è davvero: tempesta in corso o attesa, avviso WATCH per i prossimi giorni, onda d'urto, nube (CME) in viaggio.
+// Se non c'è niente, niente. Il dettaglio (testo dei comunicati, cosa vuol dire la scala G) è in Giorni.
+function noaaLines() {
+  const out = [], list = S.noaaAlerts && S.noaaAlerts.list, now = Date.now();
+  if (list) {
+    const N = noaaGeoNow(list), R = N.reached, E = N.expected;
+    if (R && R.kp >= 5) out.push({ k: 'now', t: 'Tempesta G' + (R.kp - 4) + ' in corso', s: G_WORDS[R.kp - 4] + ' · Kp ' + R.kp + ' alle ' + fmtClock(R.ms), src: 'NOAA' });
+    else if (E && E.kp >= 5) out.push({ k: 'exp', t: 'Tempesta G' + (E.kp - 4) + ' attesa', s: 'fino alle ' + fmtClock(E.until) + ' · non ancora in corso', src: 'NOAA' });
+    else if (N.recent) out.push({ k: 'past', t: 'Tempesta G' + (N.recent.kp - 4) + ' alle ' + fmtClock(N.recent.ms), s: 'ora sotto la soglia', src: 'NOAA' });
+    const sh = list.filter((a) => a.impulse && now - a.ms < 3 * 3600e3).sort((a, b) => b.ms - a.ms)[0];
+    if (sh) out.push({ k: 'exp', t: sh.type === 'warning' ? 'Onda d’urto in arrivo' : 'Onda d’urto arrivata', s: 'comunicato delle ' + fmtClock(sh.ms), src: 'NOAA' });
+    const w = activeWatch(list);
+    if (w) {
+      const top = w.days.reduce((m, d) => (d.g > m.g ? d : m), w.days[0]), t = new Date(now), today = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
+      if (!(R && R.kp >= 5) || top.ms > today) out.push({ k: 'watch', t: 'Tempesta G' + top.g + ' prevista', s: watchDay(top.ms) + ' · ' + G_WORDS[top.g], src: 'NOAA' });
+    }
+  }
+  const d = S.noaaAlerts && S.noaaAlerts.donki;
+  if (d) {
+    const inc = (donkiRows(d, null) || []).filter((r) => r.kind === 'cme' && r.arrival && ['incoming', 'glancing'].includes(cmeOutcome(r, now))).sort((a, b) => a.arrival - b.arrival)[0];
+    if (inc) out.push({ k: 'cme', t: inc.glancing ? 'Nube dal Sole, di striscio' : 'Nube dal Sole in arrivo', s: fmtDayClock(inc.arrival) + ' circa' + (inc.kp ? ' · Kp ' + (inc.kp[0] === inc.kp[1] ? inc.kp[0] : inc.kp[0] + '–' + inc.kp[1]) : ''), src: 'NASA' });
+  }
+  if (!out.length) return '';
+  return '<div class="ab-nlines ab-span">' + out.map((o) => '<a class="ab-nline" data-k="' + o.k + '" href="#giorni" data-go="giorni"><i aria-hidden="true"></i><span><b>' + esc(o.t) + '</b><small>' + esc(o.s) + '</small></span><em>' + o.src + '</em>' + icon('chev') + '</a>').join('') + '</div>';
 }
 
 // L'arrivo in un colpo d'occhio: misura a L1 → viaggio → finestra d'arrivo (sfumata, perché la stima è indicativa) e «adesso».
@@ -479,48 +579,6 @@ const alertHead = (a) => {
   return g > 0 ? 'Tempesta geomagnetica G' + g + when + ' · ' + G_WORDS[g] + ' (Kp ' + a.kp + ')' : 'Attività geomagnetica elevata' + (a.type === 'warning' ? ' attesa' : '') + ' · Kp ' + a.kp;
 };
 
-// banner in cima a Adesso: lo stato ufficiale NOAA, tenendo separati «in corso» (ALERT: soglia raggiunta nel periodo di 3 ore attuale)
-// e «attesa» (WARNING: NOAA se l'aspetta entro la finestra di validità, ma non è ancora successo). Non è il nostro calcolo su Bz a L1.
-function noaaAlertBanner() {
-  const list = S.noaaAlerts && S.noaaAlerts.list; if (!list) return '';
-  const N = noaaGeoNow(list), R = N.reached, E = N.expected;
-  const kpNow = S.kp != null ? ' · Kp adesso ' + itNum(S.kp, 1) : '';
-  const band = (kind, label, title, line, g) => '<a class="ab-noaaband ab-golink ab-span" data-kind="' + kind + '" href="#giorni" data-go="giorni"><span class="t-label">' + label + '</span><b>' + esc(title) + '</b>' +
-    '<span class="t-body-sm">' + esc(line) + '</span><span class="t-body-sm">' + esc(gPlain(g)) + '</span><span class="ab-golink__cta">Tutte le allerte' + icon('chev') + '</span></a>';
-  if (R && R.kp >= 5) {
-    const g = R.kp - 4, up = E && E.kp > R.kp ? E : null;
-    return band('now', 'NOAA conferma · in corso', 'Tempesta geomagnetica G' + g + ' in corso · ' + G_WORDS[g],
-      'Soglia Kp ' + R.kp + ' raggiunta alle ' + fmtClock(R.ms) + ': dato ufficiale NOAA, non la nostra stima.' + (up ? ' NOAA prevede che possa salire a G' + (up.kp - 4) + ' (avviso fino alle ' + fmtClock(up.until) + ').' : ''), g);
-  }
-  if (E && E.kp >= 5) {
-    const g = E.kp - 4;
-    return band('expected', 'NOAA prevede · non ancora in corso', 'Tempesta geomagnetica G' + g + ' attesa · ' + G_WORDS[g],
-      'Avviso valido fino alle ' + fmtClock(E.until) + ': NOAA si aspetta Kp ' + E.kp + ', ma la soglia non è ancora stata raggiunta' + kpNow + '.' + (N.recent ? ' Ultima soglia raggiunta: Kp ' + N.recent.kp + ' alle ' + fmtClock(N.recent.ms) + '.' : ''), g);
-  }
-  // niente G1+ né in corso né attesa: si vede comunque lo stato, così «nessun banner» non si confonde con «non ha caricato»
-  const soft = N.recent ? 'ultima tempesta confermata: G' + (N.recent.kp - 4) + ' (Kp ' + N.recent.kp + ') alle ' + fmtClock(N.recent.ms) + ', nel periodo attuale non ancora confermata'
-    : R ? 'Kp ' + R.kp + ' raggiunto alle ' + fmtClock(R.ms) + ', sotto la soglia di tempesta (G1 = Kp 5)'
-    : E ? 'prevista attività elevata (Kp ' + E.kp + ') fino alle ' + fmtClock(E.until) + ', sotto la soglia di tempesta (G1 = Kp 5)'
-    : 'nessuna allerta geomagnetica in corso';
-  return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA</b> · ' + esc(soft + kpNow) + '<span class="ab-golink__cta">Comunicati' + icon('chev') + '</span></a>';
-}
-// WATCH NOAA: tempesta geomagnetica prevista nei prossimi giorni (previsione ufficiale, non ancora in corso)
-function noaaWatchNotice() {
-  const w = activeWatch(S.noaaAlerts && S.noaaAlerts.list); if (!w) return '';
-  const top = w.days.reduce((m, d) => (d.g > m.g ? d : m), w.days[0]);
-  return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>NOAA · WATCH</b> · tempesta geomagnetica G' + top.g + ' (' + G_WORDS[top.g] + ') prevista per ' + esc(watchDay(top.ms)) +
-    (w.days.length > 1 ? ' (anche ' + w.days.filter((d) => d !== top).map((d) => 'G' + d.g + ' ' + esc(watchDay(d.ms))).join(', ') + ')' : '') + ' · previsione ufficiale, non ancora in corso, può cambiare<span class="t-body-sm" style="display:block;margin-top:var(--space-1)">' + esc(gPlain(top.g)) + '</span><span class="ab-golink__cta">Dettagli' + icon('chev') + '</span></a>';
-}
-// CME in viaggio verso la Terra secondo le analisi NASA DONKI (simulazione ENLIL): è un'anticipazione, con ore di incertezza.
-function cmeNotice() {
-  const d = S.noaaAlerts && S.noaaAlerts.donki; if (!d) return '';
-  const now = Date.now();
-  const inc = (donkiRows(d, null) || []).filter((r) => r.kind === 'cme' && r.arrival && ['incoming', 'glancing'].includes(cmeOutcome(r, now))).sort((a, b) => a.arrival - b.arrival)[0];
-  if (!inc) return '';
-  return '<a class="ab-notice ab-span ab-golink" href="#giorni" data-go="giorni"><b>CME in viaggio</b> · ' + (inc.glancing ? 'passaggio di striscio' : 'verso la Terra') + ', arrivo stimato ' + esc(fmtDayClock(inc.arrival)) +
-    (inc.kp ? ', Kp stimato ' + (inc.kp[0] === inc.kp[1] ? inc.kp[0] : inc.kp[0] + '–' + inc.kp[1]) : '') + (inc.speed ? ' · ' + Math.round(inc.speed) + ' km/s' : '') +
-    ' · simulazione NASA, incerta di diverse ore <span class="ab-golink__cta">Dettagli' + icon('chev') + '</span></a>';
-}
 let MEDIA = { timers: {}, frames: {} };
 function viewGiorni() {
   const n = S.noaa;
@@ -753,6 +811,7 @@ function bindUI() {
     if (t.closest('#alertBtn')) { openSheet('sheetAlerts'); return; }
     if (t.closest('[data-close]')) { t.closest('dialog').close(); return; }
     if (t.closest('#refreshBtn')) { refreshNow(true); return; }
+    const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); window.scrollTo(0, 0); return; }
     const hrs = t.closest('[data-hours]'); if (hrs) { S.chart.hours = Number(hrs.dataset.hours); saveChart(); renderView('adesso'); return; }
     const cm = t.closest('[data-comp]'); if (cm) { S.chart.comps[cm.dataset.comp] = !S.chart.comps[cm.dataset.comp]; saveChart(); renderView('adesso'); return; }
     const sa = t.closest('[data-sat]'); if (sa) { S.chart.hiddenSats[sa.dataset.sat] = !S.chart.hiddenSats[sa.dataset.sat]; saveChart(); renderView('adesso'); return; }

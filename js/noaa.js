@@ -200,12 +200,13 @@ async function loadNoaa() {
 // se c'è una tempesta confermata da NOAA anche se l'utente non ha mai aperto Giorni in questa sessione.
 async function loadAlertsOnly() {
   const d0 = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10), d1 = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-  const [alerts, cme, flr] = await Promise.all([
+  const [alerts, cme, flr, fcTxt] = await Promise.all([
     getJSON(SWPC + '/products/alerts.json', 'NOAA — allerte ufficiali (Adesso)'),
     getJSON(DONKI + 'CME?startDate=' + d0 + '&endDate=' + d1, 'NASA DONKI — CME (Adesso)'),
     getJSON(DONKI + 'FLR?startDate=' + d0 + '&endDate=' + d1, 'NASA DONKI — brillamenti (Adesso)'),
+    getTEXT(SWPC + '/text/3-day-forecast.txt', 'NOAA — previsione a 3 giorni (Adesso)'),
   ]);
-  S.noaaAlerts = { list: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo) : null, donki: Array.isArray(cme) ? { cme, flr: Array.isArray(flr) ? flr : [] } : null, loadedAt: Date.now() };
+  S.noaaAlerts = { list: Array.isArray(alerts) ? alerts.map(parseAlert).filter((a) => a.geo) : null, donki: Array.isArray(cme) ? { cme, flr: Array.isArray(flr) ? flr : [] } : null, fc: parseForecast(fcTxt), loadedAt: Date.now() };
 }
 
 // sintesi: una frase che parafrasa la motivazione del bollettino («No G1 … storms are expected»)
@@ -220,7 +221,7 @@ function noaaSummary() {
 // Le prossime notti nel luogo scelto (dal tramonto all'alba successiva): il Kp più alto previsto nella notte e la luna.
 // Il Kp è una media planetaria a 3 ore: qui è solo il «clima» di ogni notte, non dice cosa si vedrà nel luogo.
 function nightsOutlook() {
-  const f = S.noaa && S.noaa.fc; if (!f || !f.days.length || !window.SunCalc) return null;
+  const f = (S.noaa && S.noaa.fc) || (S.noaaAlerts && S.noaaAlerts.fc); if (!f || !f.days.length || !window.SunCalc) return null;
   const cells = [];
   f.days.forEach((d) => d.kp.forEach((k, i) => cells.push({ a: d.ms + i * 3 * 3600e3, b: d.ms + (i + 1) * 3 * 3600e3, k })));
   const covA = cells[0].a, covB = cells[cells.length - 1].b, now = Date.now(), DAY = 86400000, out = [];
