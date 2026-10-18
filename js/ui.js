@@ -589,13 +589,16 @@ function viewGiorni() {
   // «in corso» solo con un ALERT del periodo attuale; un WARNING in vigore è un'attesa, e lo si dice così
   const GN = noaaGeoNow((S.noaaAlerts && S.noaaAlerts.list) || n.alerts), R5 = GN.reached && GN.reached.kp >= 5 ? GN.reached : null, E5 = GN.expected && GN.expected.kp >= 5 ? GN.expected : null;
   const up = R5 && E5 && E5.kp > R5.kp ? E5 : null;
+  // senza tempesta in corso né attesa nelle prossime ore, un WATCH per i prossimi giorni va detto: «né attesa» lo smentirebbe
+  const wa = activeWatch((S.noaaAlerts && S.noaaAlerts.list) || n.alerts), wd = wa ? wa.days : [];
+  const watchNote = wd.length ? 'Adesso nessuna tempesta: la soglia G1 non è raggiunta e non c’è un avviso per le prossime ore. NOAA però ne prevede una (avviso WATCH): ' + wd.map((d) => 'G' + d.g + ' ' + watchDay(d.ms)).join(', ') + '. Il dettaglio ora per ora è nel riquadro qui sotto.' : '';
   const nowCard = situationMarkup({
     id: 'now', level: R5 ? Math.max(1, Math.min(3, R5.kp - 4)) : 0, meter: false,
     eyebrow: 'NOAA · adesso', tag: tag('measured', TAGS.measured),
     title: R5 ? 'Tempesta geomagnetica G' + (R5.kp - 4) + ' in corso · ' + G_WORDS[R5.kp - 4] : E5 ? 'Nessuna tempesta in corso, una è attesa' : 'Nessuna tempesta in corso',
     why: R5 ? 'NOAA ha confermato la soglia Kp ' + R5.kp + ' alle ' + fmtClock(R5.ms) + (R5.periodEnd > Date.now() ? ' (vale per il periodo di 3 ore fino alle ' : ' (riferita al periodo di 3 ore appena chiuso, alle ') + fmtClock(R5.periodEnd) + ').' + (up ? ' Prevede che possa salire a G' + (up.kp - 4) + ', avviso fino alle ' + fmtClock(up.until) + '.' : '')
       : E5 ? 'NOAA prevede una tempesta G' + (E5.kp - 4) + ' (' + G_WORDS[E5.kp - 4] + ') con un avviso valido fino alle ' + fmtClock(E5.until) + ': la soglia non è ancora stata raggiunta.'
-      : 'NOAA non segnala in questo momento nessuna tempesta geomagnetica (G1 o superiore), né raggiunta né attesa: il campo può comunque muoversi nelle prossime ore, guarda Adesso e Fronti.',
+      : watchNote || 'NOAA non segnala in questo momento nessuna tempesta geomagnetica (G1 o superiore), né raggiunta né attesa: il campo può comunque muoversi nelle prossime ore, guarda Adesso e Fronti.',
     caveat: 'Dato ufficiale NOAA: «in corso» quando la soglia è stata raggiunta, «attesa» quando NOAA la prevede.',
   }).replace('<h1 ', '<h2 ').replace('</h1>', '</h2>');
   // scale

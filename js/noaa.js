@@ -31,9 +31,14 @@ function parseForecast(txt) {
   const exp = /greatest expected 3 hr Kp for (.+?) is ([\d.]+)/.exec(txt.replace(/\s+/g, ' '));
   const obs = /greatest observed 3 hr Kp over the past 24 hours was ([\d.]+)/.exec(txt.replace(/\s+/g, ' '));
   const rat = /A\. NOAA Geomagnetic[\s\S]*?Rationale:\s*([\s\S]*?)(?:\n\s*\n|\nB\. )/.exec(txt);
+  // il massimo si prende dalla tabella ora per ora: la frase «greatest expected … for Oct 17-Oct 19» a volte copre
+  // giorni diversi da quelli della tabella (18 ott 2026: frase 2,67 fino al 19, tabella Kp 5 il 20) e farebbe dire «nessuna tempesta»
+  const full = days.filter((d) => d.kp.length === 8);
+  let peak = null;
+  full.forEach((d) => d.kp.forEach((k, i) => { if (!peak || k > peak.kp) peak = { kp: k, a: d.ms + i * 3 * 3600e3, b: d.ms + (i + 1) * 3 * 3600e3 }; }));
   return {
-    issued, days: days.filter((d) => d.kp.length === 8),
-    maxExpected: exp ? parseFloat(exp[2]) : Math.max(0, ...days.flatMap((d) => d.kp)),
+    issued, days: full, peak,
+    maxExpected: peak ? peak.kp : exp ? parseFloat(exp[2]) : 0,
     maxObserved: obs ? parseFloat(obs[1]) : null,
     rationale: rat ? rat[1].replace(/\s+/g, ' ').trim() : '',
   };
@@ -215,7 +220,10 @@ function noaaSummary() {
   const g = gOfKp(f.maxExpected), last = f.days[f.days.length - 1];
   const until = fmtDay(last.ms, 'UTC');
   if (g === 0) return { level: 0, title: 'Nessuna tempesta prevista', why: 'NOAA non prevede tempeste geomagnetiche di livello G1 o superiore fino a ' + until + '. Kp massimo atteso: ' + itNum(f.maxExpected, 2) + '.', g };
-  return { level: g === 1 ? 1 : g === 2 ? 2 : 3, title: 'Tempesta G' + g + ' prevista', why: 'Nel bollettino NOAA il Kp massimo atteso fino a ' + until + ' è ' + itNum(f.maxExpected, 2) + ', livello G' + g + '.', g };
+  const p = f.peak, when = p ? ' · ' + fmtDay(p.a) : '';
+  return { level: g === 1 ? 1 : g === 2 ? 2 : 3, title: 'Tempesta G' + g + ' prevista' + when,
+    why: p ? 'Nel bollettino NOAA il Kp più alto è ' + itNum(p.kp, p.kp % 1 ? 2 : 0) + ' (G' + g + ', ' + G_WORDS[g] + ') ' + fmtDay(p.a) + ' tra le ' + fmtClock(p.a) + ' e le ' + fmtClock(p.b) + ' (ora del luogo scelto). Nelle altre ore il Kp previsto è più basso: la tabella completa è più sotto.'
+      : 'Nel bollettino NOAA il Kp massimo atteso fino a ' + until + ' è ' + itNum(f.maxExpected, 2) + ', livello G' + g + '.', g };
 }
 
 // Le prossime notti nel luogo scelto (dal tramonto all'alba successiva): il Kp più alto previsto nella notte e la luna.
