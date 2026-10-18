@@ -48,10 +48,6 @@ function niceStep(range) {
   return [1, 2, 5, 10].find((v) => v * step >= range / 5) * step;
 }
 const tickText = (v) => String(Math.round(v * 10) / 10).replace('.', ',').replace('-', '−');
-// etichetta dell'asse verticale: fuori a sinistra, o dentro il grafico (appena sopra la sua riga) quando è stretto come sul telefono
-const yTick = (inside, L, y, txt) => inside
-  ? (y < 32 ? '' : '<text class="tick in" x="' + (L + 2) + '" y="' + (y - 4).toFixed(1) + '">' + txt + '</text>')
-  : '<text class="tick" x="' + (L - 6) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end">' + txt + '</text>';
 
 // ---------- scheda ----------
 function fieldCard() {
@@ -89,7 +85,7 @@ function drawBzMini() {
   const now = Date.now(), xmin = now - 2 * 3600e3, ref = selectedSource();
   const pts = seriesFor(S.magRaw, ref, 'bz_gsm', xmin - 60000).filter((p) => p.t >= xmin);
   if (pts.length < 2) { el.innerHTML = empty('In attesa dei dati delle sonde…'); return; }
-  const W = Math.max(280, Math.round(el.clientWidth)), inside = W < 420, H = inside ? 170 : 200, L = inside ? 6 : 34, R = W - 6, T = 22, B = H - 24;
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 170 : 200, L = 34, R = W - 6, T = 22, B = H - 24;
   let lo = Math.min(0, ...pts.map((p) => p.v)), hi = Math.max(0, ...pts.map((p) => p.v));
   const span = Math.max(hi - lo, 6); lo = Math.min(lo, -span * 0.25); hi = Math.max(hi, span * 0.25);
   const xmax = Math.max(now, pts[pts.length - 1].t);
@@ -106,7 +102,7 @@ function drawBzMini() {
     '<path class="northfill" clip-path="url(#bmn)" d="' + a + '"/><path class="south" clip-path="url(#bms)" d="' + a + '"/>';
   // solo tre etichette sull'asse: il massimo, lo zero, il minimo
   const yt = [hi, 0, lo].map((v) => Math.round(v)).filter((v, i, s) => s.indexOf(v) === i && Math.abs(Y(v) - z) > 14 || v === 0);
-  let grid = yt.map((v) => yTick(inside, L, Y(v), tickText(v))).join('');
+  let grid = yt.map((v) => '<text class="tick" x="' + (L - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + tickText(v) + '</text>').join('');
   for (let t = Math.ceil(xmin / 1800e3) * 1800e3; t <= xmax; t += 1800e3) { const x = X(t); if (x > L + 20 && x < R - 20) grid += '<text class="tick" x="' + x.toFixed(1) + '" y="' + (B + 18) + '" text-anchor="middle">' + fmtClock(t) + '</text>'; }
   let earth = '';
   const c = l1Now(), lag = c && c.v ? lagMin(c.v) : null, xe = lag != null ? now - lag * 60000 : null;
@@ -118,8 +114,8 @@ function drawBzMini() {
       (R - ex >= 70 ? '<text class="tag" x="' + (ex + 6).toFixed(1) + '" y="' + (T - 8) + '">in arrivo</text>' : '');
   }
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bz a L1, ultime 2 ore: sotto lo zero aiuta l’aurora">' +
-    earth + fill + '<line class="zero" x1="' + L + '" x2="' + R + '" y1="' + z.toFixed(1) + '" y2="' + z.toFixed(1) + '"/>' +
-    '<path class="line" d="' + line + '" style="stroke:var(--ink);stroke-width:2"/>' + grid + '</svg>';
+    earth + fill + '<line class="zero" x1="' + L + '" x2="' + R + '" y1="' + z.toFixed(1) + '" y2="' + z.toFixed(1) + '"/>' + grid +
+    '<path class="line" d="' + line + '" style="stroke:var(--ink);stroke-width:2"/></svg>';
 }
 
 // ---------- disegno ----------
@@ -129,7 +125,7 @@ function drawField() {
   const hint = 'Tocca o passa sul grafico per leggere i valori.';
   if (!d.sats.length) { el.innerHTML = empty('In attesa dei dati delle sonde…'); out.textContent = ''; return; }
   if (!d.series.length) { el.innerHTML = empty(Object.values(c.comps).some(Boolean) && d.sats.some((s) => !c.hiddenSats[s]) ? 'Nessun dato in questo intervallo.' : 'Attiva almeno una sonda e una componente.'); out.textContent = ''; return; }
-  const W = Math.max(280, Math.round(el.clientWidth)), inside = W < 420, H = inside ? 310 : W < 700 ? 350 : 420, L = inside ? 6 : 44, R = W - (inside ? 6 : 8), T = 22, B = H - 30;
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 310 : W < 700 ? 350 : 420, L = 44, R = W - 8, T = 22, B = H - 30;
   let lo = 0, hi = 0;
   d.series.forEach((s) => s.pts.forEach((p) => { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }));
   const span = Math.max(hi - lo, 2); lo -= span * 0.08; hi += span * 0.08;
@@ -137,8 +133,8 @@ function drawField() {
   const X = (t) => L + (t - d.xmin) / (d.xmax - d.xmin) * (R - L), Y = (v) => B - (v - ylo) / (yhi - ylo) * (B - T), z = Y(0);
   const sel = pickEvent(d.now);
   // griglia
-  let grid = '', ylab = '';
-  for (let v = ylo; v <= yhi + stp * 0.01; v += stp) { const vv = Math.round(v * 1e6) / 1e6; grid += '<line class="' + (Math.abs(vv) < 1e-9 ? 'zero' : 'grid') + '" x1="' + L + '" x2="' + R + '" y1="' + Y(vv).toFixed(1) + '" y2="' + Y(vv).toFixed(1) + '"/>' + (inside ? '' : yTick(false, L, Y(vv), tickText(vv))); if (inside) ylab += yTick(true, L, Y(vv), tickText(vv)); }
+  let grid = '';
+  for (let v = ylo; v <= yhi + stp * 0.01; v += stp) { const vv = Math.round(v * 1e6) / 1e6; grid += '<line class="' + (Math.abs(vv) < 1e-9 ? 'zero' : 'grid') + '" x1="' + L + '" x2="' + R + '" y1="' + Y(vv).toFixed(1) + '" y2="' + Y(vv).toFixed(1) + '"/><text class="tick" x="' + (L - 6) + '" y="' + (Y(vv) + 4).toFixed(1) + '" text-anchor="end">' + tickText(vv) + '</text>'; }
   const tstep = [10, 15, 30, 60, 120, 240, 360, 720].map((m) => m * 60000).find((s) => (d.xmax - d.xmin) / s <= (W < 340 ? 5 : 7)) || 720 * 60000;
   for (let t = Math.ceil(d.xmin / tstep) * tstep; t <= d.xmax; t += tstep) { const x = X(t); if (x > L + 16 && x < R - 16) grid += '<line class="grid" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + T + '" y2="' + B + '"/><text class="tick" x="' + x.toFixed(1) + '" y="' + (B + 20) + '" text-anchor="middle">' + fmtClock(t) + '</text>'; }
   // fasce degli episodi
@@ -181,9 +177,9 @@ function drawField() {
       '<text class="tag" x="' + (left ? (ex - 13).toFixed(1) : (ex + 13).toFixed(1)) + '" y="' + (gy + 4) + '" text-anchor="' + (left ? 'end' : 'start') + '">now</text>' +
       (R - ex >= (left ? 74 : 110) ? '<text class="tag" x="' + (ex + 13).toFixed(1) + '" y="' + (gy + (left ? 4 : 20)) + '">in viaggio</text>' : '');
   }
-  if (c.comps.bz_gsm && z > T + 14 && z < B - 4) marks += '<text class="tag zlabel" x="' + (L + (inside ? 30 : 8)) + '" y="' + (z - 7).toFixed(1) + '">' + (W < 520 ? 'Sotto lo zero: Bz a sud (favorevole)' : '0 nT — sotto questa linea Bz punta a sud (favorevole)') + '</text>';
+  if (c.comps.bz_gsm && z > T + 14 && z < B - 4) marks += '<text class="tag zlabel" x="' + (L + 8) + '" y="' + (z - 7).toFixed(1) + '">' + (W < 520 ? 'Sotto lo zero: Bz a sud (favorevole)' : '0 nT — sotto questa linea Bz punta a sud (favorevole)') + '</text>';
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Campo magnetico interplanetario a L1: ' + esc(d.series.map((s) => s.comp.label + ' ' + s.src).filter((v, i, a) => a.indexOf(v) === i).join(', ')) + ', ultime ' + c.hours + ' ore, orario di misura a L1">' +
-    travel + bands + grid + fill + lines + marks + ylab + '<text class="tick" x="4" y="12">nT</text><line class="ab-cursor" id="fieldCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
+    travel + bands + grid + fill + lines + marks + '<text class="tick" x="4" y="12">nT</text><line class="ab-cursor" id="fieldCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
   out.innerHTML = '<span class="t-caption" style="color:var(--ink-3)">' + hint + '</span>';
   // valori al passaggio del dito
   const svg = el.firstChild, cur = $('fieldCursor');

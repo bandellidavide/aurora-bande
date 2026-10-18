@@ -233,8 +233,7 @@ h1,h2,h3,p{margin:0}
 .ab-dash{width:30px;height:10px;flex:none}
 .ab-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
 .ab-ro{display:grid;gap:4px;margin-top:var(--space-2);min-height:72px;align-content:start;font:400 14px/20px var(--font-sans);color:var(--ink-2)}
-@media (max-width:767px){.ab-ro{min-height:0}.ab-card .ab-chart{margin-left:calc(-1 * var(--space-3));margin-right:calc(-1 * var(--space-3))}}
-.ab-chart .tick.in{paint-order:stroke;stroke:var(--surface-1);stroke-width:3px;stroke-linejoin:round} /* numeri dell'asse dentro il grafico, leggibili sopra le curve */ /* su telefono niente spazio vuoto riservato sotto i grafici: le righe compaiono solo quando tocchi */
+@media (max-width:767px){.ab-ro{min-height:0}} /* su telefono niente spazio vuoto riservato sotto i grafici: le righe compaiono solo quando tocchi */
 .ab-ro>div{display:flex;flex-wrap:wrap;align-items:center;gap:2px var(--space-3)}
 .ab-ro em{font-style:normal;font-weight:600;color:var(--ink);min-width:20px}
 .ab-ro>div b,.ab-ro>div span{font:400 14px/20px var(--font-mono);font-variant-numeric:tabular-nums}

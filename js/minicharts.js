@@ -238,14 +238,14 @@ function drawWind() {
   const series = chartSats().filter((s) => !c.hiddenSats[s]).map((s, i) => ({ src: s, isRef: s === ref, dash: s === ref ? '' : satDash(s, i),
     pts: seriesFor(S.windRaw, s, 'proton_speed', xmin - 60000).filter((p) => p.t >= xmin).map((p) => ({ x: p.t, v: p.v })) })).filter((s) => s.pts.length);
   if (!series.length) { el.innerHTML = empty('Nessun dato di velocità in questo intervallo.'); out.textContent = ''; return; }
-  const W = Math.max(280, Math.round(el.clientWidth)), inside = W < 420, H = inside ? 180 : 260, L = inside ? 6 : 48, R = W - (inside ? 6 : 8), T = 22, B = H - 30;
+  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 180 : 260, L = 48, R = W - 8, T = 22, B = H - 30;
   let lo = Infinity, hi = -Infinity;
   series.forEach((s) => s.pts.forEach((p) => { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }));
   const pad = Math.max((hi - lo) * 0.12, 15); lo = Math.max(0, lo - pad); hi += pad;
   const stp = niceStep(hi - lo), ylo = Math.floor(lo / stp) * stp, yhi = Math.ceil(hi / stp) * stp;
   const X = (t) => L + (t - xmin) / (now - xmin) * (R - L), Y = (v) => B - (v - ylo) / (yhi - ylo) * (B - T);
-  const g = []; let ylab = '';
-  for (let v = ylo; v <= yhi + stp * 0.01; v += stp) { const vv = Math.round(v * 1e6) / 1e6; g.push('<line class="grid" x1="' + L + '" x2="' + R + '" y1="' + Y(vv).toFixed(1) + '" y2="' + Y(vv).toFixed(1) + '"/>' + (inside ? '' : yTick(false, L, Y(vv), Math.round(vv)))); if (inside) ylab += yTick(true, L, Y(vv), Math.round(vv)); }
+  const g = [];
+  for (let v = ylo; v <= yhi + stp * 0.01; v += stp) { const vv = Math.round(v * 1e6) / 1e6; g.push('<line class="grid" x1="' + L + '" x2="' + R + '" y1="' + Y(vv).toFixed(1) + '" y2="' + Y(vv).toFixed(1) + '"/><text class="tick" x="' + (L - 6) + '" y="' + (Y(vv) + 4).toFixed(1) + '" text-anchor="end">' + Math.round(vv) + '</text>'); }
   timeTicks(xmin, now, X, L, R, B, W, g);
   let marks = '';
   [[400, 'lento sotto'], [600, 'veloce sopra']].forEach(([v, lab]) => {
@@ -268,7 +268,7 @@ function drawWind() {
       '<path class="line" d="' + p + '" style="stroke:var(--level-1);stroke-width:' + (s.isRef ? 1.5 : 0.9) + ';opacity:' + (s.isRef ? 1 : 0.75) + '"' + (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/>';
   }).join('');
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Velocità del vento solare a L1, ultime ' + c.hours + ' ore">' +
-    travel + g.join('') + lines + marks + ylab + '<text class="tick" x="4" y="12">km/s</text><line class="ab-cursor" id="windCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
+    travel + g.join('') + lines + marks + '<text class="tick" x="4" y="12">km/s</text><line class="ab-cursor" id="windCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
   const hint = '<span class="t-caption" style="color:var(--ink-3)">Tocca o passa sul grafico per leggere i valori.</span>';
   out.innerHTML = hint;
   const near = (pts, t) => { let best = null, bd = 3 * 60000; for (const p of pts) { const dd = Math.abs(p.x - t); if (dd < bd) { bd = dd; best = p; } } return best; };
