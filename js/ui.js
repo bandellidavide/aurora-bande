@@ -126,8 +126,7 @@ function sunHero(F) {
     : idx === 0 ? (st.kp >= 4 ? 'Il campo è un po’ agitato, ma sotto la soglia di tempesta.' : 'Nessuna tempesta in corso. Il Sole non sta mandando niente di forte.')
       : 'Tempesta geomagnetica G' + st.g + ' in corso. ' + st.src + '.';
   const meta = (noData ? '' : 'Kp ' + st.kp) + (c.age != null ? (noData ? '' : ' · ') + 'dato di ' + (c.age < 2 ? 'adesso' : fmtDur(c.age) + ' fa') : '');
-  return '<section class="ab-sun ab-span" aria-labelledby="sunNow"><div class="ab-sun__head"><p class="t-label">Il Sole adesso</p><span class="t-caption">' + esc(meta) + '</span></div>' +
-    '<h1 id="sunNow" class="ab-sun__word">' + esc(word) + '</h1>' +
+  return '<section class="ab-sun ab-span" aria-labelledby="sunNow"><div class="ab-sun__head"><h1 id="sunNow" class="t-label">Il Sole adesso</h1><span class="t-caption">' + esc(meta) + '</span></div>' +
     '<div class="ab-sun__scale" role="img" aria-label="Scala dell’attività del Sole: calmo, minore, moderata, forte. Adesso: ' + esc(word.toLowerCase()) + '">' +
     '<div class="ab-sun__bar">' + SUN_STEPS.map((n, i) => '<i data-l="' + i + '"' + (i === idx && !noData ? ' class="on"' : '') + '></i>').join('') + '</div>' +
     '<ol class="ab-sun__lbl" aria-hidden="true">' + SUN_STEPS.map((n, i) => '<li' + (i === idx && !noData ? ' class="on"' : '') + '>' + n + '</li>').join('') + '</ol></div>' +
