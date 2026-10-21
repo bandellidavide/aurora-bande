@@ -14,28 +14,28 @@ const CREDITS = [
   {
     name: 'FMI · rete di magnetometri IMAGE',
     uses: 'Variazione del campo magnetico a terra (scheda Adesso e Fronti). Dati in tempo reale, provvisori, letti dai file pubblici di FMI tramite un piccolo servizio di Aurora Bande (Firebase) che fa da tramite, perché il browser non può leggerli direttamente; medie al minuto, nessuna altra modifica.',
-    license: 'Creative Commons Attribution 4.0 (CC BY 4.0). Il gruppo IMAGE chiede di ringraziare gli istituti che mantengono la rete.',
+    license: 'La licenza dipende dall’istituto che gestisce la stazione: CC BY 4.0 per FMI, IG PAS e SGU; CC BY NC 4.0 (solo uso non commerciale) per TGO/UiT, GFZ, PGI, DTU e Università d’Islanda; per IRF e SGO la licenza non è ancora stabilita. Il gruppo IMAGE chiede di ringraziare gli istituti che mantengono la rete.',
     credit: 'We thank the institutes who maintain the IMAGE Magnetometer Array: Tromsø Geophysical Observatory of UiT the Arctic University of Norway (Norway), Finnish Meteorological Institute (Finland), Institute of Geophysics Polish Academy of Sciences (Poland), GFZ German Research Centre for Geosciences (Germany), Geological Survey of Sweden (Sweden), Swedish Institute of Space Physics (Sweden), Sodankylä Geophysical Observatory of the University of Oulu (Finland), DTU Technical University of Denmark (Denmark), and Science Institute of the University of Iceland (Iceland).',
     link: ['https://space.fmi.fi/image/', 'space.fmi.fi/image'],
   },
   {
     name: 'NASA · CCMC · DONKI',
     uses: 'Analisi delle espulsioni di massa coronale (CME): brillamento collegato, posizione, velocità, simulazione d’arrivo sulla Terra, onde d’urto misurate.',
-    license: 'Analisi fatte a mano da ricercatori NASA e NOAA. NASA avverte che le informazioni in tempo reale di DONKI sono di qualità prototipale e da usare in contesto di ricerca.',
-    credit: 'Dati: NASA Community Coordinated Modeling Center (CCMC), DONKI.',
+    license: 'Analisi fatte a mano da ricercatori NASA e NOAA. NASA avverte che le informazioni in tempo reale di DONKI sono di qualità prototipale e da usare in contesto di ricerca; non concede licenze su copyright o brevetti e non approva questo servizio. Il CCMC chiede di essere ringraziato quando i suoi dati vengono usati.',
+    credit: 'Dati: NASA Community Coordinated Modeling Center (CCMC), DONKI. Si ringrazia il CCMC. Aurora Bande non è approvata dalla NASA.',
     link: ['https://ccmc.gsfc.nasa.gov/tools/DONKI/', 'ccmc.gsfc.nasa.gov/tools/DONKI'],
   },
   {
     name: 'NASA/SDO · Helioviewer',
     uses: 'Foto del Sole all’ora di un brillamento (canale 131 Å), aprendo un punto del grafico dei brillamenti.',
-    license: 'Immagini del satellite SDO della NASA, generate da Helioviewer.org.',
+    license: 'Immagini del satellite SDO della NASA, generate da Helioviewer.org. I contenuti NASA di norma non hanno copyright negli USA; vanno citati senza far credere che la NASA approvi il servizio.',
     credit: 'AIA data courtesy of NASA/SDO and the AIA, EVE, and HMI science teams.',
     link: ['https://helioviewer.org/', 'helioviewer.org'],
   },
   {
     name: 'Open-Meteo',
     uses: 'Nuvole, temperatura, pioggia e vento del luogo (scheda Cielo e Adesso); scenari delle nuvole (ensemble ECMWF, ICON, GFS) per la probabilità di cielo libero; confronto fra sei modelli (ECMWF, DWD ICON, NOAA GFS, MET Norway, Météo-France, UK Met Office); griglia di punti per la mappa «Nuvole attorno a te»; ricerca dei luoghi (dati GeoNames).',
-    license: 'CC BY 4.0. Uso gratuito solo non commerciale: se un giorno l’app avesse pubblicità o abbonamenti serve la licenza commerciale. I dati vengono dai servizi meteorologici nazionali citati. Probabilità, medie, momento migliore, mappa e indicazione del cielo libero più vicino sono calcolati da Aurora Bande.',
+    license: 'CC BY 4.0 per i dati Open-Meteo; i dati del UK Met Office sono invece CC BY-SA 4.0. Uso gratuito solo non commerciale: se un giorno l’app avesse pubblicità o abbonamenti serve la licenza commerciale. I dati vengono dai servizi meteorologici nazionali citati. Probabilità, medie, momento migliore, mappa e indicazione del cielo libero più vicino sono calcolati da Aurora Bande.',
     credit: 'Weather data by Open-Meteo.com (ECMWF, DWD, NOAA, MET Norway, Météo-France, UK Met Office). Place search: GeoNames.',
     link: ['https://open-meteo.com/en/license', 'open-meteo.com/en/license'],
   },
@@ -43,7 +43,7 @@ const CREDITS = [
     name: 'EUMETSAT · Meteosat',
     uses: 'Immagine infrarossa (canale 10,8 µm) del satellite Meteosat attorno al luogo, nella scheda Cielo; coste e confini (Natural Earth) disegnati sopra le mappe, anche nella mappa dell’ovale aurorale.',
     license: 'Dati EUMETSAT «essenziali», liberi e senza restrizioni con licenza CC BY 4.0 (EUMETSAT Data Policy). Le immagini sono chieste al servizio EUMETView e mostrate senza modifiche al contenuto. Natural Earth è di pubblico dominio.',
-    credit: 'Contiene dati EUMETSAT Meteosat ' + new Date().getFullYear() + '. Coste e confini: Natural Earth.',
+    credit: '©EUMETSAT ' + new Date().getFullYear() + ' — contiene dati Meteosat. Coste e confini: Natural Earth.',
     link: ['https://view.eumetsat.int/', 'view.eumetsat.int'],
   },
   {
@@ -77,8 +77,8 @@ const CREDITS = [
   {
     name: 'Vegagerðin',
     uses: 'Webcam stradali dell’Islanda (scheda Webcam). L’elenco delle camere è una copia del loro catalogo aperto (aggiornata a mano); le immagini arrivano in diretta dai loro server.',
-    license: 'Dati aperti pubblicati dall’amministrazione stradale islandese, senza condizioni d’uso indicate.',
-    credit: 'Myndir: Vegagerðin (umferdin.is).',
+    license: 'Creative Commons Attribution 4.0 (CC BY 4.0), secondo le condizioni d’uso dei servizi dati dell’amministrazione stradale islandese (IRCA). Va indicato l’ente, il tipo di dato e quando è stato ottenuto, senza far credere che IRCA approvi il servizio. Le immagini sono automatiche e non verificate: le chiusure ufficiali delle strade hanno sempre la precedenza.',
+    credit: 'Myndir / Images: Icelandic Road and Coastal Administration (Vegagerðin), road cameras from umferdin.is, ottenute in diretta a ogni apertura della scheda Webcam. Licenza CC BY 4.0.',
     link: ['https://umferdin.is/', 'umferdin.is'],
   },
   {

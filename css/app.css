@@ -315,7 +315,8 @@ a{color:var(--ink-2)}
 .ab-facts dd small{color:var(--ink-3);font:400 12px/16px var(--font-sans)}
 .ab-notice{padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--surface-2);color:var(--ink-2);font:400 14px/20px var(--font-sans)}
 /* prima pagina: Semplice | Esperto */
-.ab-modesel{display:grid;grid-template-columns:1fr 1fr;width:100%}
+.ab-modebar{display:flex;gap:var(--space-2);align-items:stretch}
+.ab-modesel{display:grid;grid-template-columns:1fr 1fr;flex:1;min-width:0}
 .ab-modesel button{min-height:40px;font-weight:600}
 /* righe NOAA / NASA: una per cosa, solo se c'è */
 .ab-nlines{display:flex;flex-direction:column;gap:var(--space-2)}
@@ -595,7 +596,15 @@ a{color:var(--ink-2)}
 .ab-cme__steps li[data-state="unk"] .ab-check__mark{background:transparent;border:1.5px solid var(--ink-3);color:var(--ink-3)}
 .ab-cme__steps b{display:block;color:var(--ink-3);font:600 12px/16px var(--font-sans);text-transform:uppercase;letter-spacing:.06em}
 .ab-cme__steps li>div>span{display:block;color:var(--ink);font:400 14px/20px var(--font-sans);overflow-wrap:anywhere}
-.ab-flegend [data-c="cme"]::before{width:14px;height:14px;background:none;border:1.6px solid var(--ink)}
+.ab-flegend [data-c="cme"]::before{width:10px;height:10px;border-radius:2px;background:var(--focus);transform:rotate(45deg);margin:0 2px}
+.ab-flegend [data-c="cmerow"]::before{width:10px;height:10px;border-radius:2px;background:none;border:1.6px solid var(--focus);transform:rotate(45deg);margin:0 2px}
+.ab-flareverdict .ab-card__head{margin-bottom:var(--space-2)}
+.ab-datasec{display:grid;gap:var(--space-3);scroll-margin-top:var(--space-4)}
+.ab-datasec__head h2{margin:0}
+.ab-datasec__head p{color:var(--ink-3);margin:0}
+.ab-secnav{display:flex;gap:var(--space-2);overflow-x:auto;margin:0 calc(var(--space-4) * -1);padding:0 var(--space-4);scrollbar-width:none}
+.ab-secnav::-webkit-scrollbar{display:none}
+.ab-secnav a{flex:none;display:inline-flex;align-items:center;min-height:var(--tap-min);padding:0 var(--space-4);border:1px solid var(--line);border-radius:var(--radius-pill);color:var(--ink);font:500 14px/20px var(--font-sans);text-decoration:none}
 .ab-flescale{margin:var(--space-2) 0 0;color:var(--ink-2)}
 
 /* Giorni: dettaglio del brillamento scelto */
@@ -625,7 +634,7 @@ a{color:var(--ink-2)}
   .ab-page[data-cols="two"] .ab-situation{order:-2}
   .ab-page[data-cols="two"] .ab-geohint{order:-3}
   .ab-page[data-cols="two"]>.ab-nlines{order:-4}
-  .ab-page[data-cols="two"]>.ab-modesel{order:-5}
+  .ab-page[data-cols="two"]>.ab-modebar{order:-5}
 }
 
 /* cinque sezioni nella barra in basso */
@@ -732,3 +741,17 @@ a{color:var(--ink-2)}
 .ab-probes b{font:600 15px/20px var(--font-sans)}
 .ab-probes small{color:var(--ink-3);font:400 12px/16px var(--font-sans)}
 .ab-probes span{margin-left:auto;color:var(--ink-2);font:400 14px/20px var(--font-sans)}
+
+/* Semplice: le spiegazioni non stanno sempre a schermo, si leggono con la Guida (js/guida.js) */
+/* solo nella pagina Semplice; Esperto e le altre pagine mostrano le spiegazioni come prima */
+.ab-simple .ab-hint{display:none}
+.ab-guidebtn{display:inline-flex;align-items:center;gap:var(--space-2);min-height:40px;padding:0 var(--space-3);border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface-1);color:var(--ink);font:600 14px/20px var(--font-sans);cursor:pointer}
+.ab-guidebtn .ab-icon{width:18px;height:18px}
+.ab-tour{position:fixed;inset:0;z-index:60}
+.ab-tour__hole{position:fixed;border-radius:var(--radius-md);box-shadow:0 0 0 9999px rgba(3,8,20,.78);outline:2px solid var(--focus);outline-offset:2px;pointer-events:none}
+.ab-tour__bubble{position:fixed;left:var(--space-3);right:var(--space-3);bottom:calc(var(--space-3) + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;padding:var(--space-4);border-radius:var(--radius-md);background:var(--surface-2);border:1px solid var(--line-strong);color:var(--ink);display:grid;gap:var(--space-2)}
+.ab-tour__step{color:var(--ink-3);font:500 13px/18px var(--font-sans)}
+.ab-tour__bubble h2{margin:0}
+.ab-tour__bubble p{margin:0;color:var(--ink-2)}
+.ab-tour__row{display:flex;gap:var(--space-2);justify-content:space-between;align-items:center;margin-top:var(--space-2)}
+.ab-tour__row .ab-btn{min-height:var(--tap-min);padding:0 var(--space-4);font-size:15px}

@@ -29,7 +29,7 @@ async function refreshNow(manual) {
   // scenari e modelli delle nuvole cambiano con le corse dei modelli (ogni 3-6 ore): 30 minuti bastano. Il satellite ha un'immagine ogni 15 minuti.
   if (manual || now - last.clouds > 30 * 60000) { last.clouds = now; jobs.push(loadClouds().then(renderSoon)); }
   if (manual || now - last.sat > 10 * 60000) { last.sat = now; jobs.push(loadSatTime().then(renderSoon)); }
-  if (manual || (S.view === 'giorni' && now - last.noaa > 15 * 60000)) { last.noaa = now; jobs.push(loadNoaa().then(renderSoon)); }
+  if (manual || (needsNoaa(S.view) && now - last.noaa > 15 * 60000)) { last.noaa = now; jobs.push(loadNoaa().then(renderSoon)); }
   // allerte NOAA: indipendenti dalla tab, servono al banner di Adesso. Cadenza propria, più stretta di loadNoaa.
   if (manual || now - last.alerts > 5 * 60000) { last.alerts = now; jobs.push(loadAlertsOnly().then(renderSoon)); }
   try { await Promise.allSettled(jobs); } finally { busy = false; $('refreshBtn').disabled = false; }
@@ -49,13 +49,14 @@ function boot() {
   loadSavedPlace();
   bindUI();
   const h = location.hash.replace('#', '');
+  if (h === 'dati') store.set('aurora_home', 'esperto');
   S.view = VIEWS.some((v) => v.id === h) ? h : 'adesso';
   renderAll();
   diagSet('Libreria sole/luna (SunCalc)', window.SunCalc ? 'ok' : 'wait', window.SunCalc ? 'ok' : 'in caricamento');
-  last = { slow: Date.now(), weather: Date.now(), clouds: Date.now(), sat: Date.now(), noaa: S.view === 'giorni' ? Date.now() : 0, alerts: Date.now() };
+  last = { slow: Date.now(), weather: Date.now(), clouds: Date.now(), sat: Date.now(), noaa: needsNoaa(S.view) ? Date.now() : 0, alerts: Date.now() };
   Promise.allSettled([
     loadL1().then(renderSoon), loadWeather().then(renderSoon), loadClouds().then(renderSoon), loadSatTime().then(renderSoon), loadOvation().then(renderSoon), loadHemi().then(renderSoon),
-    loadGround().then(renderSoon), loadWebcams().then(renderSoon), (S.view === 'giorni' ? loadNoaa().then(renderSoon) : Promise.resolve()),
+    loadGround().then(renderSoon), loadWebcams().then(renderSoon), (needsNoaa(S.view) ? loadNoaa().then(renderSoon) : Promise.resolve()),
     loadAlertsOnly().then(renderSoon),
   ]).then(renderSoon);
   if (!S.label && S.fromDevice) reverseGeocode();

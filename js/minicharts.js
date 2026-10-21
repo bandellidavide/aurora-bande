@@ -135,8 +135,12 @@ function drawFront(sel) {
 function drawFlares() {
   const el = $('flareChart'); if (!el) return;
   const evs = flareEvents(S.noaa && S.noaa.flares), now = Date.now(), xmin = now - 7 * 86400000;
-  const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 230 : 270, L = 44, R = W - 6, T = 10, B = H - 28;
+  // sotto il grafico, se NASA risponde, una riga con le CME (rombo: nube lanciata; pieno: onda d'urto già misurata a L1)
+  const dn = S.noaa && S.noaa.donki, cmes = dn && Array.isArray(dn.cme) ? dn.cme.map((c) => ({ t: Date.parse(c.startTime), shock: (c.linkedEvents || []).some((x) => /-IPS-/.test(x.activityID)),
+    speed: ((c.cmeAnalyses || []).find((a) => a.isMostAccurate) || (c.cmeAnalyses || [])[0] || {}).speed })).filter((c) => c.t >= Date.now() - 7 * 86400000 && c.t <= Date.now()) : null;
+  const W = Math.max(280, Math.round(el.clientWidth)), H0 = W < 420 ? 230 : 270, H = H0 + (cmes ? 34 : 0), L = 44, R = W - 6, T = 10, B = H0 - 28;
   const LO = -8, HI = -3;
+  const dia = (x, y, r) => 'M' + x.toFixed(1) + ',' + (y - r).toFixed(1) + 'L' + (x + r).toFixed(1) + ',' + y.toFixed(1) + 'L' + x.toFixed(1) + ',' + (y + r).toFixed(1) + 'L' + (x - r).toFixed(1) + ',' + y.toFixed(1) + 'Z';
   const Y = (f) => B - (Math.max(LO, Math.min(HI, Math.log10(f))) - LO) / (HI - LO) * (B - T), X = (t) => L + (t - xmin) / (now - xmin) * (R - L);
   let g = '';
   [['A', -8, 'debole'], ['B', -7, 'debole'], ['C', -6, 'piccolo'], ['M', -5, 'medio'], ['X', -4, 'forte']].forEach(([l, e10, word]) => {
@@ -164,8 +168,10 @@ function drawFlares() {
     const x = X(e.t), y = Y(e.flux), big = e.L === 'M' || e.L === 'X';
     hits.push({ x, y, e });
     pts += '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + y.toFixed(1) + '" y2="' + B + '" stroke="var(--line-strong)" stroke-width="1"/>';
-    if (withCme.some((p) => Math.abs(p - e.t) <= 20 * 60000)) pts += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + ((e.L === 'X' ? 7.5 : e.L === 'M' ? 6 : e.L === 'C' ? 4 : 2.6) + 4.5) + '" fill="none" stroke="var(--ink)" stroke-width="1.6"/>';
-    if (e.L === 'X') pts += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="7.5" fill="var(--aurora-magenta)" stroke="var(--surface-1)" stroke-width="2"/>';
+    const lk = withCme.some((p) => Math.abs(p - e.t) <= 20 * 60000), rr = e.L === 'X' ? 7.5 : e.L === 'M' ? 6 : e.L === 'C' ? 4.5 : 3.4;
+    // il colore dice una cosa sola: NASA ha trovato una nube dietro quel brillamento (rombo azzurro)
+    if (lk) pts += '<path d="' + dia(x, y, rr + 3) + '" fill="var(--focus)" stroke="var(--surface-1)" stroke-width="2"/>';
+    else if (e.L === 'X') pts += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="7.5" fill="var(--aurora-magenta)" stroke="var(--surface-1)" stroke-width="2"/>';
     else if (e.L === 'M') pts += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="6" fill="var(--ink)" stroke="var(--surface-1)" stroke-width="2"/>';
     else if (e.L === 'C') pts += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4" fill="var(--ink-2)"/>';
     else pts += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="2.6" fill="var(--surface-1)" stroke="var(--ink-3)" stroke-width="1.4"/>';
@@ -174,6 +180,14 @@ function drawFlares() {
     if (e.L === 'X') labs += '<text class="tag zlabel" x="' + Math.max(L + 14, Math.min(R - 14, x)).toFixed(1) + '" y="' + (y - 12).toFixed(1) + '" text-anchor="middle" style="fill:var(--ink)">' + esc(e.cls) + '</text>';
     else if (big) { const left = x > R - 48; labs += '<text class="tag zlabel" x="' + (left ? x - 10 : x + 10).toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="' + (left ? 'end' : 'start') + '" style="fill:var(--ink)">' + esc(e.cls) + '</text>'; }
   });
+  if (cmes) {
+    const cy = B + 44;
+    g += '<line class="grid" x1="' + L + '" x2="' + R + '" y1="' + cy + '" y2="' + cy + '"/><text class="tick" x="' + (L - 8) + '" y="' + (cy + 4) + '" text-anchor="end">CME</text>';
+    cmes.forEach((c) => {
+      const x = X(c.t);
+      g += '<path d="' + dia(x, cy, 6) + '" fill="' + (c.shock ? 'var(--focus)' : 'var(--surface-1)') + '" stroke="var(--focus)" stroke-width="1.8"><title>CME del ' + esc(fmtDayClock(c.t)) + (c.speed ? ' · ' + Math.round(c.speed) + ' km/s' : '') + (c.shock ? ' · onda d’urto misurata' : '') + '</title></path>';
+    });
+  }
   const top = evs.filter((e) => e.t >= xmin).sort((a, b) => b.flux - a.flux)[0];
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Brillamenti solari degli ultimi 7 giorni: ' + evs.filter((e) => e.t >= xmin).length + ' eventi' + (top ? ', il più forte ' + esc(top.cls) : '') + '" style="cursor:pointer">' + g + pts + labs + '</svg>';
   // tocco: seleziona il punto più vicino (raggio 26 px, comodo per il dito)
@@ -216,7 +230,7 @@ function renderFlareDetail() {
   const key = e ? String(e.t) : 'none';
   if (box.dataset.key === key) return;
   box.dataset.key = key;
-  box.innerHTML = e ? flareDetailHTML(e, list) : '<p class="t-body-sm ab-fhint">Tocca un punto del grafico per leggere classe e ora e vedere una foto del Sole in quel momento.</p>';
+  box.innerHTML = e ? flareDetailHTML(e, list) : '<p class="t-body-sm ab-fhint ab-hint">Tocca un punto del grafico per leggere classe e ora e vedere una foto del Sole in quel momento.</p>';
 }
 
 // ============================ velocità del vento solare a L1 ============================
@@ -227,7 +241,7 @@ function windCard() {
   return card('Vento solare a L1',
     '<div class="ab-bigvalue"><span class="t-num-lg">' + (v == null ? '—' : v) + '</span><span class="t-body-sm ab-unit">km/s</span>' + (word ? '<span class="t-body" style="margin-left:var(--space-3)">' + word + '</span>' : '') + '</div>' +
     '<div class="ab-chart" id="windChart" style="margin-top:var(--space-3)"></div><div class="ab-ro" id="windReadout" aria-live="off" style="min-height:24px"></div>' +
-    '<details class="ab-details"><summary>Come leggerlo' + icon('chev') + '</summary><p class="t-caption" style="color:var(--ink-2);margin:0 0 var(--space-2)">Velocità dei protoni misurata dalle sonde a L1. Più è alta, prima arriva sulla Terra (1.500.000 km ÷ velocità). Sonde e intervallo sono quelli scelti nel grafico del campo.</p></details>' +
+    '<details class="ab-details ab-hint"><summary>Come leggerlo' + icon('chev') + '</summary><p class="t-caption" style="color:var(--ink-2);margin:0 0 var(--space-2)">Velocità dei protoni misurata dalle sonde a L1. Più è alta, prima arriva sulla Terra (1.500.000 km ÷ velocità). Sonde e intervallo sono quelli scelti nel grafico del campo.</p></details>' +
     '<p class="t-caption ab-credit">Dati: NOAA SWPC.</p>',
     { right: tag('measured', 'Misurato') });
 }
@@ -269,7 +283,7 @@ function drawWind() {
   }).join('');
   el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Velocità del vento solare a L1, ultime ' + c.hours + ' ore">' +
     travel + g.join('') + lines + marks + '<text class="tick" x="4" y="12">km/s</text><line class="ab-cursor" id="windCursor" y1="' + T + '" y2="' + B + '" x1="-10" x2="-10"/></svg>';
-  const hint = '<span class="t-caption" style="color:var(--ink-3)">Tocca o passa sul grafico per leggere i valori.</span>';
+  const hint = S.view === 'adesso' && homeMode() === 'semplice' ? '' : '<span class="t-caption" style="color:var(--ink-3)">Tocca o passa sul grafico per leggere i valori.</span>';
   out.innerHTML = hint;
   const near = (pts, t) => { let best = null, bd = 3 * 60000; for (const p of pts) { const dd = Math.abs(p.x - t); if (dd < bd) { bd = dd; best = p; } } return best; };
   attachReadout(el.firstChild, $('windCursor'), out, hint, L, R, (x) => {

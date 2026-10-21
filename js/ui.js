@@ -7,6 +7,8 @@ const VIEWS = [
   { id: 'webcam', label: 'Webcam', icon: 'camera' },
   { id: 'giorni', label: 'Giorni', icon: 'calendar' },
   { id: 'cielo', label: 'Cielo', icon: 'cloud' },
+  // pagina fuori dalla barra: ci si arriva da un collegamento (Giorni, Esperto)
+  { id: 'esplosioni', label: 'Esplosioni solari', icon: 'zap', off: true },
 ];
 const CAVEAT = 'Sono ipotesi che mettono insieme più fattori, non una previsione: l’aurora dipende da molti elementi e nessuno basta da solo.';
 const dayShort = (ms) => new Date(ms).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).replace('.', '');
@@ -36,7 +38,7 @@ function extLink(href, text) { return '<a href="' + esc(href) + '" target="_blan
 
 // ============================ stato e navigazione ============================
 function renderNav() {
-  const mk = () => VIEWS.map((v) => '<a class="ab-tab" href="#' + v.id + '"' + (S.view === v.id ? ' aria-current="page"' : '') + '>' + icon(v.icon) + '<span>' + v.label + '</span></a>').join('');
+  const mk = () => VIEWS.filter((v) => !v.off).map((v) => '<a class="ab-tab" href="#' + v.id + '"' + (S.view === v.id ? ' aria-current="page"' : '') + '>' + icon(v.icon) + '<span>' + v.label + '</span></a>').join('');
   $('navTop').innerHTML = mk(); $('navBottom').innerHTML = mk();
 }
 function flashToast(text) {
@@ -90,29 +92,15 @@ function renderStatus() {
 // Prima pagina in due modi: «Semplice» (la risposta in parole, poi stanotte e le prossime notti) ed «Esperto» (tutti i dati).
 // La scelta resta sul telefono. In tutti e due: ciò che non c'è non occupa spazio, NOAA e NASA sono una riga che porta al dettaglio.
 const homeMode = () => (store.get('aurora_home', 'semplice') === 'esperto' ? 'esperto' : 'semplice');
+// pagine che hanno bisogno dei dati NOAA/NASA completi: Giorni, Esplosioni e Adesso in modo Esperto («Tutti i dati»)
+const needsNoaa = (view) => view === 'giorni' || view === 'esplosioni' || (view === 'adesso' && homeMode() === 'esperto');
 function modeSwitch() {
   const m = homeMode();
-  return '<div class="ab-seg ab-modesel ab-span" role="group" aria-label="Come vedere la prima pagina">' + [['semplice', 'Semplice'], ['esperto', 'Esperto']].map(([k, l]) => '<button type="button" data-home="' + k + '" aria-pressed="' + (m === k) + '">' + l + '</button>').join('') + '</div>';
+  return '<div class="ab-modebar ab-span"><div class="ab-seg ab-modesel" role="group" aria-label="Come vedere la prima pagina">' + [['semplice', 'Semplice'], ['esperto', 'Esperto']].map(([k, l]) => '<button type="button" data-home="' + k + '" aria-pressed="' + (m === k) + '">' + l + '</button>').join('') + '</div>' + (m === 'semplice' ? guideButton() : '') + '</div>';
 }
 function viewAdesso() {
-  const now = Date.now(), e = pickEvent(now), F = factors(e), H = hypothesis(F), sig = F.sig;
-  if (homeMode() === 'semplice') return viewSemplice(now, e, F, H);
-  let win = '';
-  if (sig.level != null && e && e.arrStart != null) {
-    const st = eventState(e, now), ov = overlapsOf(e);
-    win = '<a class="ab-situation__window ab-golink" href="#fronti" data-go="fronti" aria-label="Vai al fronte: arrivo stimato tra le ' + fmtClock(e.arrStart - ARRIVAL_MARGIN_MS) + ' e le ' + fmtClock(e.arrStart + ARRIVAL_MARGIN_MS) + '"><div class="ab-situation__row"><span class="t-label">Un episodio di Bz sud potrebbe arrivare</span>' + tag('estimated', TAGS.estimated) + '</div>' +
-      '<span class="t-window">' + fmtClock(e.arrStart - ARRIVAL_MARGIN_MS) + ' – ' + fmtClock(e.arrStart + ARRIVAL_MARGIN_MS) + '</span>' + arrivalBar(e, now) +
-      '<span class="t-caption">' + esc(st.label) + ' · stima indicativa: può arrivare prima o dopo.' + (ov ? ' ' + (ov + 1) + ' finestre si sovrappongono.' : '') + '</span>' +
-      '<span class="ab-golink__cta">Vedi il fronte' + icon('chev') + '</span></a>';
-  }
-  const sit = situationMarkup({
-    id: 'sit', level: H.level, meter: false, eyebrow: 'Quadro d’insieme', tag: '',
-    title: H.title, why: H.why, window: win, body: factorOverview(F), caveat: CAVEAT,
-    foot: '<button type="button" class="ab-btn-text" data-open="info">Come è calcolato ' + icon('info') + '</button>' + (sig.c.fallback ? '<span class="t-caption" style="color:var(--ink-3)">Campo da riepilogo NOAA</span>' : ''),
-  });
-  // su telefono l'ordine è: righe NOAA, quadro d'insieme, quattro misure, grafici (css: .ab-page[data-cols="two"]).
-  // Il riscontro a terra c'è solo quando esiste un fronte da confrontare: senza, la tessera «A terra» basta.
-  return '<div class="ab-page" data-cols="two">' + modeSwitch() + noaaLines() + '<div class="ab-stack">' + geoHint() + sit + fieldCard() + '</div><div class="ab-stack">' + metricsBlock(sig.c) + probesCard() + (e ? groundCard(e) : '') + '</div><div class="ab-span">' + windCard() + '</div></div>';
+  if (homeMode() === 'semplice') { const now = Date.now(), e = pickEvent(now), F = factors(e); return viewSemplice(now, e, F, hypothesis(F)); }
+  return viewDati();
 }
 
 // ---------- Semplice ----------
@@ -144,7 +132,7 @@ function daysCard() {
     const h = Math.round(12 + Math.min(9, Math.max(0, x.kp)) / 9 * 44);
     return '<div class="ab-days__col" data-g="' + g + '"><div class="ab-days__bar"><i style="height:' + h + 'px"></i></div><b>' + esc(label) + '</b><small>' + esc(word) + '</small></div>';
   }).join('');
-  return card('Prossimi giorni', '<div class="ab-days__row">' + cols + '</div><p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-3)">Kp = quanto è agitato il campo magnetico, in media nel mondo.</p>', { right: tag('forecast', 'NOAA') });
+  return card('Prossimi giorni', '<div class="ab-days__row">' + cols + '</div><p class="t-caption ab-hint" style="color:var(--ink-3);margin-top:var(--space-3)">Kp = quanto è agitato il campo magnetico, in media nel mondo.</p>', { right: tag('forecast', 'NOAA') });
 }
 function viewSemplice(now, e, F, H) {
   return '<div class="ab-page ab-simple">' + modeSwitch() + sunHero(F) + noaaLines() + '<div class="ab-span">' + fieldCard(true) + '</div>' + daysCard() + geoHint() + tonightCard() +
@@ -159,7 +147,7 @@ function tonightCard() {
   return '<section class="ab-card ab-tonight"><div class="ab-card__head"><h2 class="t-title">' + esc(nightName(s.w)) + '</h2>' + tag('forecast', TAGS.forecast) + '</div>' +
     '<p class="t-body">Cielo libero <b data-c="' + pClass(s.avg) + '">' + esc(pWord(s.avg)) + '</b>' + (best ? ', meglio tra le ' + fmtClock(best.a) + ' e le ' + fmtClock(best.b) : '') + '.</p>' +
     // se nessuna ora arriva al 10% la barra sarebbe vuota: basta la frase
-    (s.cells.some((c) => c.pClear >= 10) ? nightStrip(s) + '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">Barra alta e verde = più probabile vedere il cielo. ' : '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">') + 'Buio ' + fmtClock(s.w.a) + '–' + fmtClock(s.w.b) + '.</p>' +
+    (s.cells.some((c) => c.pClear >= 10) ? nightStrip(s) + '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">' : '<p class="t-caption" style="color:var(--ink-3);margin-top:var(--space-1)">') + 'Buio ' + fmtClock(s.w.a) + '–' + fmtClock(s.w.b) + '.</p>' +
     '<a class="ab-golink ab-golink__cta" href="#cielo" data-go="cielo">Nuvole, mappa e satellite' + icon('chev') + '</a></section>';
 }
 
@@ -254,7 +242,7 @@ function groundCard(e) {
     '<p class="t-body-sm" style="color:var(--ink-2);margin-top:var(--space-2)">' + esc(e ? a.detail : 'Il confronto parte quando un episodio di Bz sud ha un arrivo stimato.') + '</p>' +
     (ov ? '<p class="ab-notice" style="margin-top:var(--space-3)">Finestre sovrapposte: un’eventuale risposta non è attribuibile a un solo fronte.</p>' : '') +
     (g.far ? '<p class="ab-notice" style="margin-top:var(--space-3)">Stazione lontana: confronto regionale, non conferma locale.</p>' : '') +
-    '<p class="ab-ground__foot t-caption">' + (g.last ? 'Ultimo campione ' + fmtClock(g.last) + '. ' : '') + 'Regola esplorativa: variazione di almeno 100 nT rispetto al riferimento, oppure di almeno 15 nT/min sostenuta per 3 minuti. Un segnale è solo compatibile nel tempo con il fronte, non ne prova la causa; un magnetometro tranquillo non esclude un arrivo altrove.</p>' +
+    '<p class="ab-ground__foot t-caption ab-hint">' + (g.last ? 'Ultimo campione ' + fmtClock(g.last) + '. ' : '') + 'Regola esplorativa: variazione di almeno 100 nT rispetto al riferimento, oppure di almeno 15 nT/min sostenuta per 3 minuti. Un segnale è solo compatibile nel tempo con il fronte, non ne prova la causa; un magnetometro tranquillo non esclude un arrivo altrove.</p>' +
     '<p class="t-caption ab-credit">Dati: rete di magnetometri IMAGE, mantenuta da FMI e dagli istituti partner (CC BY 4.0). Tempo reale, provvisori.</p>' +
     '<div class="ab-linkrow">' + extLink(url, 'Magnetogramma FMI') + '</div></section>';
 }
@@ -483,7 +471,7 @@ function regionMapSvg(regions) {
     '<line class="grid" x1="' + (cx - R) + '" x2="' + (cx + R) + '" y1="' + cy + '" y2="' + cy + '"/><line class="grid" x1="' + cx + '" x2="' + cx + '" y1="' + (cy - R) + '" y2="' + (cy + R) + '"/>' +
     '<text class="tick" x="' + (cx - R - 6) + '" y="' + (cy + 4) + '" text-anchor="end">E</text><text class="tick" x="' + (cx + R + 6) + '" y="' + (cy + 4) + '">W</text>' +
     dots + '</svg></div>' +
-    '<p class="t-caption ab-card__note">Ogni punto è una regione numerata: dimensione = numero di macchie, colore = complessità magnetica (grigio semplice, ambra «gamma», magenta «delta» — le più propense a brillamenti forti). Schema semplificato dalla posizione del bollettino, non un’immagine reale del Sole.</p>';
+    '<p class="t-caption ab-card__note ab-hint">Ogni punto è una regione numerata: dimensione = numero di macchie, colore = complessità magnetica (grigio semplice, ambra «gamma», magenta «delta» — le più propense a brillamenti forti). Schema semplificato dalla posizione del bollettino, non un’immagine reale del Sole.</p>';
 }
 const OUT_WORD = { incoming: 'Verso la Terra', glancing: 'Di striscio', arrived: 'Arrivata', passed: 'Da verificare', no: 'Non diretta', unk: 'Da valutare', nocme: 'Senza CME' };
 const speedWord = (v) => (v < 500 ? 'lenta' : v < 1000 ? 'media' : 'veloce');
@@ -538,10 +526,10 @@ function flareCard(n) {
   const title = !top ? 'Nessun brillamento registrato' : L === 'X' ? 'Brillamento forte (classe X)' : L === 'M' ? 'Brillamento medio (classe M)' : L === 'C' ? 'Solo brillamenti piccoli' : 'Sole tranquillo';
   const head = '<div class="ab-flarehead" data-c="' + (L || 'none') + '"><span class="ab-flarehead__cls">' + (top ? esc(top.cls) : '—') + '</span><div><b>' + esc(title) + '</b><span>' + (top ? 'Il più forte in 7 giorni · ' + esc(new Date(top.t).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', timeZone: zone() }).replace('.', '')) + ', ' + fmtClock(top.t) : 'Il bollettino GOES non riporta eventi.') + '</span><small>Ultime 24 ore: ' + (day ? 'il più forte è ' + esc(day.cls) : 'nessun evento') + '</small></div></div>';
   const banner = big.length ? '<p class="ab-flarealert">' + icon('zap') + '<span><b>' + big.length + (big.length === 1 ? ' brillamento' : ' brillamenti') + ' di classe M o superiore</b> in 7 giorni' + (x ? ', di cui ' + x + ' di classe X' : '') + ': sono segnati sul grafico.</span></p>' : '<p class="t-body-sm ab-flarenone">Nessun brillamento di classe M o X negli ultimi 7 giorni.</p>';
-  const legend = '<p class="t-caption ab-flescale">Scala dal più debole al più forte: A, B, C, M, X. Ogni lettera è 10 volte più intensa della precedente.</p><ul class="ab-flegend" aria-label="Classi dei brillamenti">' + [['B', 'A · B deboli'], ['C', 'C piccoli'], ['M', 'M medi'], ['X', 'X forti']].concat(n.donki ? [['cme', 'anello: ha lanciato una CME']] : []).map(([c, l]) => '<li data-c="' + c + '">' + l + '</li>').join('') + '</ul>';
+  const legend = '<p class="t-caption ab-flescale ab-hint">Scala dal più debole al più forte: A, B, C, M, X. Ogni lettera è 10 volte più intensa della precedente.</p><ul class="ab-flegend" aria-label="Classi dei brillamenti">' + [['B', 'A · B deboli'], ['C', 'C piccoli'], ['M', 'M medi'], ['X', 'X forti']].concat(n.donki ? [['cme', 'rombo azzurro: ha lanciato una CME'], ['cmerow', 'riga CME: nube lanciata (piena = onda d’urto arrivata)']] : []).map(([c, l]) => '<li data-c="' + c + '">' + l + '</li>').join('') + '</ul>';
   return card('Brillamenti solari · 7 giorni', head + banner +
     '<div class="ab-chart" id="flareChart" style="margin-top:var(--space-3)"></div><div class="ab-fdetail" id="flareDetail" aria-live="polite"></div>' + legend +
-    '<p class="t-caption ab-card__note">Dati: NOAA SWPC (satelliti GOES). Le «esplosioni» del Sole, misurate in raggi X: ogni punto è un brillamento, più in alto è più forte; l’anello segna quelli a cui NASA ha collegato una CME (può comparire con ore di ritardo). Ore locali, picco di ogni brillamento. Un brillamento forte non basta per un’aurora: serve una CME (una nube di plasma) diretta verso la Terra; qui sotto vedi se c’è stata.</p>', { right });
+    '<p class="t-caption ab-card__note">Dati: NOAA SWPC (satelliti GOES). Le «esplosioni» del Sole, misurate in raggi X: ogni punto è un brillamento, più in alto è più forte; il rombo azzurro segna quelli a cui NASA ha collegato una CME (può comparire con ore di ritardo); nella riga CME sotto il grafico ogni rombo è una nube analizzata da NASA. Ore locali, picco di ogni brillamento. Un brillamento forte non basta per un’aurora: serve una CME (una nube di plasma) diretta verso la Terra; qui sotto vedi se c’è stata.</p>', { right });
 }
 // probabilità NOAA di brillamento M e X nelle prossime 24 ore per una regione (riga in più sotto la regione)
 function flareProbRow(num, fp) {
@@ -578,9 +566,10 @@ const alertHead = (a) => {
 };
 
 let MEDIA = { timers: {}, frames: {} };
-function viewGiorni() {
+// I pezzi della scheda Giorni, separati per poterli ricomporre in «Tutti i dati» (js/dati.js). Senza bollettino NOAA: null.
+function giorniParts() {
   const n = S.noaa;
-  if (!n) return '<div class="ab-page"><div class="ab-span"><h1 class="ab-h1">Giorni</h1></div><div class="ab-skel"></div><div class="ab-skel"></div></div>';
+  if (!n) return null;
   const sum = noaaSummary();
   const summary = sum ? situationMarkup({ id: 'sum', level: sum.level, meter: false, eyebrow: 'NOAA · 3 giorni', tag: tag('forecast', TAGS.forecast), title: sum.title, why: sum.why, caveat: 'Il Kp è una media planetaria: il clima generale, non l’aurora sopra di te.' }).replace('<h1 ', '<h2 ').replace('</h1>', '</h2>') : card('Previsione NOAA', empty('Bollettino non disponibile ora.'));
   // «adesso» vs «previsto»: le due domande che contano appena si apre Giorni, una sopra l'altra, stesso stile della card di previsione.
@@ -612,7 +601,7 @@ function viewGiorni() {
       '<span>Radiazione S1+</span>' + fc.map((k) => '<span class="v">' + pct(n.scales[k].S && n.scales[k].S.Prob) + '</span>').join('') +
       '<span>Blackout R1–R2</span>' + fc.map((k) => '<span class="v">' + pct(n.scales[k].R && n.scales[k].R.MinorProb) + '</span>').join('') +
       '<span>Blackout R3+</span>' + fc.map((k) => '<span class="v">' + pct(n.scales[k].R && n.scales[k].R.MajorProb) + '</span>').join('') + '</div></details>';
-    scales += '<p class="t-caption ab-card__note">Scala NOAA G: G1 = Kp 5, G2 = Kp 6, G3 = Kp 7, G4 = Kp 8, G5 = Kp 9. I giorni sono in UTC, come nel bollettino. Le date vengono dal bollettino, non da «oggi + 1».</p>';
+    scales += '<p class="t-caption ab-card__note ab-hint">Scala NOAA G: G1 = Kp 5, G2 = Kp 6, G3 = Kp 7, G4 = Kp 8, G5 = Kp 9. I giorni sono in UTC, come nel bollettino. Le date vengono dal bollettino, non da «oggi + 1».</p>';
   }
   const scalesCard = more('Scala NOAA G, S, R', 'tempeste geomagnetiche, radiazione, blackout', scales);
   // le prossime notti nel luogo scelto
@@ -622,14 +611,14 @@ function viewGiorni() {
     const moon = x.moon + '% illuminata · ' + (x.moonHours === 0 ? 'non in cielo' : 'in cielo ' + (Math.round(x.moonHours * 2) / 2).toString().replace('.', ',') + ' h');
     return '<li><div><b>' + esc(name) + '</b><span>' + fmtClock(x.a) + ' – ' + fmtClock(x.b) + '</span><small>Luna ' + esc(moon) + (x.partial ? ' · previsione parziale' : '') + '</small></div>' +
       '<div class="ab-nights__kp"' + (x.g ? ' data-g="' + x.g + '"' : '') + '><span class="t-label">Kp massimo</span><b>' + itNum(x.kp, 2) + '</b><small>' + (x.g ? 'G' + x.g + ' · ' + G_WORDS[x.g] : 'sotto G1') + ' · ' + fmtClock(x.kpFrom) + '–' + fmtClock(x.kpTo) + '</small></div></li>';
-  }).join('') + '</ul><p class="t-caption ab-card__note">Dal tramonto all’alba del luogo scelto, con i Kp a 3 ore di NOAA. Il Kp è una media planetaria: dice il clima generale della notte, non se vedrai l’aurora dove sei. La luna chiara ne riduce la visibilità.</p>' : empty(nights ? 'Nessuna notte coperta dal bollettino NOAA.' : 'Servono il bollettino NOAA e il calcolo del buio.'), { right: tag('forecast', 'Previsto NOAA') });
+  }).join('') + '</ul><p class="t-caption ab-card__note ab-hint">Dal tramonto all’alba del luogo scelto, con i Kp a 3 ore di NOAA. Il Kp è una media planetaria: dice il clima generale della notte, non se vedrai l’aurora dove sei. La luna chiara ne riduce la visibilità.</p>' : empty(nights ? 'Nessuna notte coperta dal bollettino NOAA.' : 'Servono il bollettino NOAA e il calcolo del buio.'), { right: tag('forecast', 'Previsto NOAA') });
   // Kp a 3 ore
   let kp = empty('Tabella Kp non disponibile ora.');
   const f = n.fc;
   if (f && f.days.length) {
     const d0 = f.days[0].ms, hours = Array.from({ length: 8 }, (_, i) => hourLabel(d0 + i * 3 * 3600e3));
     kp = '<div class="ab-kpstrip"><span></span>' + hours.map((h) => '<span class="hd">' + h + '</span>').join('') + f.days.map((d) => '<span class="day">' + esc(dayShort(d.ms)) + '</span>' + d.kp.map((k, i) => { const gg = gOfKp(k), isNow = Date.now() >= d.ms + i * 3 * 3600e3 && Date.now() < d.ms + (i + 1) * 3 * 3600e3; return '<span class="ab-kcell"' + (gg ? ' data-g="' + gg + '"' : '') + (isNow ? ' data-now aria-current="true"' : '') + '>' + itNum(k, 2) + '</span>'; }).join('')).join('') + '</div>' +
-      '<p class="t-caption ab-card__note">Ore locali (' + esc(tzName()) + '); le righe sono i giorni NOAA in UTC. Riquadro: la fascia di adesso. Dal Kp 5 (G1) la cella si colora. Il Kp è una media planetaria a 3 ore: descrive il clima generale, non dice se vedrai l’aurora dove sei.</p>';
+      '<p class="t-caption ab-card__note ab-hint">Ore locali (' + esc(tzName()) + '); le righe sono i giorni NOAA in UTC. Riquadro: la fascia di adesso. Dal Kp 5 (G1) la cella si colora. Il Kp è una media planetaria a 3 ore: descrive il clima generale, non dice se vedrai l’aurora dove sei.</p>';
   }
   const kpCard = more('Kp previsto ogni 3 ore', 'tabella dei 3 giorni', kp);
   // commento dei previsori
@@ -658,7 +647,6 @@ function viewGiorni() {
   else if (sr.regions.length) reg = regionMapSvg(sr.regions) + '<div>' + sr.regions.map((r) => '<div class="ab-region"><b>' + esc(r.num) + '</b><span>' + esc(r.loc) + ' · area ' + esc(r.area) + '</span><span class="v">' + esc(r.spots) + ' macchie · ' + esc(r.mag) + '</span>' + flareProbRow(r.num, n.flareProb) + '</div>').join('') + '</div>';
   else reg = '<p class="t-body ab-empty">Nessuna macchia solare numerata nel bollettino di oggi.</p>' + (sr.plages.length ? '<p class="t-body-sm" style="color:var(--ink-3);margin-top:var(--space-2)">NOAA elenca solo ' + (sr.plages.length === 1 ? 'una regione senza macchie (plaga)' : sr.plages.length + ' regioni senza macchie (plaghe)') + ': ' + sr.plages.map((p) => esc(p.num)).join(' e ') + '.</p>' : '');
   const regCard = more('Macchie solari', !sr ? 'non disponibile ora' : sr.regions.length ? sr.regions.length + (sr.regions.length === 1 ? ' regione con macchie' : ' regioni con macchie') : 'nessuna regione con macchie oggi', reg + (sr && sr.issued ? '<p class="t-caption ab-card__note">Bollettino NOAA/USAF del ' + fmtDayClock(sr.issued) + '.</p>' : ''));
-  const flCard = flareCard(n), cmCard = cmeCard(n);
   // allerte: solo geomagnetiche (le altre, per protoni/elettroni/radio, riguardano i satelliti, non l'aurora), con un titolo in
   // italiano invece della sola sigla NOAA in inglese. alertHead() è condivisa con il banner di Adesso (sopra, vicino a G_WORDS).
   const nowMs = Date.now();
@@ -668,9 +656,14 @@ function viewGiorni() {
   else if (n.alerts) al = empty('Nessun comunicato geomagnetico NOAA nelle ultime ore.');
   const alCard = card('Comunicati NOAA', al, { right: tag('measured', 'Ufficiale NOAA') });
   const moreCard = '<section class="ab-card ab-morelist"><div class="ab-card__head"><h2 class="t-title">Altri dati NOAA</h2></div>' + regCard + noteCard + kpCard + scalesCard + '</section>';
+  return { n, nowCard, summary, alCard, nightsCard, sun, regCard, noteCard, kpCard, scalesCard, moreCard };
+}
+function viewGiorni() {
+  const P = giorniParts();
+  if (!P) return '<div class="ab-page"><div class="ab-span"><h1 class="ab-h1">Giorni</h1></div><div class="ab-skel"></div><div class="ab-skel"></div></div>';
   return '<div class="ab-page" data-cols="even"><div class="ab-span"><h1 class="ab-h1">Giorni</h1><p class="ab-lede">Cosa ha fatto il Sole negli ultimi giorni e cosa prevede NOAA.</p></div>' +
-    '<div class="ab-span ab-stack">' + nowCard + summary + alCard + '</div>' +
-    '<div class="ab-span">' + flCard + '</div><div class="ab-span" id="cmeCard">' + cmCard + '</div><div class="ab-stack">' + nightsCard + '</div><div class="ab-stack">' + sun + '</div><div class="ab-stack">' + moreCard + '</div></div>';
+    '<div class="ab-span ab-stack">' + P.nowCard + P.summary + P.alCard + '</div>' +
+    '<div class="ab-span">' + explosionsLink() + '</div><div class="ab-stack">' + P.nightsCard + '</div><div class="ab-stack">' + P.sun + '</div><div class="ab-stack">' + P.moreCard + '</div></div>';
 }
 
 function toggleAnim(key) {
@@ -769,33 +762,36 @@ function renderDiag() {
 
 // ============================ regia ============================
 function footLinks() { return '<div class="ab-span ab-foot"><button type="button" class="ab-btn-text" data-open="credits">Fonti e crediti</button>' + (S.installEvt ? '<button type="button" class="ab-btn-text" data-install>Installa l’app</button>' : '') + '<span>Non è un servizio ufficiale di NOAA, NASA o FMI.</span></div>'; }
-const BACK_WORD = { adesso: 'ad Adesso', fronti: 'a Fronti', cielo: 'a Cielo', webcam: 'a Webcam', giorni: 'a Giorni' };
+const BACK_WORD = { adesso: 'ad Adesso', fronti: 'a Fronti', cielo: 'a Cielo', webcam: 'a Webcam', giorni: 'a Giorni', dati: 'a Tutti i dati', esplosioni: 'alle Esplosioni' };
 function backChip() { return '<div class="ab-span"><a class="ab-backlink" href="#' + S.back.view + '" data-back>' + icon('chev') + 'Torna ' + BACK_WORD[S.back.view] + '</a></div>'; }
 function renderView(name) {
   const el = $('v-' + name); if (!el) return;
   stopAnims();
-  el.innerHTML = { adesso: viewAdesso, fronti: viewFronti, cielo: viewCielo, webcam: viewWebcam, giorni: viewGiorni }[name]().replace(/<\/div>\s*$/, footLinks() + '</div>');
+  el.innerHTML = { adesso: viewAdesso, fronti: viewFronti, cielo: viewCielo, webcam: viewWebcam, giorni: viewGiorni, esplosioni: viewEsplosioni }[name]().replace(/<\/div>\s*$/, footLinks() + '</div>');
   if (S.back && S.back.view !== name) el.innerHTML = el.innerHTML.replace(/(<div class="ab-page"[^>]*>)/, '$1' + backChip());
   if (name === 'adesso') { drawField(); drawGround(); drawWind(); }
-  if (name === 'giorni') drawFlares();
+  if (name === 'esplosioni') drawFlares();
   if (name === 'cielo') drawCloudMap();
   if (name === 'fronti') drawFront(pickEvent(Date.now()) || S.episodes[S.episodes.length - 1] || null);
 }
 function renderAll() {
   renderHeader(); renderNav(); renderStatus();
-  VIEWS.forEach((v) => { $('v-' + v.id).hidden = v.id !== S.view; });
+  // le pagine nascoste si svuotano: così due pagine non hanno mai lo stesso id (grafici, immagini) nello stesso momento
+  VIEWS.forEach((v) => { const el = $('v-' + v.id); el.hidden = v.id !== S.view; if (v.id !== S.view) el.innerHTML = ''; });
   const y = window.scrollY;
   try { renderView(S.view); } catch (e) { diagError('render ' + S.view + ': ' + (e.message || e)); $('v-' + S.view).innerHTML = '<div class="ab-page"><p class="ab-empty">Errore nel disegno della scheda. Apri «Come è calcolato» → Diagnostica.</p></div>'; }
   window.scrollTo(0, y);
-  document.title = { adesso: 'Adesso', fronti: 'Fronti', cielo: 'Cielo', webcam: 'Webcam', giorni: 'Giorni' }[S.view] + ' · Aurora Bande';
+  document.title = { adesso: 'Adesso', fronti: 'Fronti', cielo: 'Cielo', webcam: 'Webcam', giorni: 'Giorni', esplosioni: 'Esplosioni solari' }[S.view] + ' · Aurora Bande';
 }
 function goto(view) {
+  // «Tutti i dati» è la prima pagina in modo Esperto: i vecchi collegamenti #dati portano lì
+  if (view === 'dati') { store.set('aurora_home', 'esperto'); view = 'adesso'; history.replaceState(null, '', '#adesso'); }
   if (!VIEWS.some((v) => v.id === view)) view = 'adesso';
   // «Torna a…» compare solo se si arriva da un collegamento interno, non dalla barra delle sezioni
   S.back = S.pendingBack && S.pendingBack.view !== view ? S.pendingBack : null; S.pendingBack = null;
   S.view = view;
   renderAll();
-  if (view === 'giorni' && (!S.noaa || Date.now() - S.noaa.loadedAt > 15 * 60000)) loadNoaa().then(renderAll);
+  if (needsNoaa(view) && (!S.noaa || Date.now() - S.noaa.loadedAt > 15 * 60000)) loadNoaa().then(renderAll);
   window.scrollTo(0, S.restoreY || 0); S.restoreY = 0;
 }
 
@@ -812,7 +808,7 @@ function bindUI() {
     if (t.closest('#alertBtn')) { openSheet('sheetAlerts'); return; }
     if (t.closest('[data-close]')) { t.closest('dialog').close(); return; }
     if (t.closest('#refreshBtn')) { refreshNow(true); return; }
-    const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); const to = hm.dataset.to && $(hm.dataset.to); if (to) to.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); return; }
+    const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); if (needsNoaa('adesso') && (!S.noaa || Date.now() - S.noaa.loadedAt > 15 * 60000)) loadNoaa().then(renderAll); const to = hm.dataset.to && $(hm.dataset.to); if (to) to.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); return; }
     const cs = t.closest('.ab-ctls > summary'); if (cs) ctlOpen = !cs.parentElement.open; // la riga Sonde e curve resta come l'hai lasciata
     const hrs = t.closest('[data-hours]'); if (hrs) { S.chart.hours = Number(hrs.dataset.hours); saveChart(); renderView('adesso'); return; }
     const cm = t.closest('[data-comp]'); if (cm) { ctlOpen = true; S.chart.comps[cm.dataset.comp] = !S.chart.comps[cm.dataset.comp]; saveChart(); renderView('adesso'); return; }

@@ -70,7 +70,7 @@ function fieldCard(simple) {
     '<details class="ab-details ab-ctls"' + (ctlOpen ? ' open' : '') + '><summary><span>Sonde e curve</span><span class="ab-ctls__now" aria-hidden="true">' + dots + '</span>' + icon('chev') + '</summary>' +
     '<div class="ab-ctl"><span class="ab-label">Sonde</span><div class="ab-chips" role="group" aria-label="Sonde visibili">' + satChips + '</div></div>' +
     '<div class="ab-ctl"><span class="ab-label">Componenti</span><div class="ab-chips" role="group" aria-label="Componenti visibili">' + compChips + '</div></div></details>' +
-    '<details class="ab-details"><summary>Come leggere il grafico' + icon('chev') + '</summary><ul class="ab-bullets" style="margin:0 0 var(--space-2);padding-left:var(--space-5);color:var(--ink-2)">' +
+    '<details class="ab-details ab-hint"><summary>Come leggere il grafico' + icon('chev') + '</summary><ul class="ab-bullets" style="margin:0 0 var(--space-2);padding-left:var(--space-5);color:var(--ink-2)">' +
     '<li>Ogni componente ha un colore: Bt bianco, Bz rosso, Bx azzurro, By sabbia. Ogni sonda ha un tratto.</li>' +
     '<li>La linea continua, un po’ più marcata, è la sonda di riferimento NOAA: è quella su cui si decide. Le tratteggiate sono le altre sonde a L1: se dicono tutte la stessa cosa il dato è solido, se divergono vai cauto.</li>' +
     '<li>Sotto lo zero Bz punta a sud (favorevole). Le fasce chiare sono gli episodi di Bz sud rilevati; quella più scura è il fronte scelto.</li>' +
@@ -84,7 +84,7 @@ function fieldCard(simple) {
 function drawField() {
   const el = $('fieldChart'); if (!el) return;
   const d = fieldChartData(), c = S.chart, out = $('fieldReadout');
-  const hint = 'Tocca o passa sul grafico per leggere i valori.';
+  const hint = S.view === 'adesso' && homeMode() === 'semplice' ? '' : 'Tocca o passa sul grafico per leggere i valori.';
   if (!d.sats.length) { el.innerHTML = empty('In attesa dei dati delle sonde…'); out.textContent = ''; return; }
   if (!d.series.length) { el.innerHTML = empty(Object.values(c.comps).some(Boolean) && d.sats.some((s) => !c.hiddenSats[s]) ? 'Nessun dato in questo intervallo.' : 'Attiva almeno una sonda e una componente.'); out.textContent = ''; return; }
   const W = Math.max(280, Math.round(el.clientWidth)), H = W < 420 ? 310 : W < 700 ? 350 : 420, L = 44, R = W - 8, T = 22, B = H - 30;
