@@ -58,23 +58,47 @@ def fetch_station(station):
     }
 
 
+SITE_URL = 'https://bandellidavide.github.io/aurora-bande/data/ground/'
+
+
+def reuse_published(station):
+    """Se FMI non risponde, riusa il file gia' pubblicato sul sito (con la sua data di scarico originale:
+    il sito scarta da solo i campioni piu' vecchi di 24 ore). Ritorna i campioni riusati, 0 se non c'e' nulla."""
+    url = SITE_URL + station + '.json'
+    with urlopen(Request(url, headers={'User-Agent': 'aurora-bande-actions/1.0'}), timeout=20) as response:
+        payload = json.loads(response.read(2_000_000).decode('utf-8'))
+    if payload.get('station') != station or not isinstance(payload.get('samples'), list) or not payload['samples']:
+        return 0
+    (OUT_DIR / f'{station}.json').write_text(json.dumps(payload, allow_nan=False), encoding='utf-8')
+    return len(payload['samples'])
+
+
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    ok = 0
+    ok = reused = 0
     for station in STATIONS:
         try:
             payload = fetch_station(station)
+            if not payload['samples']:
+                raise ValueError('nessun campione valido')
         except Exception as exc:
             print(f'{station}: errore ({exc})')
-            continue
-        if not payload['samples']:
-            print(f'{station}: nessun campione valido, salto')
+            try:
+                n = reuse_published(station)
+            except Exception as exc2:
+                print(f'{station}: nemmeno la copia gia pubblicata ({exc2})')
+                continue
+            if n:
+                print(f'{station}: riuso la copia pubblicata ({n} campioni, data di scarico originale)')
+                reused += 1
             continue
         (OUT_DIR / f'{station}.json').write_text(json.dumps(payload, allow_nan=False), encoding='utf-8')
         print(f'{station}: {len(payload["samples"])} campioni')
         ok += 1
+    # I magnetometri arrivano anche in diretta dalla funzione groundData: questi file sono solo la copia di riserva.
+    # Se FMI e' fermo non si blocca la pubblicazione del sito (prima falliva), si segnala soltanto.
     if ok == 0:
-        raise SystemExit('Nessuna stazione ha prodotto dati validi')
+        print('::warning::FMI IMAGE non risponde: ' + (f'riusate {reused} copie gia pubblicate.' if reused else 'nessun file magnetometro aggiornato.'))
 
 
 if __name__ == '__main__':
