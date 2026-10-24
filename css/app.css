@@ -755,3 +755,22 @@ a{color:var(--ink-2)}
 .ab-tour__bubble p{margin:0;color:var(--ink-2)}
 .ab-tour__row{display:flex;gap:var(--space-2);justify-content:space-between;align-items:center;margin-top:var(--space-2)}
 .ab-tour__row .ab-btn{min-height:var(--tap-min);padding:0 var(--space-4);font-size:15px}
+
+/* animazione all'arrivo su una pagina (playEnter in js/ui.js): schede che salgono, grafici che si aprono da sinistra, barre che crescono.
+   Con «riduci movimento» la regola in cima al file spegne tutto. */
+@keyframes ab-rise{from{opacity:0;transform:translateY(10px)}}
+@keyframes ab-wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes ab-grow{from{transform:scaleY(0)}}
+@keyframes ab-fade{from{opacity:0}}
+.ab-enter .ab-page>*{animation:ab-rise .45s cubic-bezier(.2,.7,.2,1) backwards}
+.ab-enter .ab-page>*:nth-child(2){animation-delay:.04s}
+.ab-enter .ab-page>*:nth-child(3){animation-delay:.08s}
+.ab-enter .ab-page>*:nth-child(4){animation-delay:.12s}
+.ab-enter .ab-page>*:nth-child(5){animation-delay:.16s}
+.ab-enter .ab-page>*:nth-child(n+6){animation-delay:.2s}
+.ab-enter .ab-chart svg{animation:ab-wipe .9s .2s cubic-bezier(.3,.6,.2,1) backwards}
+.ab-enter .ab-days__bar i,.ab-enter .ab-nstrip i{transform-origin:bottom;animation:ab-grow .6s .25s cubic-bezier(.2,.8,.2,1) backwards}
+.ab-enter .ab-sun__bar i{animation:ab-fade .5s backwards}
+.ab-enter .ab-sun__bar i:nth-child(2){animation-delay:.08s}
+.ab-enter .ab-sun__bar i:nth-child(3){animation-delay:.16s}
+.ab-enter .ab-sun__bar i:nth-child(4){animation-delay:.24s}

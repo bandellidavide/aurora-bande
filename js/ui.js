@@ -783,6 +783,13 @@ function renderAll() {
   window.scrollTo(0, y);
   document.title = { adesso: 'Adesso', fronti: 'Fronti', cielo: 'Cielo', webcam: 'Webcam', giorni: 'Giorni', esplosioni: 'Esplosioni solari' }[S.view] + ' · Aurora Bande';
 }
+// animazione di arrivo: parte solo quando si cambia pagina (o modo), non a ogni aggiornamento dei dati. Il CSS è in .ab-enter.
+let enterTimer = 0;
+function playEnter() {
+  const el = $('v-' + S.view); if (!el) return;
+  el.classList.remove('ab-enter'); void el.offsetWidth; el.classList.add('ab-enter');
+  clearTimeout(enterTimer); enterTimer = setTimeout(() => el.classList.remove('ab-enter'), 1300);
+}
 function goto(view) {
   // «Tutti i dati» è la prima pagina in modo Esperto: i vecchi collegamenti #dati portano lì
   if (view === 'dati') { store.set('aurora_home', 'esperto'); view = 'adesso'; history.replaceState(null, '', '#adesso'); }
@@ -790,7 +797,7 @@ function goto(view) {
   // «Torna a…» compare solo se si arriva da un collegamento interno, non dalla barra delle sezioni
   S.back = S.pendingBack && S.pendingBack.view !== view ? S.pendingBack : null; S.pendingBack = null;
   S.view = view;
-  renderAll();
+  renderAll(); playEnter();
   if (needsNoaa(view) && (!S.noaa || Date.now() - S.noaa.loadedAt > 15 * 60000)) loadNoaa().then(renderAll);
   window.scrollTo(0, S.restoreY || 0); S.restoreY = 0;
 }
@@ -808,7 +815,7 @@ function bindUI() {
     if (t.closest('#alertBtn')) { openSheet('sheetAlerts'); return; }
     if (t.closest('[data-close]')) { t.closest('dialog').close(); return; }
     if (t.closest('#refreshBtn')) { refreshNow(true); return; }
-    const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); if (needsNoaa('adesso') && (!S.noaa || Date.now() - S.noaa.loadedAt > 15 * 60000)) loadNoaa().then(renderAll); const to = hm.dataset.to && $(hm.dataset.to); if (to) to.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); return; }
+    const hm = t.closest('[data-home]'); if (hm) { store.set('aurora_home', hm.dataset.home); renderView('adesso'); playEnter(); if (needsNoaa('adesso') && (!S.noaa || Date.now() - S.noaa.loadedAt > 15 * 60000)) loadNoaa().then(renderAll); const to = hm.dataset.to && $(hm.dataset.to); if (to) to.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0); return; }
     const cs = t.closest('.ab-ctls > summary'); if (cs) ctlOpen = !cs.parentElement.open; // la riga Sonde e curve resta come l'hai lasciata
     const hrs = t.closest('[data-hours]'); if (hrs) { S.chart.hours = Number(hrs.dataset.hours); saveChart(); renderView('adesso'); return; }
     const cm = t.closest('[data-comp]'); if (cm) { ctlOpen = true; S.chart.comps[cm.dataset.comp] = !S.chart.comps[cm.dataset.comp]; saveChart(); renderView('adesso'); return; }

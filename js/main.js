@@ -51,7 +51,7 @@ function boot() {
   const h = location.hash.replace('#', '');
   if (h === 'dati') store.set('aurora_home', 'esperto');
   S.view = VIEWS.some((v) => v.id === h) ? h : 'adesso';
-  renderAll();
+  renderAll(); playEnter();
   diagSet('Libreria sole/luna (SunCalc)', window.SunCalc ? 'ok' : 'wait', window.SunCalc ? 'ok' : 'in caricamento');
   last = { slow: Date.now(), weather: Date.now(), clouds: Date.now(), sat: Date.now(), noaa: needsNoaa(S.view) ? Date.now() : 0, alerts: Date.now() };
   Promise.allSettled([
